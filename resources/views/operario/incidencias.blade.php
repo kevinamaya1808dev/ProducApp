@@ -1,5 +1,4 @@
-@extends('layouts.operario')
-@section('header_title', 'Incidencias')
+@extends('layouts.app')
 
 @section('content')
 <div class="flex justify-between items-center mb-6">

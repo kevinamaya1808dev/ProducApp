@@ -14,9 +14,11 @@
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-900">
     <div id="app" class="min-h-screen flex flex-col">
-        @include('layouts.partials.navbar')
+        @auth
+            @include('layouts.partials.navbar')
+        @endauth
 
-        <div class="flex pt-16 flex-1">
+        <div class="flex {{ Auth::check() ? 'pt-16' : '' }} flex-1">
             @include('layouts.partials.sidebar')
 
             <main class="flex-1 p-6 transition-all duration-300 {{ Auth::check() ? 'ml-64' : 'ml-0' }}">

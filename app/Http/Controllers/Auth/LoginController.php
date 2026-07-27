@@ -1,29 +1,28 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
     use AuthenticatesUsers;
 
+    /**
+     * Redirección dinámica según el rol del usuario tras iniciar sesión.
+     */
+    protected function redirectTo()
+    {
+        if (Auth::user()->role === 'admin') {
+            return route('admin.dashboard');
+        }
+
+        return route('operario.inicio');
+    }
+
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
-        $this->middleware('auth')->only('logout');
-    }
-
-    protected function authenticated(Request $request, $user)
-    {
-        if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        } elseif ($user->role === 'operario') {
-            return redirect()->route('operario.dashboard');
-        }
-
-        return redirect('/');
     }
 }
