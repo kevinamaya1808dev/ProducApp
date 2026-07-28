@@ -121,4 +121,42 @@ public function actualizarEstacion(Request $request, ProductionOrder $production
     return redirect()->route('operario.inicio')->with('success', 'Estación asignada correctamente.');
 }
 
+public function tareas(Request $request)
+{
+    $ordenes = ProductionOrder::with('product')
+        ->where('user_id', Auth::id())
+        ->latest()
+        ->get();
+
+    $ordenSeleccionada = $request->filled('orden')
+        ? $ordenes->firstWhere('id', (int) $request->query('orden'))
+        : $ordenes->first();
+
+    return view('operario.tareas', compact('ordenes', 'ordenSeleccionada'));
+}
+
+public function iniciarTarea(ProductionOrder $productionOrder)
+{
+    if ($productionOrder->user_id !== Auth::id()) {
+        abort(403);
+    }
+
+    $productionOrder->update(['status' => 'in_progress']);
+
+    return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
+        ->with('success', 'Tarea iniciada.');
+}
+
+public function completarTarea(ProductionOrder $productionOrder)
+{
+    if ($productionOrder->user_id !== Auth::id()) {
+        abort(403);
+    }
+
+    $productionOrder->update(['status' => 'completed']);
+
+    return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
+        ->with('success', 'Tarea marcada como completada.');
+}
+
 }

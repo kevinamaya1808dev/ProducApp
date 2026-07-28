@@ -11,6 +11,11 @@ class ProductionOrder extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+    'start_date' => 'date',
+    'end_date' => 'date',
+];
+
     protected $fillable = [
     'product_id',
     'user_id',
@@ -56,4 +61,7 @@ class ProductionOrder extends Model
         }
         return min(($this->piezas_registradas / $this->quantity) * 100, 100);
     }
+
+
+
 }

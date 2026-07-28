@@ -39,9 +39,12 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
     Route::resource('orders', ProductionOrderController::class);
     
     // Rutas de Gestión de Usuarios y Permisos
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::patch('/users/{user}/toggle-products', [UserController::class, 'toggleProductAccess'])->name('users.toggle-products');
-    Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
+   Route::get('/users', [UserController::class, 'index'])->name('users.index');
+Route::post('/users', [UserController::class, 'store'])->name('users.store');
+Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+Route::patch('/users/{user}/toggle-products', [UserController::class, 'toggleProductAccess'])->name('users.toggle-products');
+Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
 });
 
 // Módulo de Productos (Accesible por Admin o por Becario con permiso 'access-products')
@@ -68,3 +71,6 @@ Route::middleware(['auth', RoleMiddleware::class . ':operario'])
 });
 Route::put('/operario/orden/{productionOrder}/estacion', [OperarioController::class, 'actualizarEstacion'])
     ->name('operario.estacion.actualizar');
+
+    Route::put('/operario/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('operario.tareas.iniciar');
+Route::put('/operario/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('operario.tareas.completar');
