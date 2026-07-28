@@ -42,24 +42,9 @@ class OperarioController extends Controller
         return view('operario.inicio', compact('ordenActiva', 'piezasHoy', 'piezasOrdenActiva', 'actividadesRecientes'));
     }
 
-    public function tareas()
-    {
-        $ordenes = ProductionOrder::with('product')
-            ->where('user_id', Auth::id())
-            ->latest()
-            ->get();
-
-        return view('operario.tareas', compact('ordenes'));
-    }
-
     public function registro()
     {
         return view('operario.registro');
-    }
-
-    public function incidencias()
-    {
-        return view('operario.incidencias');
     }
 
     public function perfil()
@@ -84,6 +69,33 @@ class OperarioController extends Controller
         return redirect()->route('operario.inicio')->with('success', '¡Producción registrada correctamente!');
     }
 
+    // ---------------------------------------------------------
+    // MÉTODOS DE INCIDENCIAS (NUEVOS FRAGMENTOS)
+    // ---------------------------------------------------------
+
+    public function incidencias(Request $request)
+    {
+        $userId = Auth::id();
+
+        $incidencias = Incidence::with('order')
+            ->where('user_id', $userId)
+            ->latest()
+            ->get();
+
+        $ordenes = ProductionOrder::where('user_id', $userId)->latest()->get();
+
+        $mostrarFormulario = $request->boolean('nueva');
+        $incidenciaSeleccionada = null;
+
+        if (!$mostrarFormulario) {
+            $incidenciaSeleccionada = $request->filled('incidencia')
+                ? $incidencias->firstWhere('id', (int) $request->query('incidencia'))
+                : $incidencias->first();
+        }
+
+        return view('operario.incidencias', compact('incidencias', 'ordenes', 'incidenciaSeleccionada', 'mostrarFormulario'));
+    }
+
     public function crearIncidencia(Request $request)
     {
         $request->validate([
@@ -92,71 +104,72 @@ class OperarioController extends Controller
             'description' => 'required|string',
         ]);
 
-        Incidence::create([
+        $incidencia = Incidence::create([
             'production_order_id' => $request->production_order_id,
             'user_id' => Auth::id(),
             'title' => $request->title,
             'description' => $request->description,
         ]);
 
-        return redirect()->back()->with('success', 'Incidencia reportada correctamente.');
+        return redirect()->route('operario.incidencias', ['incidencia' => $incidencia->id])
+            ->with('success', 'Incidencia reportada correctamente.');
     }
 
+    // ---------------------------------------------------------
+    // MÉTODOS DE TAREAS Y ESTACIONES
+    // ---------------------------------------------------------
 
-// ... dentro de la clase OperarioController, junto a los demás métodos:
+    public function actualizarEstacion(Request $request, ProductionOrder $productionOrder)
+    {
+        // Seguridad: solo el operario asignado puede modificar su propia orden
+        if ($productionOrder->user_id !== Auth::id()) {
+            abort(403);
+        }
 
-public function actualizarEstacion(Request $request, ProductionOrder $productionOrder)
-{
-    // Seguridad: solo el operario asignado puede modificar su propia orden
-    if ($productionOrder->user_id !== Auth::id()) {
-        abort(403);
+        $request->validate([
+            'estacion' => 'required|string|max:50',
+        ]);
+
+        $productionOrder->update(['estacion' => $request->estacion]);
+
+        return redirect()->route('operario.inicio')->with('success', 'Estación asignada correctamente.');
     }
 
-    $request->validate([
-        'estacion' => 'required|string|max:50',
-    ]);
+    public function tareas(Request $request)
+    {
+        $ordenes = ProductionOrder::with('product')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
 
-    $productionOrder->update(['estacion' => $request->estacion]);
+        $ordenSeleccionada = $request->filled('orden')
+            ? $ordenes->firstWhere('id', (int) $request->query('orden'))
+            : $ordenes->first();
 
-    return redirect()->route('operario.inicio')->with('success', 'Estación asignada correctamente.');
-}
-
-public function tareas(Request $request)
-{
-    $ordenes = ProductionOrder::with('product')
-        ->where('user_id', Auth::id())
-        ->latest()
-        ->get();
-
-    $ordenSeleccionada = $request->filled('orden')
-        ? $ordenes->firstWhere('id', (int) $request->query('orden'))
-        : $ordenes->first();
-
-    return view('operario.tareas', compact('ordenes', 'ordenSeleccionada'));
-}
-
-public function iniciarTarea(ProductionOrder $productionOrder)
-{
-    if ($productionOrder->user_id !== Auth::id()) {
-        abort(403);
+        return view('operario.tareas', compact('ordenes', 'ordenSeleccionada'));
     }
 
-    $productionOrder->update(['status' => 'in_progress']);
+    public function iniciarTarea(ProductionOrder $productionOrder)
+    {
+        if ($productionOrder->user_id !== Auth::id()) {
+            abort(403);
+        }
 
-    return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
-        ->with('success', 'Tarea iniciada.');
-}
+        $productionOrder->update(['status' => 'in_progress']);
 
-public function completarTarea(ProductionOrder $productionOrder)
-{
-    if ($productionOrder->user_id !== Auth::id()) {
-        abort(403);
+        return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
+            ->with('success', 'Tarea iniciada.');
     }
 
-    $productionOrder->update(['status' => 'completed']);
+    public function completarTarea(ProductionOrder $productionOrder)
+    {
+        if ($productionOrder->user_id !== Auth::id()) {
+            abort(403);
+        }
 
-    return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
-        ->with('success', 'Tarea marcada como completada.');
-}
+        $productionOrder->update(['status' => 'completed']);
 
+        return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
+            ->with('success', 'Tarea marcada como completada.');
+    }
 }

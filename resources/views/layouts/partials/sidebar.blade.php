@@ -41,28 +41,38 @@
             @endif
 
             {{-- Continuación de vistas exclusivas de Administrador --}}
-            @if(Auth::user()->hasRole('admin'))
+            {{-- Módulo de Recetas --}}
+            @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-recetas'))
                 <!-- Recetas -->
                 <a href="{{ route('categories.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all relative {{ request()->routeIs('categories.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50' }}">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     <span>Recetas</span>
                     @if(request()->routeIs('categories.*')) <span class="absolute right-4 w-1.5 h-1.5 rounded-full bg-white opacity-90"></span> @endif
                 </a>
+            @endif
 
+            {{-- Módulo de Órdenes --}}
+            @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-ordenes'))
                 <!-- Órdenes -->
                 <a href="{{ route('orders.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all relative {{ request()->routeIs('orders.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50' }}">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"></path></svg>
                     <span>Órdenes</span>
                     @if(request()->routeIs('orders.*')) <span class="absolute right-4 w-1.5 h-1.5 rounded-full bg-white opacity-90"></span> @endif
                 </a>
+            @endif
 
+            {{-- Módulo de Operarios --}}
+            @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-usuarios'))
                 <!-- Operarios -->
                 <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all relative {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50' }}">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     <span>Operarios</span>
                     @if(request()->routeIs('users.*')) <span class="absolute right-4 w-1.5 h-1.5 rounded-full bg-white opacity-90"></span> @endif
                 </a>
+            @endif
 
+            {{-- Sección de Sistema --}}
+            @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-configuracion'))
                 <div class="px-3 pt-6 pb-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
                     Sistema
                 </div>

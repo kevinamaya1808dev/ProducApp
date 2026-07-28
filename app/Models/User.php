@@ -10,32 +10,17 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -48,12 +33,21 @@ class User extends Authenticatable
     // RELACIONES ELOQUENT
     // ==========================================
 
-    public function roles() 
+    public function roles()
     {
         return $this->belongsToMany(Role::class);
     }
 
-    public function incidences() 
+    /**
+     * Permisos asignados DIRECTAMENTE al usuario (override individual,
+     * independiente del rol que tenga asignado).
+     */
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class);
+    }
+
+    public function incidences()
     {
         return $this->hasMany(Incidence::class);
     }
@@ -78,10 +72,18 @@ class User extends Authenticatable
     }
 
     /**
-     * Función maestra para verificar permisos optimizada (Evita Query N+1)
+     * Función maestra para verificar permisos.
+     * Revisa primero permisos directos del usuario, y si no encuentra,
+     * revisa los permisos heredados por su(s) rol(es).
      */
-    public function hasPermission(string $permissionSlug): bool 
+    public function hasPermission(string $permissionSlug): bool
     {
+        // Permiso asignado directamente al usuario
+        if ($this->permissions()->where('slug', $permissionSlug)->exists()) {
+            return true;
+        }
+
+        // Permiso heredado por rol (evita N+1)
         return $this->roles()->whereHas('permissions', function ($query) use ($permissionSlug) {
             $query->where('slug', $permissionSlug);
         })->exists();

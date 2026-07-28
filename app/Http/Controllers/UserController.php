@@ -12,13 +12,17 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with('roles')
+        $totalUsers = User::count();
+
+        $users = User::with(['roles', 'permissions']) // Cargamos los permisos para evitar consultas N+1
             ->where('id', '!=', auth()->id())
             ->get();
 
-        $roles = Role::all();
+        $roles = \App\Models\Role::all();
+        $permissions = \App\Models\Permission::all(); // AQUÍ: Extraemos los permisos
 
-        return view('admin.users.index', compact('users', 'roles'));
+        // Enviamos los permisos a la vista
+        return view('admin.users.index', compact('users', 'roles', 'permissions', 'totalUsers')); 
     }
 
     public function store(Request $request)
@@ -48,30 +52,34 @@ class UserController extends Controller
         return back()->with('success', "Usuario '{$user->name}' creado correctamente.");
     }
 
-    public function update(Request $request, User $user)
+   public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'password' => 'nullable|string|min:8',
-            'role_id'  => 'required|exists:roles,id',
+            'name'        => 'required|string|max:255',
+            'email'       => ['required', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
+            'password'    => 'nullable|string|min:8',
+            'role_id'     => 'required|exists:roles,id',
+            'permissions' => 'nullable|array', // Validamos que llegue un array de permisos
+            'permissions.*' => 'exists:permissions,id' // Validamos que los permisos existan
         ], [
-            'name.required'    => 'El nombre es obligatorio.',
-            'email.required'   => 'El correo es obligatorio.',
-            'email.unique'     => 'Ese correo ya está registrado.',
-            'password.min'     => 'La contraseña debe tener al menos 8 caracteres.',
-            'role_id.required' => 'Debes asignar un rol.',
+            // ... tus mensajes de error ...
         ]);
 
         $user->name  = $validated['name'];
         $user->email = $validated['email'];
 
         if (!empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
+            $user->password = \Illuminate\Support\Facades\Hash::make($validated['password']);
         }
 
         $user->save();
+        
+        // Sincronizamos el Rol
         $user->roles()->sync([$validated['role_id']]);
+        
+        // AQUÍ ESTÁ LA MAGIA: Sincronizamos los permisos en la base de datos
+        // Si no mandan nada, sincronizamos un array vacío para borrarle permisos anteriores
+        $user->permissions()->sync($request->permissions ?? []); 
 
         return back()->with('success', "Usuario '{$user->name}' actualizado correctamente.");
     }

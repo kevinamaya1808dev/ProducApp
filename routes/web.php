@@ -13,12 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     if (Auth::check()) {
         $user = Auth::user();
-
-        // Si usas columna 'role' directa en users:
-        $isAdmin = $user->role === 'admin';
-
-        // O si usas la relación de Eloquent con roles:
-        // $isAdmin = $user->roles->contains('slug', 'admin');
+        $isAdmin = $user->hasRole('admin');
 
         return $isAdmin
             ? redirect()->route('admin.dashboard')
@@ -29,7 +24,9 @@ Route::get('/', function () {
 
 Auth::routes(['register' => false]);
 
-// Grupo de rutas exclusivas para el Administrador (Dashboard, Categorías y Órdenes)
+// ==========================================
+// GRUPO: ADMINISTRADOR
+// ==========================================
 Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
@@ -39,38 +36,41 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
     Route::resource('orders', ProductionOrderController::class);
     
     // Rutas de Gestión de Usuarios y Permisos
-   Route::get('/users', [UserController::class, 'index'])->name('users.index');
-Route::post('/users', [UserController::class, 'store'])->name('users.store');
-Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-Route::patch('/users/{user}/toggle-products', [UserController::class, 'toggleProductAccess'])->name('users.toggle-products');
-Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
 });
 
-// Módulo de Productos (Accesible por Admin o por Becario con permiso 'access-products')
+// ==========================================
+// MÓDULO: PRODUCTOS (Admin o Becario con permiso)
+// ==========================================
 Route::middleware(['auth', 'can:access-products'])->prefix('admin')->group(function () {
     Route::resource('products', ProductController::class);
 });
 
-// Grupo de rutas exclusivas para el Operario
+// ==========================================
+// GRUPO: OPERARIO (Seguro y Centralizado)
+// ==========================================
 Route::middleware(['auth', RoleMiddleware::class . ':operario'])
     ->prefix('operario')
     ->name('operario.')
     ->group(function () {
     
-    // Rutas GET (Navegación)
-    Route::get('/inicio', [OperarioController::class, 'inicio'])->name('inicio');
-    Route::get('/tareas', [OperarioController::class, 'tareas'])->name('tareas');
-    Route::get('/registro', [OperarioController::class, 'registro'])->name('registro');
-    Route::get('/incidencias', [OperarioController::class, 'incidencias'])->name('incidencias');
-    Route::get('/perfil', [OperarioController::class, 'perfil'])->name('perfil');
+        // Rutas GET (Navegación de vistas)
+        Route::get('/inicio', [OperarioController::class, 'inicio'])->name('inicio');
+        Route::get('/tareas', [OperarioController::class, 'tareas'])->name('tareas');
+        Route::get('/registro', [OperarioController::class, 'registro'])->name('registro');
+        Route::get('/incidencias', [OperarioController::class, 'incidencias'])->name('incidencias');
+        Route::get('/perfil', [OperarioController::class, 'perfil'])->name('perfil');
 
-    // Rutas POST (Formularios)
-    Route::post('/registro/guardar', [OperarioController::class, 'guardarRegistro'])->name('registro.guardar');
-    Route::post('/incidencias/crear', [OperarioController::class, 'crearIncidencia'])->name('incidencias.crear');
+        // Rutas POST / PUT (Acciones y Formularios)
+        Route::post('/registro/guardar', [OperarioController::class, 'guardarRegistro'])->name('registro.guardar');
+        Route::post('/incidencias/crear', [OperarioController::class, 'crearIncidencia'])->name('incidencias.crear');
+        
+        // Acciones de Tareas y Estaciones (Protegidas dentro del grupo)
+        Route::put('/orden/{productionOrder}/estacion', [OperarioController::class, 'actualizarEstacion'])->name('estacion.actualizar');
+        Route::put('/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('tareas.iniciar');
+        Route::put('/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('tareas.completar');
 });
-Route::put('/operario/orden/{productionOrder}/estacion', [OperarioController::class, 'actualizarEstacion'])
-    ->name('operario.estacion.actualizar');
-
-    Route::put('/operario/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('operario.tareas.iniciar');
-Route::put('/operario/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('operario.tareas.completar');

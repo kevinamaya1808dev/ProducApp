@@ -8,25 +8,33 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        //
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
     public function boot(): void
     {
-        // Definición del Gate para el módulo de productos
-        Gate::define('access-products', function (User $user) {
-            if ($user->role === 'admin') {
-                return true; // El admin siempre tiene acceso
-            }
-
-            if ($user->role === 'becario' && $user->can_access_products) {
-                return true; // Becario autorizado por el admin
-            }
-
-            return false;
-        });
-
+        // Intercepta TODAS las validaciones de permisos (@can, middleware can:, etc.)
         Gate::before(function ($user, $ability) {
-        if ($user->role === 'admin') {
-            return true;
-        }
-    });
+            // Si es Super Admin, tiene acceso a todo automáticamente sin revisar la BD
+            if ($user->hasRole('admin')) {
+                return true;
+            }
+
+            // Para operarios y becarios, usamos la función de tu modelo
+            if ($user->hasPermission($ability)) {
+                return true;
+            }
+            
+            // Retornar null permite que otras comprobaciones sigan su curso
+            return null;
+        }); // <-- AQUÍ: Faltaba cerrar el paréntesis y poner el punto y coma
     }
-}
+} // <-- AQUÍ: Faltaba la llave para cerrar la clase
