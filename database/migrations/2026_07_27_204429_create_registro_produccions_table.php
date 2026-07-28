@@ -6,24 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('registro_produccions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('lote_id');
+            $table->foreignId('production_order_id')->constrained('production_orders')->onDelete('cascade');
             $table->integer('cantidad');
             $table->timestamp('fecha_registro')->useCurrent();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('registro_produccions');

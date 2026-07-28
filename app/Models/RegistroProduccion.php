@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RegistroProduccion extends Model
 {
@@ -13,16 +14,18 @@ class RegistroProduccion extends Model
 
     protected $fillable = [
         'user_id',
-        'lote_id',
+        'production_order_id',
         'cantidad',
         'fecha_registro',
     ];
 
-    /**
-     * Relación con el usuario (operario)
-     */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function productionOrder(): BelongsTo
+    {
+        return $this->belongsTo(ProductionOrder::class);
     }
 }
