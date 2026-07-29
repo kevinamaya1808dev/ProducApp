@@ -11,4 +11,13 @@ class Recipe extends Model
     public function product() {
         return $this->belongsTo(Product::class);
     }
+
+    public function components()
+{
+    // Una receta tiene muchos componentes
+    // withPivot nos permite traer la cantidad específica de esa receta
+    return $this->belongsToMany(Component::class)
+                ->withPivot('quantity')
+                ->withTimestamps();
+}
 }
