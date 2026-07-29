@@ -12,20 +12,21 @@ class ProductionOrder extends Model
     use HasFactory;
 
     protected $casts = [
-    'start_date' => 'date',
-    'end_date' => 'date',
-];
+        'start_date' => 'date',
+        'end_date' => 'date',
+    ];
 
     protected $fillable = [
-    'product_id',
-    'user_id',
-    'order_number',
-    'quantity',
-    'status',
-    'estacion',
-    'start_date',
-    'end_date',
-];
+        'product_id',
+        'user_id',
+        'order_number',
+        'quantity',
+        'status',
+        'priority',
+        'estacion',
+        'start_date',
+        'end_date',
+    ];
 
     public function product(): BelongsTo
     {
@@ -62,6 +63,24 @@ class ProductionOrder extends Model
         return min(($this->piezas_registradas / $this->quantity) * 100, 100);
     }
 
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'pending' => 'Pendiente',
+            'in_progress' => 'En Progreso',
+            'completed' => 'Completada',
+            'cancelled' => 'Cancelada',
+            default => $this->status,
+        };
+    }
 
-
+    public function getPriorityLabelAttribute(): string
+    {
+        return match ($this->priority) {
+            'low' => 'Baja',
+            'medium' => 'Media',
+            'high' => 'Alta',
+            default => $this->priority,
+        };
+    }
 }

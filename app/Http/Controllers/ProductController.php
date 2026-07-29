@@ -13,13 +13,11 @@ class ProductController extends Controller
     public function index(): View
     {
         $products = Product::with('category')->latest()->paginate(10);
-        return view('admin.products.index', compact('products'));
-    }
-
-    public function create(): View
-    {
+        
+        // Agregamos las categorías para pasarlas a los modales de Crear/Editar
         $categories = Category::all();
-        return view('admin.products.create', compact('categories'));
+
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -36,12 +34,6 @@ class ProductController extends Controller
         Product::create($validated);
 
         return redirect()->route('products.index')->with('success', 'Producto creado correctamente.');
-    }
-
-    public function edit(Product $product): View
-    {
-        $categories = Category::all();
-        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     public function update(Request $request, Product $product): RedirectResponse

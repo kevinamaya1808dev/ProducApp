@@ -73,4 +73,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':operario'])
         Route::put('/orden/{productionOrder}/estacion', [OperarioController::class, 'actualizarEstacion'])->name('estacion.actualizar');
         Route::put('/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('tareas.iniciar');
         Route::put('/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('tareas.completar');
-});
+
+Route::post('/operario/incidencias', [OperarioController::class, 'crearIncidencia'])->name('operario.incidencias.guardar');
+
+        });

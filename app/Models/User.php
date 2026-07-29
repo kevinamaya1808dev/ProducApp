@@ -62,30 +62,39 @@ class User extends Authenticatable
         return $this->hasMany(RegistroProduccion::class);
     }
 
-    // ==========================================
-    // MÉTODOS DE VALIDACIÓN (RBAC)
+   // ==========================================
+    // MÉTODOS DE VALIDACIÓN (RBAC ROBUSTOS)
     // ==========================================
 
-    public function hasRole(string $roleSlug): bool
+    public function hasRole(string $role): bool
     {
-        return $this->roles()->where('slug', $roleSlug)->exists();
+        return $this->roles()->where(function ($query) use ($role) {
+            $query->where('slug', $role)
+                  ->orWhere('name', $role)
+                  ->orWhere('name', 'LIKE', $role);
+        })->exists();
     }
 
     /**
      * Función maestra para verificar permisos.
-     * Revisa primero permisos directos del usuario, y si no encuentra,
-     * revisa los permisos heredados por su(s) rol(es).
+     * Revisa primero permisos directos, y luego los heredados por rol.
      */
-    public function hasPermission(string $permissionSlug): bool
+    public function hasPermission(string $permission): bool
     {
-        // Permiso asignado directamente al usuario
-        if ($this->permissions()->where('slug', $permissionSlug)->exists()) {
+        // 1. Permiso asignado directamente al usuario (buscando por slug o name)
+        $hasDirect = $this->permissions()->where(function ($query) use ($permission) {
+            $query->where('slug', $permission)
+                  ->orWhere('name', $permission);
+        })->exists();
+
+        if ($hasDirect) {
             return true;
         }
 
-        // Permiso heredado por rol (evita N+1)
-        return $this->roles()->whereHas('permissions', function ($query) use ($permissionSlug) {
-            $query->where('slug', $permissionSlug);
+        // 2. Permiso heredado por rol
+        return $this->roles()->whereHas('permissions', function ($query) use ($permission) {
+            $query->where('slug', $permission)
+                  ->orWhere('name', $permission);
         })->exists();
     }
 }

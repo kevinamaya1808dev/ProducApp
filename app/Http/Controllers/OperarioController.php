@@ -43,77 +43,125 @@ class OperarioController extends Controller
     }
 
     public function registro()
-    {
-        return view('operario.registro');
+{
+    $userId = Auth::id();
+
+    $ordenActiva = ProductionOrder::with('product')
+        ->where('user_id', $userId)
+        ->where('status', 'in_progress')
+        ->latest()
+        ->first();
+
+    $piezasOrdenActiva = 0;
+    if ($ordenActiva) {
+        $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
+            ->whereDate('created_at', today())
+            ->sum('cantidad');
     }
+
+    $tarea = $ordenActiva ? [
+        'titulo' => $ordenActiva->product->name ?? 'Sin producto',
+        'descripcion' => $ordenActiva->product->description ?? $ordenActiva->order_number,
+        'actual' => $piezasOrdenActiva,
+        'total' => $ordenActiva->quantity,
+    ] : null;
+
+    $registrosHoy = RegistroProduccion::where('user_id', $userId)
+        ->whereDate('created_at', today())
+        ->oldest()
+        ->get();
+
+    $registros = $registrosHoy->values()->map(function ($reg, $index) {
+        $esUnidad = $reg->cantidad == 1;
+
+        return [
+            'numero' => str_pad($index + 1, 3, '0', STR_PAD_LEFT),
+            'hora' => $reg->created_at->format('H:i'),
+            'cantidad' => $reg->cantidad,
+            'tipo' => $esUnidad ? '+1 Unidad' : '+Lote',
+            'tipo_clase' => $esUnidad
+                ? 'bg-blue-50 text-blue-600 border border-blue-100'
+                : 'bg-slate-100 text-slate-600',
+            'nota' => '—',
+        ];
+    })->reverse()->values();
+
+    return view('operario.registro', [
+        'tarea' => $tarea,
+        'ordenId' => $ordenActiva->id ?? null,
+        'routeGuardar' => route('operario.registro.guardar'),
+        'registros' => $registros,
+    ]);
+}
+
+public function guardarRegistro(Request $request)
+{
+    $request->validate([
+        'production_order_id' => 'required|exists:production_orders,id',
+        'cantidad' => 'required|integer|min:1',
+    ]);
+
+    RegistroProduccion::create([
+        'user_id' => Auth::id(),
+        'production_order_id' => $request->production_order_id,
+        'cantidad' => $request->cantidad,
+        'fecha_registro' => now(),
+    ]);
+
+    return redirect()->back()->with('success', '¡Producción registrada correctamente!');
+}
 
     public function perfil()
     {
         return view('operario.perfil');
     }
 
-    public function guardarRegistro(Request $request)
-    {
-        $request->validate([
-            'production_order_id' => 'required|exists:production_orders,id',
-            'cantidad' => 'required|integer|min:1',
-        ]);
-
-        RegistroProduccion::create([
-            'user_id' => Auth::id(),
-            'production_order_id' => $request->production_order_id,
-            'cantidad' => $request->cantidad,
-            'fecha_registro' => now(),
-        ]);
-
-        return redirect()->route('operario.inicio')->with('success', '¡Producción registrada correctamente!');
-    }
 
     // ---------------------------------------------------------
     // MÉTODOS DE INCIDENCIAS (NUEVOS FRAGMENTOS)
     // ---------------------------------------------------------
 
     public function incidencias(Request $request)
-    {
-        $userId = Auth::id();
+{
+    $userId = Auth::id();
 
-        $incidencias = Incidence::with('order')
-            ->where('user_id', $userId)
-            ->latest()
-            ->get();
+    $incidencias = Incidence::with('order')
+        ->where('user_id', $userId)
+        ->latest()
+        ->get();
 
-        $ordenes = ProductionOrder::where('user_id', $userId)->latest()->get();
+    $ordenes = ProductionOrder::where('user_id', $userId)->latest()->get();
 
-        $mostrarFormulario = $request->boolean('nueva');
-        $incidenciaSeleccionada = null;
+    $mostrarFormulario = $request->boolean('nueva');
+    $incidenciaSeleccionada = null;
 
-        if (!$mostrarFormulario) {
-            $incidenciaSeleccionada = $request->filled('incidencia')
-                ? $incidencias->firstWhere('id', (int) $request->query('incidencia'))
-                : $incidencias->first();
-        }
-
-        return view('operario.incidencias', compact('incidencias', 'ordenes', 'incidenciaSeleccionada', 'mostrarFormulario'));
+    if (!$mostrarFormulario) {
+        $incidenciaSeleccionada = $request->filled('incidencia')
+            ? $incidencias->firstWhere('id', (int) $request->query('incidencia'))
+            : $incidencias->first();
     }
 
-    public function crearIncidencia(Request $request)
-    {
-        $request->validate([
-            'production_order_id' => 'required|exists:production_orders,id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-        ]);
+    return view('operario.incidencias', compact('incidencias', 'ordenes', 'incidenciaSeleccionada', 'mostrarFormulario'));
+}
 
-        $incidencia = Incidence::create([
-            'production_order_id' => $request->production_order_id,
-            'user_id' => Auth::id(),
-            'title' => $request->title,
-            'description' => $request->description,
-        ]);
+public function crearIncidencia(Request $request)
+{
+    $request->validate([
+        'production_order_id' => 'required|exists:production_orders,id',
+        'title' => 'required|string|max:255',
+        'description' => 'required|string',
+    ]);
 
-        return redirect()->route('operario.incidencias', ['incidencia' => $incidencia->id])
-            ->with('success', 'Incidencia reportada correctamente.');
-    }
+    $incidencia = Incidence::create([
+        'production_order_id' => $request->production_order_id,
+        'user_id' => Auth::id(),
+        'title' => $request->title,
+        'description' => $request->description,
+    ]);
+
+    return redirect()->route('operario.incidencias', ['incidencia' => $incidencia->id])
+        ->with('success', 'Incidencia reportada correctamente.');
+}
 
     // ---------------------------------------------------------
     // MÉTODOS DE TAREAS Y ESTACIONES
