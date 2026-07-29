@@ -11,10 +11,15 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    'name',
+    'email',
+    'password',
+    'puesto',
+    'turno',
+    'planta',
+    'active',
+    'meta_diaria',
+];
 
     protected $hidden = [
         'password',
@@ -97,4 +102,15 @@ class User extends Authenticatable
                   ->orWhere('name', $permission);
         })->exists();
     }
+
+public function skills()
+{
+    return $this->hasMany(UserSkill::class);
+}
+
+public function certifications()
+{
+    return $this->hasMany(UserCertification::class);
+}
+
 }

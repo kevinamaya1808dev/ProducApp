@@ -112,9 +112,100 @@ public function guardarRegistro(Request $request)
 }
 
     public function perfil()
-    {
-        return view('operario.perfil');
+{
+    $user = Auth::user();
+
+    $ultimaOrden = ProductionOrder::where('user_id', $user->id)
+        ->whereNotNull('estacion')
+        ->latest()
+        ->first();
+
+    $usuario = [
+        'iniciales' => collect(explode(' ', $user->name))
+            ->map(fn($p) => mb_strtoupper(mb_substr($p, 0, 1)))
+            ->take(2)->implode(''),
+        'nombre' => $user->name,
+        'puesto' => $user->puesto ?? 'Operario',
+        'estado' => $user->active ? 'Activo' : 'Inactivo',
+        'id_operario' => 'OP-' . str_pad($user->id, 3, '0', STR_PAD_LEFT),
+        'estacion' => $ultimaOrden->estacion ?? 'Sin asignar',
+        'turno' => $user->turno ?? 'Sin definir',
+        'planta' => $user->planta ?? 'Sin definir',
+        'alta_desde' => $user->created_at->translatedFormat('M Y'),
+    ];
+
+    $habilidades = $user->skills->pluck('skill')->toArray();
+
+    $certificaciones = $user->certifications->map(fn($cert) => [
+        'nombre' => $cert->nombre,
+        'fecha' => $cert->fecha_obtencion?->translatedFormat('M Y') ?? '—',
+    ])->toArray();
+
+    $desde = now()->subDays(30);
+
+    $ordenesCompletas = ProductionOrder::where('user_id', $user->id)
+        ->where('status', 'completed')
+        ->count();
+
+    $incidenciasRecientes = Incidence::where('user_id', $user->id)
+        ->where('created_at', '>=', $desde)
+        ->count();
+
+    $ordenesCompletadasRecientes = ProductionOrder::with('registros')
+        ->where('user_id', $user->id)
+        ->where('status', 'completed')
+        ->where('updated_at', '>=', $desde)
+        ->get();
+
+    $eficiencia = $ordenesCompletadasRecientes->isNotEmpty()
+        ? round($ordenesCompletadasRecientes->avg(fn($o) => $o->porcentaje_avance)) . '%'
+        : '0%';
+
+    $metaDiaria = $user->meta_diaria ?? 100;
+
+    $inicioSemana = now()->startOfWeek(\Carbon\Carbon::MONDAY);
+    $produccionSemana = [];
+    for ($i = 0; $i < 5; $i++) {
+        $dia = $inicioSemana->copy()->addDays($i);
+        $piezas = RegistroProduccion::where('user_id', $user->id)
+            ->whereDate('created_at', $dia)
+            ->sum('cantidad');
+
+        $produccionSemana[] = [
+            'label' => $dia->translatedFormat('D'),
+            'piezas' => $piezas,
+            'porcentaje' => $metaDiaria > 0 ? min(($piezas / $metaDiaria) * 100, 100) : 0,
+            'cumplida' => $piezas >= $metaDiaria,
+        ];
     }
+
+    $historial = ProductionOrder::with('product')
+        ->where('user_id', $user->id)
+        ->where('status', 'completed')
+        ->latest('updated_at')
+        ->take(10)
+        ->get()
+        ->map(fn($orden) => [
+            'orden' => $orden->order_number,
+            'producto' => $orden->product->name ?? 'Sin producto',
+            'fecha' => optional($orden->updated_at)->translatedFormat('d M Y'),
+            'unidades' => $orden->quantity,
+            'eficiencia' => round($orden->porcentaje_avance),
+        ]);
+
+    return view('operario.perfil', [
+        'usuario' => $usuario,
+        'habilidades' => $habilidades,
+        'certificaciones' => $certificaciones,
+        'eficiencia' => $eficiencia,
+        'ordenesCompletas' => $ordenesCompletas,
+        'incidencias' => $incidenciasRecientes,
+        'metaDiaria' => $metaDiaria,
+        'produccionSemana' => $produccionSemana,
+        'rangoFechas' => 'Semana del ' . $inicioSemana->format('d') . ' al ' . $inicioSemana->copy()->addDays(4)->translatedFormat('d M Y'),
+        'historial' => $historial,
+    ]);
+}
 
 
     // ---------------------------------------------------------

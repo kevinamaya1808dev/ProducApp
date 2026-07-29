@@ -9,20 +9,12 @@
                     <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-800 text-sm">{{ $cert['nombre'] ?? 'Seguridad Industrial Nivel 2' }}</h4>
-                    <p class="text-xs text-slate-400">{{ $cert['fecha'] ?? 'Mar 2025' }}</p>
+                    <h4 class="font-bold text-slate-800 text-sm">{{ $cert['nombre'] }}</h4>
+                    <p class="text-xs text-slate-400">{{ $cert['fecha'] }}</p>
                 </div>
             </div>
         @empty
-            <div class="flex items-start space-x-3">
-                <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <div>
-                    <h4 class="font-bold text-slate-800 text-sm">Seguridad Industrial Nivel 2</h4>
-                    <p class="text-xs text-slate-400">Mar 2025</p>
-                </div>
-            </div>
+            <p class="text-sm text-slate-400">Aún no se han registrado certificaciones.</p>
         @endforelse
     </div>
 </div>

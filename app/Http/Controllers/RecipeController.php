@@ -32,7 +32,7 @@ class RecipeController extends Controller
         $allComponents = Component::all();
         $products = Product::all();
 
-        return view('recetas.index', compact('recipes', 'activeRecipe', 'allComponents', 'products', 'search'));
+        return view('admin.recetas.index', compact('recipes', 'activeRecipe', 'allComponents', 'products', 'search'));
     }
 
     // Guardar una nueva receta

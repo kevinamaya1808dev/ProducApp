@@ -6,11 +6,7 @@
         @forelse($habilidades as $habilidad)
             <span class="bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold">{{ $habilidad }}</span>
         @empty
-            <span class="bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Costura industrial</span>
-            <span class="bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Acabados</span>
-            <span class="bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Control de calidad</span>
-            <span class="bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Maquinaria overlock</span>
-            <span class="bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold">Corte básico</span>
+            <p class="text-sm text-slate-400">Aún no se han registrado habilidades.</p>
         @endforelse
     </div>
 </div>

@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OperarioController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductionOrderController;
+use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Auth;
@@ -34,6 +35,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
 
     Route::resource('categories', CategoryController::class);
     Route::resource('orders', ProductionOrderController::class);
+    
+    // Módulo de Recetas (Añadido para solucionar el error del Sidebar y completar el módulo)
+    Route::resource('recipes', RecipeController::class);
     
     // Rutas de Gestión de Usuarios y Permisos
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -74,6 +78,6 @@ Route::middleware(['auth', RoleMiddleware::class . ':operario'])
         Route::put('/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('tareas.iniciar');
         Route::put('/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('tareas.completar');
 
-Route::post('/operario/incidencias', [OperarioController::class, 'crearIncidencia'])->name('operario.incidencias.guardar');
-
-        });
+        // Ruta duplicada de incidencias unificada correctamente bajo el prefijo 'operario.'
+        Route::post('/incidencias/guardar', [OperarioController::class, 'crearIncidencia'])->name('incidencias.guardar');
+    });
