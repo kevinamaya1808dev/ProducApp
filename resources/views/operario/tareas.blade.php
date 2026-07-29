@@ -10,7 +10,7 @@
     <!-- Lista de Tareas -->
     <div class="lg:col-span-4 space-y-4">
         @forelse($ordenes as $orden)
-            <x-operario.tarea-item :orden="$orden" :activa="$ordenSeleccionada && $orden->id === $ordenSeleccionada->id" />
+            <x-operario.tarea.tarea-item :orden="$orden" :activa="$ordenSeleccionada && $orden->id === $ordenSeleccionada->id" />
         @empty
             <div class="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">
                 No tienes tareas asignadas.
@@ -21,7 +21,7 @@
     <!-- Detalle de Tarea -->
     <div class="lg:col-span-8">
         @if($ordenSeleccionada)
-            <x-operario.tarea-detalle :orden="$ordenSeleccionada" />
+            <x-operario.tarea.tarea-detalle :orden="$ordenSeleccionada" />
         @else
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 text-center text-slate-400">
                 Selecciona una tarea de la lista para ver su detalle.

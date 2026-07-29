@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OperarioController;
 use App\Http\Controllers\ProductController;
@@ -29,9 +30,7 @@ Auth::routes(['register' => false]);
 // GRUPO: ADMINISTRADOR
 // ==========================================
 Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
     Route::resource('categories', CategoryController::class);
     Route::resource('orders', ProductionOrderController::class);

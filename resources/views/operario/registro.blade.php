@@ -9,14 +9,14 @@
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
     <!-- Controles Izquierda -->
     <div class="lg:col-span-4 space-y-6">
-        <x-registros-tarea-info :tarea="$tarea ?? null" />
-        <x-registros-registro-rapido :routeGuardar="$routeGuardar ?? '#'" :ordenId="$ordenId ?? null" />
-        <x-registros-entrada-manual :routeGuardar="$routeGuardar ?? '#'" :ordenId="$ordenId ?? null" />
+        <x-operario.registro.registros-tarea-info :tarea="$tarea ?? null" />
+        <x-operario.registro.registros-registro-rapido :routeGuardar="$routeGuardar ?? '#'" :ordenId="$ordenId ?? null" />
+        <x-operario.registro.registros-entrada-manual :routeGuardar="$routeGuardar ?? '#'" :ordenId="$ordenId ?? null" />
     </div>
 
     <!-- Tabla Historial (Derecha) -->
     <div class="lg:col-span-8">
-        <x-registros-historial-tabla :registros="$registros ?? []" />
+        <x-operario.registro.registros-historial-tabla :registros="$registros ?? []" />
     </div>
 </div>
 @endsection

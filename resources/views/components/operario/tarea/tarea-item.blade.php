@@ -8,8 +8,8 @@ $porcentaje = $orden->porcentaje_avance;
 <a href="{{ route('operario.tareas', ['orden' => $orden->id]) }}"
    class="block rounded-xl border-2 p-4 cursor-pointer transition-colors {{ $activa ? 'bg-blue-50 border-blue-400' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm' }}">
     <div class="flex justify-between items-center mb-2">
-        <x-operario.estado-badge :status="$orden->status" />
-        <x-operario.urgencia-badge :orden="$orden" />
+        <x-operario.incidencia.estado-badge :status="$orden->status" />
+        <x-operario.incidencia.urgencia-badge :orden="$orden" />
     </div>
     <div class="mb-3">
         <span class="text-xs font-bold text-blue-600">#{{ $orden->order_number }}</span>

@@ -17,8 +17,8 @@ $restantes = max($orden->quantity - $piezas, 0);
             <p class="text-blue-100 text-sm">{{ $orden->product->description ?? '' }}</p>
         </div>
         <div class="flex flex-col items-end space-y-2">
-            <x-operario.urgencia-badge :orden="$orden" />
-            <x-operario.estado-badge :status="$orden->status" class="!bg-white/90" />
+            <x-operario.incidencia.urgencia-badge :orden="$orden" />
+            <x-operario.incidencia.estado-badge :status="$orden->status" class="!bg-white/90" />
         </div>
     </div>
 

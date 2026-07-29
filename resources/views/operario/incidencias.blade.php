@@ -15,7 +15,7 @@
     <!-- Lista de Incidencias -->
     <div class="space-y-4">
         @forelse($incidencias as $incidencia)
-            <x-operario.incidencia-item :incidencia="$incidencia" :activa="$incidenciaSeleccionada && $incidencia->id === $incidenciaSeleccionada->id" />
+            <x-operario.incidencia.incidencia-item :incidencia="$incidencia" :activa="$incidenciaSeleccionada && $incidencia->id === $incidenciaSeleccionada->id" />
         @empty
             <div class="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-400 text-sm">
                 No has reportado incidencias.
@@ -26,9 +26,9 @@
     <!-- Detalle / Formulario -->
     <div>
         @if($mostrarFormulario)
-            <x-operario.incidencia-form :ordenes="$ordenes" />
+            <x-operario.incidencia.incidencia-form :ordenes="$ordenes" />
         @elseif($incidenciaSeleccionada)
-            <x-operario.incidencia-detalle :incidencia="$incidenciaSeleccionada" />
+            <x-operario.incidencia.incidencia-detalle :incidencia="$incidenciaSeleccionada" />
         @else
             <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center h-64 text-center p-6">
                 <div class="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4">

@@ -6,7 +6,7 @@
             <span class="text-xs font-bold text-slate-400">INC-{{ str_pad($incidencia->id, 4, '0', STR_PAD_LEFT) }}</span>
             <h2 class="text-xl font-bold text-slate-800">{{ $incidencia->title }}</h2>
         </div>
-        <x-operario.incidencia-estado-badge :status="$incidencia->status" />
+        <x-operario.incidencia.incidencia-estado-badge :status="$incidencia->status" />
     </div>
 
     <p class="text-sm text-slate-600 mb-6">{{ $incidencia->description }}</p>
