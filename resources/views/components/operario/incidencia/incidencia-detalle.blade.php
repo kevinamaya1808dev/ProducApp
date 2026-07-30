@@ -20,6 +20,10 @@
             <span class="text-slate-500">Fecha de reporte</span>
             <span class="font-medium text-slate-800">{{ $incidencia->created_at->format('d M Y · H:i') }}</span>
         </li>
+        <li class="flex justify-between border-b border-slate-50 pb-1">
+            <span class="text-slate-500">Importancia</span>
+            <span class="font-medium text-slate-800">{{ ucfirst($incidencia->importance ?? 'Baja') }}</span>
+        </li>
         <li class="flex justify-between">
             <span class="text-slate-500">Estado</span>
             <span class="font-medium text-slate-800">{{ ucfirst($incidencia->status) }}</span>

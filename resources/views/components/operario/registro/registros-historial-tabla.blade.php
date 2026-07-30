@@ -20,13 +20,17 @@
             <tbody class="text-sm">
                 @forelse($registros as $reg)
                     <tr class="border-b border-slate-50 hover:bg-slate-50">
-                        <td class="py-3 px-4 text-slate-400 font-medium">{{ $reg['numero'] }}</td>
-                        <td class="py-3 px-4 font-medium text-slate-700">{{ $reg['hora'] }}</td>
-                        <td class="py-3 px-4 font-bold text-slate-800">+{{ $reg['cantidad'] }}</td>
-                        <td class="py-3 px-4">
-                            <span class="{{ $reg['tipo_clase'] }} px-2 py-1 rounded-md text-xs font-medium">{{ $reg['tipo'] }}</span>
+                        <td class="py-3 px-4 text-slate-400 font-medium whitespace-nowrap">{{ $reg['numero'] }}</td>
+                        <td class="py-3 px-4 font-medium text-slate-700 whitespace-nowrap">{{ $reg['hora'] }}</td>
+                        <td class="py-3 px-4 font-bold text-slate-800 whitespace-nowrap">+{{ $reg['cantidad'] }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="{{ $reg['tipo_clase'] }} px-2 py-1 rounded-md text-xs font-medium inline-block">
+                                {{ $reg['tipo'] }}
+                            </span>
                         </td>
-                        <td class="py-3 px-4 text-slate-400">{{ $reg['nota'] }}</td>
+                        <td class="py-3 px-4 {{ $reg['nota'] !== '—' ? 'text-slate-700 font-medium' : 'text-slate-400' }}">
+                            {{ $reg['nota'] }}
+                        </td>
                     </tr>
                 @empty
                     <tr>

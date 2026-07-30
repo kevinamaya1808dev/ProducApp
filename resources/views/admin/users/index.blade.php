@@ -26,12 +26,12 @@
         @can('manage-operators')
         <button type="button" onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm shadow-blue-600/30 flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Agregar Operario
+            Nuevo Operario
         </button>
         @endcan
     </div>
 
-    <!-- KPI Cards -->
+    <!-- KPI Cards (Sin Cambios) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
             <p class="text-xs font-bold text-slate-500 tracking-wider uppercase mb-1">Total Usuarios</p>
@@ -77,7 +77,11 @@
                     data-role-id="{{ $role?->id }}"
                     data-role-name="{{ $role?->name ?? 'Sin rol' }}"
                     data-initials="{{ $initials }}"
-                    data-permissions="{{ $user->permissions->pluck('id')->implode(',') }}"
+                    data-turno="{{ $user->turno ?? 'Sin asignar' }}"
+                    data-estacion="{{ $user->planta ?? 'N/A' }}"
+                    data-active="{{ $user->active }}"
+                    data-notas="{{ $user->notas ?? '' }}"
+                    data-created="{{ $user->created_at->translatedFormat('M Y') }}"
                     onclick="selectUser(this)"
                 >
                     <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
@@ -101,43 +105,99 @@
             <p id="noResults" class="text-sm text-slate-400 col-span-full text-center py-10" style="display:none;">No se encontraron usuarios.</p>
         </div>
 
-        <!-- Panel Lateral -->
-        <div id="userPanel" class="w-full max-w-[360px] shrink-0 bg-white border border-slate-200 rounded-2xl shadow-sm hidden lg:flex flex-col relative" style="display:none;">
+        <!-- Panel Lateral (Actualizado según Maqueta) -->
+        <div id="userPanel" class="w-full max-w-[380px] shrink-0 bg-white border border-slate-200 rounded-2xl shadow-sm hidden lg:flex flex-col relative" style="display:none;">
 
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
-                <h3 class="font-bold text-slate-900 text-sm">Perfil del Usuario</h3>
+            <div class="p-4 flex justify-between items-center bg-white rounded-t-2xl">
+                <h3 class="font-bold text-slate-900 text-lg">Perfil del Operario</h3>
                 <button type="button" onclick="closePanel()" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
             <div class="p-5 flex-1 overflow-y-auto">
+                <!-- Avatar y Cabecera -->
                 <div class="text-center mb-6">
-                    <div id="panelInitials" class="w-16 h-16 rounded-full bg-blue-600 text-white font-black text-xl flex items-center justify-center mx-auto mb-3 shadow-md"></div>
-                    <h2 id="panelName" class="text-lg font-black text-slate-900"></h2>
-                    <span id="panelRole" class="inline-block bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-bold px-2.5 py-0.5 rounded-md mt-1"></span>
+                    <div id="panelInitials" class="w-20 h-20 rounded-full bg-blue-500 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-3"></div>
+                    <h2 id="panelName" class="text-xl font-bold text-slate-900"></h2>
+                    <span id="panelRole" class="block text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-xs font-semibold w-max mx-auto mt-2"></span>
+                    
+                    <div class="flex items-center justify-center gap-2 mt-3">
+                        <span id="panelStatus" class="px-3 py-1 text-xs font-semibold rounded-full border"></span>
+                        <span id="panelTurno" class="px-3 py-1 text-blue-600 bg-blue-50 border border-blue-100 text-xs font-semibold rounded-full"></span>
+                    </div>
                 </div>
 
-                <ul class="space-y-3.5 text-sm mb-6">
-                    <li class="flex justify-between items-center border-b border-slate-50 pb-2.5">
+                <!-- Eficiencia -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="text-xs font-bold text-slate-400 tracking-wider uppercase">Eficiencia</span>
+                        <span class="text-base font-bold text-slate-800">94%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: 94%"></div>
+                    </div>
+                </div>
+
+                <!-- Detalles de Lista -->
+                <ul class="space-y-4 text-sm mb-6">
+                    <li class="flex justify-between items-center">
+                        <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Estación</span>
+                        <span id="panelEstacion" class="text-slate-800 font-bold"></span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Órdenes</span>
+                        <span class="text-slate-800 font-bold">312</span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Orden Actual</span>
+                        <span class="text-slate-800 font-bold">ORD-2024-0091</span>
+                    </li>
+                    <li class="flex justify-between items-center">
                         <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Correo</span>
                         <span id="panelEmail" class="text-slate-800 font-bold truncate max-w-[180px]"></span>
                     </li>
+                    <li class="flex justify-between items-center">
+                        <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Alta</span>
+                        <span id="panelAlta" class="text-slate-800 font-bold"></span>
+                    </li>
                 </ul>
+
+                <!-- Habilidades (Visuales Estáticas según maqueta) -->
+                <div class="mb-6">
+                    <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider block mb-2">Habilidades</span>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-full text-xs font-semibold">Costura</span>
+                        <span class="px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-full text-xs font-semibold">Acabados</span>
+                        <span class="px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-full text-xs font-semibold">Control Calidad</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex gap-2">
+            <!-- Botones de Acción Panel -->
+            <div class="p-5 border-t border-slate-100 flex flex-col gap-3">
                 @can('manage-operators')
-                <button type="button" onclick="openEditModalFromPanel()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-2.5 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    Editar
+                <button type="button" onclick="openEditModalFromPanel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm">
+                    Editar Perfil
                 </button>
-                <button type="button" onclick="openDeleteModalFromPanel()" class="bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-sm py-2.5 px-4 rounded-lg transition-colors shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <form id="statusFormPanel" method="POST" class="w-full">
+                    @csrf
+                    @method('PUT')
+                    <!-- Campos ocultos para mantener los datos al cambiar estado -->
+                    <input type="hidden" name="name" id="statusFormName">
+                    <input type="hidden" name="email" id="statusFormEmail">
+                    <input type="hidden" name="role_id" id="statusFormRole">
+                    <input type="hidden" name="active" id="statusFormActive">
+                    <button type="button" onclick="toggleStatusFromPanel()" class="w-full bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm">
+                        Dar de baja / Alta
+                    </button>
+                </form>
+                <button type="button" onclick="openDeleteModalFromPanel()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm">
+                    Eliminar Registro
                 </button>
                 @else
                 <div class="text-center text-xs text-slate-400 py-1 w-full">
-                    Modo visualización (Sin privilegios de edición)
+                    Modo visualización (Sin privilegios)
                 </div>
                 @endcan
             </div>
@@ -148,6 +208,7 @@
         @include('admin.users.modals.create')
         @include('admin.users.modals.edit')
         @include('admin.users.modals.delete')
+        @include('admin.users.modals.deactivate')
     @endcan
 
 </div>
@@ -158,7 +219,6 @@
 <script>
     let currentUser = null;
 
-    // ===== Búsqueda / filtro =====
     function filterUsers() {
         const query = document.getElementById('searchInput').value.trim().toLowerCase();
         const cards = document.querySelectorAll('.user-card');
@@ -175,7 +235,6 @@
         document.getElementById('noResults').style.display = visibleCount === 0 ? '' : 'none';
     }
 
-    // ===== Panel lateral =====
     function selectUser(card) {
         currentUser = {
             id: card.dataset.id,
@@ -184,13 +243,30 @@
             roleId: card.dataset.roleId,
             roleName: card.dataset.roleName,
             initials: card.dataset.initials,
-            permissionIds: card.dataset.permissions ? card.dataset.permissions.split(',') : [],
+            turno: card.dataset.turno,
+            estacion: card.dataset.estacion,
+            active: card.dataset.active === '1',
+            notas: card.dataset.notas,
+            created: card.dataset.created
         };
 
+        // Llenar panel lateral
         document.getElementById('panelInitials').textContent = currentUser.initials;
         document.getElementById('panelName').textContent = currentUser.name;
         document.getElementById('panelRole').textContent = currentUser.roleName;
         document.getElementById('panelEmail').textContent = currentUser.email;
+        document.getElementById('panelTurno').textContent = currentUser.turno;
+        document.getElementById('panelEstacion').textContent = currentUser.estacion;
+        document.getElementById('panelAlta').textContent = currentUser.created;
+
+        const statusBadge = document.getElementById('panelStatus');
+        if(currentUser.active) {
+            statusBadge.textContent = 'Activo';
+            statusBadge.className = 'px-3 py-1 text-xs font-semibold rounded-full border border-emerald-200 text-emerald-600 bg-emerald-50';
+        } else {
+            statusBadge.textContent = 'Inactivo';
+            statusBadge.className = 'px-3 py-1 text-xs font-semibold rounded-full border border-red-200 text-red-600 bg-red-50';
+        }
 
         document.getElementById('userPanel').style.display = 'flex';
     }
@@ -200,7 +276,7 @@
         currentUser = null;
     }
 
-    // ===== Modal: Crear =====
+    // Modal Crear
     function openCreateModal() {
         document.getElementById('createModal').style.display = 'block';
     }
@@ -208,7 +284,7 @@
         document.getElementById('createModal').style.display = 'none';
     }
 
-    // ===== Modal: Editar =====
+    // Modal Editar
     function openEditModalFromPanel() {
         if (!currentUser) return;
         document.getElementById('editForm').action = '/admin/users/' + currentUser.id;
@@ -216,10 +292,10 @@
         document.getElementById('editEmail').value = currentUser.email;
         document.getElementById('editPassword').value = '';
         document.getElementById('editRoleId').value = currentUser.roleId ?? '';
-
-        document.querySelectorAll('.permission-checkbox').forEach(checkbox => {
-            checkbox.checked = currentUser.permissionIds.includes(checkbox.value);
-        });
+        document.getElementById('editTurno').value = currentUser.turno !== 'Sin asignar' ? currentUser.turno : '';
+        document.getElementById('editEstacion').value = currentUser.estacion !== 'N/A' ? currentUser.estacion : '';
+        document.getElementById('editActive').value = currentUser.active ? '1' : '0';
+        document.getElementById('editNotas').value = currentUser.notas ?? '';
 
         document.getElementById('editModal').style.display = 'block';
     }
@@ -227,7 +303,39 @@
         document.getElementById('editModal').style.display = 'none';
     }
 
-    // ===== Modal: Eliminar =====
+    // Funcionalidad Dar de Baja rápida
+    // Abrir el modal en lugar de usar confirm()
+    function toggleStatusFromPanel() {
+        if(!currentUser) return;
+        
+        // Colocar el nombre del operario en el texto del modal
+        document.getElementById('deactivateUserName').textContent = currentUser.name;
+        
+        // Mostrar el modal
+        document.getElementById('deactivateModal').style.display = 'block';
+    }
+
+    // Cerrar el modal
+    function closeDeactivateModal() {
+        document.getElementById('deactivateModal').style.display = 'none';
+    }
+
+    // Ejecutar el submit del formulario oculto cuando se confirme
+    function confirmDeactivate() {
+        if(!currentUser) return;
+        
+        document.getElementById('statusFormPanel').action = '/admin/users/' + currentUser.id;
+        document.getElementById('statusFormName').value = currentUser.name;
+        document.getElementById('statusFormEmail').value = currentUser.email;
+        document.getElementById('statusFormRole').value = currentUser.roleId;
+        
+        // Si el modal es específicamente para "Dar de baja", forzamos el valor a 0 (Inactivo)
+        document.getElementById('statusFormActive').value = '0'; 
+        
+        document.getElementById('statusFormPanel').submit();
+    }
+
+    // Modal Eliminar
     function openDeleteModalFromPanel() {
         if (!currentUser) return;
         document.getElementById('deleteForm').action = '/admin/users/' + currentUser.id;
@@ -238,7 +346,6 @@
         document.getElementById('deleteModal').style.display = 'none';
     }
 
-    // Cerrar modales con la tecla ESC
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             closeCreateModal();

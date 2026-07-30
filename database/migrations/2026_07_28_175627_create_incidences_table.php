@@ -10,17 +10,18 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('incidences', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('production_order_id')->constrained()->onDelete('cascade');
-        $table->foreignId('user_id')->constrained()->onDelete('cascade'); // El operario que reporta
-        $table->string('title');
-        $table->text('description');
-        $table->enum('status', ['pendiente', 'resuelta'])->default('pendiente');
-        $table->timestamps();
-    });
-}
+    {
+        Schema::create('incidences', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('production_order_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // El operario que reporta
+            $table->string('title');
+            $table->text('description');
+            $table->enum('status', ['pendiente', 'resuelta'])->default('pendiente');
+            $table->enum('importance', ['baja', 'media', 'alta'])->default('baja');
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

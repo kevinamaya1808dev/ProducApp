@@ -35,15 +35,17 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
     Route::resource('categories', CategoryController::class);
     Route::resource('orders', ProductionOrderController::class);
     
-    // Módulo de Recetas (Añadido para solucionar el error del Sidebar y completar el módulo)
+    // Módulo de Recetas
     Route::resource('recipes', RecipeController::class);
     
-    // Rutas de Gestión de Usuarios y Permisos
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
+    // Rutas de Gestión de Usuarios y Permisos (Asignamos el prefijo 'admin.' exclusivamente aquí)
+    Route::name('admin.users.')->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('index');
+        Route::post('/users', [UserController::class, 'store'])->name('store');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('destroy');
+        Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('update-role');
+    });
 });
 
 // ==========================================

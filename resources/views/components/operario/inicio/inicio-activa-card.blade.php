@@ -1,9 +1,14 @@
 @props(['ordenActiva', 'piezasOrdenActiva'])
 
 @if($ordenActiva)
+@php
+    $estado = strtolower($ordenActiva->status);
+@endphp
 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="bg-blue-600 p-4 flex justify-between items-center">
-        <h2 class="text-white font-bold text-sm tracking-wide uppercase">Tarea Activa</h2>
+        <h2 class="text-white font-bold text-sm tracking-wide uppercase">
+            {{ $estado === 'in_progress' ? 'Tarea Activa' : 'Nueva Tarea Asignada' }}
+        </h2>
         <span class="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Alta Prioridad</span>
     </div>
     
@@ -59,26 +64,36 @@
             </div>
         </div>
 
-        <!-- Registro Rápido -->
+        <!-- Registro Rápido o Botón Iniciar -->
         <div>
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-3">Registro Rápido</span>
-            <form action="{{ route('operario.registro.guardar') }}" method="POST" class="grid grid-cols-3 gap-4">
-                @csrf
-                <input type="hidden" name="production_order_id" value="{{ $ordenActiva->id }}">
-                
-                <button type="submit" name="cantidad" value="1" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-sm transition-colors text-lg cursor-pointer">
-                    +1 Unidad
-                </button>
-                
-                <button type="submit" name="cantidad" value="5" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl shadow-sm transition-colors text-lg cursor-pointer">
-                    +5 Lote Pequeño
-                </button>
-                
-                <a href="{{ route('operario.incidencias') }}" class="bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 font-bold py-4 rounded-xl shadow-sm transition-colors text-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Reportar
-                </a>
-            </form>
+            @if($estado === 'pending')
+                <form action="{{ route('operario.tareas.iniciar', $ordenActiva->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-sm transition-colors text-center cursor-pointer">
+                        Iniciar Tarea
+                    </button>
+                </form>
+            @else
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-3">Registro Rápido</span>
+                <form action="{{ route('operario.registro.guardar') }}" method="POST" class="grid grid-cols-3 gap-4">
+                    @csrf
+                    <input type="hidden" name="production_order_id" value="{{ $ordenActiva->id }}">
+                    
+                    <button type="submit" name="cantidad" value="1" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-sm transition-colors text-lg cursor-pointer">
+                        +1 Unidad
+                    </button>
+                    
+                    <button type="submit" name="cantidad" value="5" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl shadow-sm transition-colors text-lg cursor-pointer">
+                        +5 Lote Pequeño
+                    </button>
+                    
+                    <a href="{{ route('operario.incidencias') }}" class="bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 font-bold py-4 rounded-xl shadow-sm transition-colors text-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        Reportar
+                    </a>
+                </form>
+            @endif
         </div>
     </div>
 </div>

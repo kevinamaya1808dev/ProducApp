@@ -14,14 +14,13 @@ class UserController extends Controller
     {
         $totalUsers = User::count();
 
-        $users = User::with(['roles', 'permissions']) // Cargamos los permisos para evitar consultas N+1
+        $users = User::with(['roles', 'permissions'])
             ->where('id', '!=', auth()->id())
             ->get();
 
         $roles = \App\Models\Role::all();
-        $permissions = \App\Models\Permission::all(); // AQUÍ: Extraemos los permisos
+        $permissions = \App\Models\Permission::all();
 
-        // Enviamos los permisos a la vista
         return view('admin.users.index', compact('users', 'roles', 'permissions', 'totalUsers')); 
     }
 
@@ -32,6 +31,9 @@ class UserController extends Controller
             'email'    => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
             'role_id'  => 'required|exists:roles,id',
+            'turno'    => 'nullable|string|max:50',
+            'planta'   => 'nullable|string|max:100', // Estación
+            'notas'    => 'nullable|string',
         ], [
             'name.required'     => 'El nombre es obligatorio.',
             'email.required'    => 'El correo es obligatorio.',
@@ -45,6 +47,10 @@ class UserController extends Controller
             'name'     => $validated['name'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'turno'    => $validated['turno'] ?? null,
+            'planta'   => $validated['planta'] ?? null,
+            'notas'    => $validated['notas'] ?? null,
+            'active'   => true, // Por defecto al crear es activo
         ]);
 
         $user->roles()->sync([$validated['role_id']]);
@@ -59,26 +65,28 @@ class UserController extends Controller
             'email'       => ['required', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
             'password'    => 'nullable|string|min:8',
             'role_id'     => 'required|exists:roles,id',
-            'permissions' => 'nullable|array', // Validamos que llegue un array de permisos
-            'permissions.*' => 'exists:permissions,id' // Validamos que los permisos existan
-        ], [
-            // ... tus mensajes de error ...
+            'turno'       => 'nullable|string|max:50',
+            'planta'      => 'nullable|string|max:100', // Estación
+            'active'      => 'required|boolean',
+            'notas'       => 'nullable|string',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'exists:permissions,id'
         ]);
 
-        $user->name  = $validated['name'];
-        $user->email = $validated['email'];
+        $user->name   = $validated['name'];
+        $user->email  = $validated['email'];
+        $user->turno  = $validated['turno'] ?? null;
+        $user->planta = $validated['planta'] ?? null;
+        $user->active = $validated['active'];
+        $user->notas  = $validated['notas'] ?? null;
 
         if (!empty($validated['password'])) {
-            $user->password = \Illuminate\Support\Facades\Hash::make($validated['password']);
+            $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
         
-        // Sincronizamos el Rol
         $user->roles()->sync([$validated['role_id']]);
-        
-        // AQUÍ ESTÁ LA MAGIA: Sincronizamos los permisos en la base de datos
-        // Si no mandan nada, sincronizamos un array vacío para borrarle permisos anteriores
         $user->permissions()->sync($request->permissions ?? []); 
 
         return back()->with('success', "Usuario '{$user->name}' actualizado correctamente.");
@@ -97,7 +105,6 @@ class UserController extends Controller
         return back()->with('success', "Usuario '{$name}' eliminado correctamente.");
     }
 
-    // Activar o desactivar permiso de Productos
     public function toggleProductAccess(User $user)
     {
         $user->can_access_products = !$user->can_access_products;
@@ -106,7 +113,6 @@ class UserController extends Controller
         return back()->with('success', "Permisos de '{$user->name}' actualizados.");
     }
 
-    // Cambiar rol de usuario (ahora vía tabla pivote role_user)
     public function updateRole(Request $request, User $user)
     {
         $request->validate([

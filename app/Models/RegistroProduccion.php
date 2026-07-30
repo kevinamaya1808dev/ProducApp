@@ -16,6 +16,7 @@ class RegistroProduccion extends Model
         'user_id',
         'production_order_id',
         'cantidad',
+        'nota', // <-- Agregado
         'fecha_registro',
     ];
 

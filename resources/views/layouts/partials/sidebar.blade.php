@@ -69,7 +69,7 @@
 
             {{-- Módulo de Operarios --}}
             @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-usuarios'))
-                <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all relative {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50' }}">
+                <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all relative {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50' }}">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     <span>Operarios</span>
                     @if(request()->routeIs('users.*')) <span class="absolute right-4 w-1.5 h-1.5 rounded-full bg-white opacity-90"></span> @endif

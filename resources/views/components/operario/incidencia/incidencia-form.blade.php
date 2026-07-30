@@ -17,6 +17,15 @@
         </div>
 
         <div>
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1">Importancia</label>
+            <select name="importance" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <option value="baja">Baja</option>
+                <option value="media" selected>Media</option>
+                <option value="alta">Alta</option>
+            </select>
+        </div>
+
+        <div>
             <label class="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1">Título</label>
             <input type="text" name="title" required maxlength="255" placeholder="Ej. Falla de maquinaria"
                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">

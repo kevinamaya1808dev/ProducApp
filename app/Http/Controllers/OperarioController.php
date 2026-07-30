@@ -10,37 +10,57 @@ use Illuminate\Support\Facades\Auth;
 
 class OperarioController extends Controller
 {
-    public function inicio()
-    {
-        $userId = Auth::id();
+   public function inicio()
+{
+    $userId = Auth::id();
+    $user = Auth::user();
 
-        // Orden de producción activa asignada al operario
-        $ordenActiva = ProductionOrder::with('product')
-            ->where('user_id', $userId)
-            ->where('status', 'in_progress')
-            ->latest()
-            ->first();
+    // Busca primero una orden en progreso; si no existe, toma la pendiente más reciente
+    $ordenActiva = ProductionOrder::with('product')
+        ->where('user_id', $userId)
+        ->whereIn('status', ['in_progress', 'pending', 'Pending'])
+        ->orderByRaw("CASE WHEN LOWER(status) = 'in_progress' THEN 1 ELSE 2 END")
+        ->latest()
+        ->first();
 
-        // Total de piezas hechas hoy por el operario (todas las órdenes)
-        $piezasHoy = RegistroProduccion::where('user_id', $userId)
+    // Total de piezas hechas hoy por el operario (todas las órdenes)
+    $piezasHoy = RegistroProduccion::where('user_id', $userId)
+        ->whereDate('created_at', today())
+        ->sum('cantidad');
+
+    // Piezas registradas hoy específicamente para la orden activa
+    $piezasOrdenActiva = 0;
+    if ($ordenActiva) {
+        $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
             ->whereDate('created_at', today())
             ->sum('cantidad');
-
-        // Piezas registradas hoy específicamente para la orden activa
-        $piezasOrdenActiva = 0;
-        if ($ordenActiva) {
-            $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-                ->whereDate('created_at', today())
-                ->sum('cantidad');
-        }
-
-        $actividadesRecientes = RegistroProduccion::where('user_id', $userId)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        return view('operario.inicio', compact('ordenActiva', 'piezasHoy', 'piezasOrdenActiva', 'actividadesRecientes'));
     }
+
+    // Incidencias reportadas hoy por el operario
+    $incidenciasHoy = Incidence::where('user_id', $userId)
+        ->whereDate('created_at', today())
+        ->count();
+
+    // Cálculo de eficiencia en base a la meta diaria asignada (por defecto 100 piezas)
+    $metaDiaria = $user->meta_diaria ?? 100;
+    $eficiencia = $metaDiaria > 0 
+        ? min(round(($piezasHoy / $metaDiaria) * 100), 100) 
+        : 0;
+
+    $actividadesRecientes = RegistroProduccion::where('user_id', $userId)
+        ->latest()
+        ->take(5)
+        ->get();
+
+    return view('operario.inicio', compact(
+        'ordenActiva', 
+        'piezasHoy', 
+        'piezasOrdenActiva', 
+        'incidenciasHoy',
+        'eficiencia',
+        'actividadesRecientes'
+    ));
+}
 
     public function registro()
 {
@@ -73,16 +93,27 @@ class OperarioController extends Controller
 
     $registros = $registrosHoy->values()->map(function ($reg, $index) {
         $esUnidad = $reg->cantidad == 1;
+        $esNotaSinCantidad = $reg->cantidad == 0 && !empty($reg->nota);
+
+        // Determinación del tipo y estilo de badge según el contenido
+        if ($esNotaSinCantidad) {
+            $tipo = 'Nota';
+            $tipoClase = 'bg-amber-50 text-amber-700 border border-amber-200';
+        } elseif ($esUnidad) {
+            $tipo = '+1 Unidad';
+            $tipoClase = 'bg-blue-50 text-blue-600 border border-blue-100';
+        } else {
+            $tipo = '+Lote';
+            $tipoClase = 'bg-slate-100 text-slate-600';
+        }
 
         return [
             'numero' => str_pad($index + 1, 3, '0', STR_PAD_LEFT),
             'hora' => $reg->created_at->format('H:i'),
             'cantidad' => $reg->cantidad,
-            'tipo' => $esUnidad ? '+1 Unidad' : '+Lote',
-            'tipo_clase' => $esUnidad
-                ? 'bg-blue-50 text-blue-600 border border-blue-100'
-                : 'bg-slate-100 text-slate-600',
-            'nota' => '—',
+            'tipo' => $tipo,
+            'tipo_clase' => $tipoClase,
+            'nota' => $reg->nota ?? '—',
         ];
     })->reverse()->values();
 
@@ -98,17 +129,24 @@ public function guardarRegistro(Request $request)
 {
     $request->validate([
         'production_order_id' => 'required|exists:production_orders,id',
-        'cantidad' => 'required|integer|min:1',
+        'cantidad' => 'nullable|integer|min:0',
+        'nota' => 'nullable|string|max:255',
     ]);
+
+    // Validación extra: Debe ingresar al menos cantidad o nota
+    if (($request->cantidad === null || $request->cantidad == 0) && empty($request->nota)) {
+        return redirect()->back()->withErrors(['error' => 'Debes ingresar una cantidad o una nota.']);
+    }
 
     RegistroProduccion::create([
         'user_id' => Auth::id(),
         'production_order_id' => $request->production_order_id,
-        'cantidad' => $request->cantidad,
+        'cantidad' => $request->cantidad ?? 0,
+        'nota' => $request->nota,
         'fecha_registro' => now(),
     ]);
 
-    return redirect()->back()->with('success', '¡Producción registrada correctamente!');
+    return redirect()->back()->with('success', '¡Registro guardado correctamente!');
 }
 
     public function perfil()
@@ -209,51 +247,53 @@ public function guardarRegistro(Request $request)
 
 
     // ---------------------------------------------------------
-    // MÉTODOS DE INCIDENCIAS (NUEVOS FRAGMENTOS)
+    // MÉTODOS DE INCIDENCIAS (ACTUALIZADOS)
     // ---------------------------------------------------------
 
     public function incidencias(Request $request)
-{
-    $userId = Auth::id();
+    {
+        $userId = Auth::id();
 
-    $incidencias = Incidence::with('order')
-        ->where('user_id', $userId)
-        ->latest()
-        ->get();
+        $incidencias = Incidence::with('order')
+            ->where('user_id', $userId)
+            ->orderByRaw("CASE WHEN importance = 'alta' THEN 1 WHEN importance = 'media' THEN 2 ELSE 3 END")
+            ->latest()
+            ->get();
 
-    $ordenes = ProductionOrder::where('user_id', $userId)->latest()->get();
+        $ordenes = ProductionOrder::where('user_id', $userId)->latest()->get();
 
-    $mostrarFormulario = $request->boolean('nueva');
-    $incidenciaSeleccionada = null;
+        $mostrarFormulario = $request->boolean('nueva');
+        $incidenciaSeleccionada = null;
 
-    if (!$mostrarFormulario) {
-        $incidenciaSeleccionada = $request->filled('incidencia')
-            ? $incidencias->firstWhere('id', (int) $request->query('incidencia'))
-            : $incidencias->first();
+        if (!$mostrarFormulario) {
+            $incidenciaSeleccionada = $request->filled('incidencia')
+                ? $incidencias->firstWhere('id', (int) $request->query('incidencia'))
+                : $incidencias->first();
+        }
+
+        return view('operario.incidencias', compact('incidencias', 'ordenes', 'incidenciaSeleccionada', 'mostrarFormulario'));
     }
 
-    return view('operario.incidencias', compact('incidencias', 'ordenes', 'incidenciaSeleccionada', 'mostrarFormulario'));
-}
+    public function crearIncidencia(Request $request)
+    {
+        $request->validate([
+            'production_order_id' => 'required|exists:production_orders,id',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'importance' => 'required|in:baja,media,alta',
+        ]);
 
-public function crearIncidencia(Request $request)
-{
-    $request->validate([
-        'production_order_id' => 'required|exists:production_orders,id',
-        'title' => 'required|string|max:255',
-        'description' => 'required|string',
-    ]);
+        $incidencia = Incidence::create([
+            'production_order_id' => $request->production_order_id,
+            'user_id' => Auth::id(),
+            'title' => $request->title,
+            'description' => $request->description,
+            'importance' => $request->importance,
+        ]);
 
-    $incidencia = Incidence::create([
-        'production_order_id' => $request->production_order_id,
-        'user_id' => Auth::id(),
-        'title' => $request->title,
-        'description' => $request->description,
-    ]);
-
-    return redirect()->route('operario.incidencias', ['incidencia' => $incidencia->id])
-        ->with('success', 'Incidencia reportada correctamente.');
-}
-
+        return redirect()->route('operario.incidencias', ['incidencia' => $incidencia->id])
+            ->with('success', 'Incidencia reportada correctamente.');
+    }
     // ---------------------------------------------------------
     // MÉTODOS DE TAREAS Y ESTACIONES
     // ---------------------------------------------------------

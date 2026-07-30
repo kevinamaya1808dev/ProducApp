@@ -17,6 +17,8 @@
                 <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                     <div>
                         <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Información del Colaborador</h4>
+                        
+                        <!-- Fila 1: Nombre y Rol -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre completo <span class="text-red-500">*</span></label>
@@ -33,19 +35,53 @@
                             </div>
                         </div>
 
-                        <div class="mt-4">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Correo electrónico <span class="text-red-500">*</span></label>
-                            <input type="email" id="editEmail" name="email" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                        <!-- Fila 2: Correo y Estado (Agregado) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Correo electrónico <span class="text-red-500">*</span></label>
+                                <input type="email" id="editEmail" name="email" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Estado de la cuenta <span class="text-red-500">*</span></label>
+                                <select id="editActive" name="is_active" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                                    <option value="1">Activo</option>
+                                    <option value="0">Inactivo (Dado de baja)</option>
+                                </select>
+                            </div>
                         </div>
 
+                        <!-- Fila 3: Turno y Estación (Agregado) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Turno</label>
+                                <select id="editTurno" name="turno" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                                    <option value="">Seleccionar turno</option>
+                                    <option value="Matutino">Matutino</option>
+                                    <option value="Vespertino">Vespertino</option>
+                                    <option value="Nocturno">Nocturno</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Estación de Trabajo</label>
+                                <input type="text" id="editEstacion" name="estacion" placeholder="Ej. Estación 1" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Fila 4: Notas (Agregado) -->
                         <div class="mt-4">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Notas / Observaciones</label>
+                            <textarea id="editNotas" name="notas" rows="2" placeholder="Habilidades, observaciones..." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500"></textarea>
+                        </div>
+
+                        <!-- Fila 5: Contraseña -->
+                        <div class="mt-4 pt-4 border-t border-slate-100">
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Nueva contraseña</label>
                             <input type="password" id="editPassword" name="password" placeholder="Dejar en blanco para no cambiarla" minlength="8" autocomplete="new-password" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
-                            <p class="text-xs text-slate-400 mt-1">Déjalo vacío si no quieres cambiar la contraseña.</p>
+                            <p class="text-xs text-slate-400 mt-1">Déjalo vacío si no quieres cambiar la contraseña del operario.</p>
                         </div>
                     </div>
 
-                    <!-- Permisos individuales (independientes del rol) -->
+                    <!-- Permisos individuales -->
                     <div class="border-t border-slate-100 pt-5">
                         <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Permisos Individuales</h4>
                         <p class="text-xs text-slate-500 mb-4">
@@ -66,8 +102,8 @@
                 </div>
 
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Guardar Cambios</button>
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Guardar Cambios</button>
                 </div>
             </form>
         </div>
