@@ -4,82 +4,81 @@ namespace App\Http\Controllers;
 
 use App\Models\Recipe;
 use App\Models\Product;
-use App\Models\Component;
 use Illuminate\Http\Request;
 
 class RecipeController extends Controller
 {
-    // Muestra la vista principal Maestro-Detalle
     public function index(Request $request)
     {
-        // Buscador opcional en el panel izquierdo
         $search = $request->input('search');
-
-        $recipes = Recipe::with(['product', 'components.category'])
+        
+        $recipes = Recipe::with('product')
             ->when($search, function ($query, $search) {
-                $query->whereHas('product', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('internal_code', 'like', "%{$search}%");
-                })->orWhere('version', 'like', "%{$search}%");
+                return $query->where('name', 'like', "%{$search}%")
+                             ->orWhere('instructions', 'like', "%{$search}%");
             })
+            ->latest()
             ->get();
 
-        // Receta activa por defecto (la primera o la seleccionada)
-        $activeRecipeId = $request->input('recipe', $recipes->first()?->id);
-        $activeRecipe = $recipes->firstWhere('id', $activeRecipeId) ?? $recipes->first();
+        $activeRecipe = null;
+        if ($recipes->isNotEmpty()) {
+            $recipeId = $request->input('recipe');
+            
+            if ($recipeId) {
+                $activeRecipe = Recipe::with(['product', 'components'])->find($recipeId);
+            }
+            
+            if (!$activeRecipe) {
+                $activeRecipe = Recipe::with(['product', 'components'])->find($recipes->first()->id);
+            }
+        }
 
-        // Catálogo de componentes para el modal de creación/edición
-        $allComponents = Component::all();
         $products = Product::all();
 
-        return view('admin.recetas.index', compact('recipes', 'activeRecipe', 'allComponents', 'products', 'search'));
+        return view('admin.recetas.index', compact('recipes', 'activeRecipe', 'products'));
     }
 
-    // Guardar una nueva receta
     public function store(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'version' => 'required|string|max:50',
-            'components' => 'required|array|min:1',
-            'components.*.id' => 'required|exists:components,id',
-            'components.*.quantity' => 'required|numeric|min:0.01',
+            'name' => 'required|string|max:255',
+            'instructions' => 'nullable|string',
         ]);
 
         $recipe = Recipe::create([
             'product_id' => $request->product_id,
-            'version' => $request->version,
-            'is_active' => true,
+            'name' => $request->name,
+            'instructions' => $request->instructions,
         ]);
 
-        // Sincronizar componentes con sus cantidades en la tabla pivote
-        $syncData = [];
-        foreach ($request->components as $comp) {
-            $syncData[$comp['id']] = ['quantity' => $comp['quantity']];
-        }
-        $recipe->components()->sync($syncData);
-
-        return redirect()->route('recipes.index')->with('success', 'Receta creada exitosamente.');
+        return redirect()->route('recipes.index', ['recipe' => $recipe->id])
+                         ->with('success', 'Receta creada exitosamente.');
     }
 
-    // Actualizar receta existente
     public function update(Request $request, Recipe $recipe)
     {
         $request->validate([
-            'version' => 'required|string|max:50',
-            'components' => 'required|array|min:1',
+            'product_id' => 'required|exists:products,id',
+            'name' => 'required|string|max:255',
+            'instructions' => 'nullable|string',
         ]);
 
         $recipe->update([
-            'version' => $request->version,
+            'product_id' => $request->product_id,
+            'name' => $request->name,
+            'instructions' => $request->instructions,
         ]);
 
-        $syncData = [];
-        foreach ($request->components as $comp) {
-            $syncData[$comp['id']] = ['quantity' => $comp['quantity']];
-        }
-        $recipe->components()->sync($syncData);
+        return redirect()->route('recetas.index', ['recipe' => $recipe->id])
+                         ->with('success', 'Receta actualizada exitosamente.');
+    }
 
-        return redirect()->route('recipes.index')->with('success', 'Receta actualizada correctamente.');
+    public function destroy(Recipe $recipe)
+    {
+        $recipe->delete();
+
+        return redirect()->route('recipes.index')
+                         ->with('success', 'Receta eliminada correctamente.');
     }
 }

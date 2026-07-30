@@ -51,14 +51,14 @@
                                 {{ $recipe->name }}
                             </h3>
                             <span class="text-[11px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                                {{ $recipe->code ?? 'REC-00' . $recipe->id }}
+                                REC-00{{ $recipe->id }}
                             </span>
                         </div>
                         <p class="text-xs text-slate-500 mt-1.5 line-clamp-2">
-                            {{ $recipe->description ?? 'Sin descripción registrada.' }}
+                            {{ $recipe->instructions ?? 'Sin instrucciones registradas.' }}
                         </p>
                         <div class="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-3 border-t border-slate-100">
-                            <span>Ingredientes: <strong class="text-slate-700 font-semibold">{{ $recipe->ingredients_count ?? 0 }}</strong></span>
+                            <span>Producto: <strong class="text-slate-700 font-semibold">{{ $recipe->product->name ?? 'N/A' }}</strong></span>
                             <span>Act. {{ $recipe->updated_at->format('d M Y') }}</span>
                         </div>
                     </a>
@@ -79,7 +79,7 @@
                         <div class="flex items-center gap-3 flex-wrap">
                             <h2 class="text-xl font-bold text-slate-900">{{ $activeRecipe->name }}</h2>
                             <span class="bg-blue-50 text-blue-700 text-xs font-mono font-semibold px-2.5 py-1 rounded-lg border border-blue-200/60">
-                                Código: {{ $activeRecipe->code ?? 'REC-00' . $activeRecipe->id }}
+                                Código: REC-00{{ $activeRecipe->id }}
                             </span>
                         </div>
                         <p class="text-xs text-slate-500 mt-1.5">Creada el {{ $activeRecipe->created_at->format('d M Y') }} &middot; Última actualización: {{ $activeRecipe->updated_at->format('d M Y') }}</p>
@@ -100,36 +100,36 @@
                 <!-- Cuerpo de la Información -->
                 <div class="p-6 space-y-6">
                     <div>
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Descripción / Instrucciones</h4>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Instrucciones / Procedimiento</h4>
                         <p class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200/60">
-                            {{ $activeRecipe->description ?? 'Esta receta no cuenta con una descripción detallada.' }}
+                            {{ $activeRecipe->instructions ?? 'Esta receta no cuenta con instrucciones detalladas.' }}
                         </p>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Ingredientes / Componentes Asociados</h4>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Componentes Asociados</h4>
                         <div class="overflow-x-auto border border-slate-200/80 rounded-xl">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
                                         <th class="py-3 px-4">Código / SKU</th>
-                                        <th class="py-3 px-4">Componente / Ingrediente</th>
+                                        <th class="py-3 px-4">Componente</th>
                                         <th class="py-3 px-4">Cantidad</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 text-sm">
-                                    @forelse($activeRecipe->ingredients ?? [] as $ingredient)
+                                    @forelse($activeRecipe->components ?? [] as $component)
                                         <tr class="hover:bg-slate-50/60 transition-colors">
-                                            <td class="py-3 px-4 font-mono text-xs text-slate-500 font-semibold">{{ $ingredient->sku ?? 'N/A' }}</td>
-                                            <td class="py-3 px-4 font-semibold text-slate-800">{{ $ingredient->name }}</td>
+                                            <td class="py-3 px-4 font-mono text-xs text-slate-500 font-semibold">COMP-00{{ $component->id }}</td>
+                                            <td class="py-3 px-4 font-semibold text-slate-800">{{ $component->name }}</td>
                                             <td class="py-3 px-4 text-slate-600 font-medium">
-                                                {{ $ingredient->pivot->quantity ?? '1' }} {{ $ingredient->pivot->unit ?? 'pz' }}
+                                                {{ $component->pivot->quantity ?? '1' }} pz
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
                                             <td colspan="3" class="py-6 text-center text-slate-400 text-sm">
-                                                No hay componentes o ingredientes asignados a esta receta.
+                                                No hay componentes asignados a esta receta.
                                             </td>
                                         </tr>
                                     @endforelse
@@ -150,7 +150,7 @@
     </div>
 </div>
 
-{{-- Inclusión de Modales Organizados dentro de recipes/modals/ --}}
+{{-- Modales inclusivos --}}
 @include('admin.recetas.modals.create')
 @if(isset($activeRecipe))
     @include('admin.recetas.modals.edit', ['recipe' => $activeRecipe])
