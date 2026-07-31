@@ -7,10 +7,9 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
             <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">Categorías</h1>
-            <p class="text-slate-500 text-sm mt-1">Gestión de categorías y clasificaciones &middot; {{ $categories->count() }} registros</p>
+            <p class="text-slate-500 text-sm mt-1">Gestión de categorías y clasificaciones &middot; {{ $categories->total() ?? $categories->count() }} registros</p>
         </div>
         
-        @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-categorias'))
         <div>
             <button type="button" onclick="openModal('createCategoryModal')" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-600/20 transition-all text-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,7 +18,6 @@
                 Nueva Categoría
             </button>
         </div>
-        @endif
     </div>
 
     <!-- Contenedor Principal (Grid de dos columnas exactas) -->
@@ -58,8 +56,8 @@
                             {{ $category->description ?? 'Sin descripción registrada.' }}
                         </p>
                         <div class="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-3 border-t border-slate-100">
-                            <span>Productos: <strong class="text-slate-700 font-semibold">{{ $category->products_count ?? 0 }}</strong></span>
-                            <span>Act. {{ $category->updated_at->format('d M Y') }}</span>
+                            <span>Última modificación</span>
+                            <span>{{ $category->updated_at->format('d M Y') }}</span>
                         </div>
                     </a>
                 @empty
@@ -85,7 +83,6 @@
                         <p class="text-xs text-slate-500 mt-1.5">Creada el {{ $activeCategory->created_at->format('d M Y') }} &middot; Última actualización: {{ $activeCategory->updated_at->format('d M Y') }}</p>
                     </div>
 
-                    @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-categorias'))
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="openModal('editCategoryModal-{{ $activeCategory->id }}')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition-all shadow-md shadow-blue-600/25">
                             Editar Categoría
@@ -94,7 +91,6 @@
                             Eliminar
                         </button>
                     </div>
-                    @endif
                 </div>
 
                 <!-- Cuerpo de la Información -->
@@ -104,40 +100,6 @@
                         <p class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200/60">
                             {{ $activeCategory->description ?? 'Esta categoría no cuenta con una descripción detallada.' }}
                         </p>
-                    </div>
-
-                    <div>
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Productos Asociados Recientes</h4>
-                        <div class="overflow-x-auto border border-slate-200/80 rounded-xl">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
-                                        <th class="py-3 px-4">SKU</th>
-                                        <th class="py-3 px-4">Nombre del Producto</th>
-                                        <th class="py-3 px-4">Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 text-sm">
-                                    @forelse($activeCategory->products ?? [] as $product)
-                                        <tr class="hover:bg-slate-50/60 transition-colors">
-                                            <td class="py-3 px-4 font-mono text-xs text-slate-500 font-semibold">{{ $product->sku }}</td>
-                                            <td class="py-3 px-4 font-semibold text-slate-800">{{ $product->name }}</td>
-                                            <td class="py-3 px-4">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                                    Activo
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="3" class="py-6 text-center text-slate-400 text-sm">
-                                                No hay productos asignados a esta categoría.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
             @else
