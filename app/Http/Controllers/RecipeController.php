@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Recipe;
 use App\Models\Product;
+use App\Models\Role; // <--- Añade esta línea
 use Illuminate\Http\Request;
 
 class RecipeController extends Controller
@@ -15,7 +16,7 @@ class RecipeController extends Controller
         $recipes = Recipe::with('product')
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
-                             ->orWhere('instructions', 'like', "%{$search}%");
+                           ->orWhere('instructions', 'like', "%{$search}%");
             })
             ->latest()
             ->get();
@@ -34,8 +35,10 @@ class RecipeController extends Controller
         }
 
         $products = Product::all();
+        $roles = Role::all(); // <--- Añade esta línea para obtener los roles
 
-        return view('admin.recetas.index', compact('recipes', 'activeRecipe', 'products'));
+        // Añade 'roles' dentro de compact():
+        return view('admin.recetas.index', compact('recipes', 'activeRecipe', 'products', 'roles'));
     }
 
     public function store(Request $request)

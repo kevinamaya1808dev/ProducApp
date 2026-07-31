@@ -11,7 +11,7 @@
             </div>
 
             <!-- Body -->
-            <form action="{{ route('users.store') }}" method="POST">
+            <form action="{{ route('admin.users.store') }}" method="POST">
                 @csrf
                 <div class="px-6 py-6 max-h-[70vh] overflow-y-auto">
                     
