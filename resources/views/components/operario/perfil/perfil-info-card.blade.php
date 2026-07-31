@@ -27,10 +27,6 @@
                 <span class="text-stone-400 font-medium">TURNO</span>
                 <span class="font-semibold text-stone-700">{{ $usuario['turno'] ?? 'Sin definir' }}</span>
             </li>
-            <li class="flex justify-between border-b border-stone-100 pb-2">
-                <span class="text-stone-400 font-medium">PLANTA</span>
-                <span class="font-semibold text-stone-700">{{ $usuario['planta'] ?? 'Sin definir' }}</span>
-            </li>
             <li class="flex justify-between pt-1">
                 <span class="text-stone-400 font-medium">ALTA DESDE</span>
                 <span class="font-semibold text-stone-700">{{ $usuario['alta_desde'] ?? '—' }}</span>

@@ -16,7 +16,7 @@ class User extends Authenticatable
         'password',
         'puesto',
         'turno',
-        'planta', // Estación de trabajo
+        'estacion', // <-- Reemplazado
         'active',
         'meta_diaria',
         'notas',

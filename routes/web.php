@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ComponentController;
+use App\Http\Controllers\ComponentTypeController; 
 use App\Http\Controllers\OperarioController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductionOrderController;
+use App\Http\Controllers\RecipeComponentController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\RoleMiddleware;
@@ -36,7 +39,18 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
     Route::resource('orders', ProductionOrderController::class);
     
     // Módulo de Recetas
-    Route::resource('recipes', RecipeController::class);
+   Route::resource('recipes', RecipeController::class);
+Route::post('/recipes/{recipe}/duplicate', [RecipeController::class, 'duplicate'])->name('recipes.duplicate');
+Route::post('/recipes/{recipe}/components', [RecipeComponentController::class, 'store'])->name('recipes.components.store');
+Route::put('/recipes/{recipe}/components/{component}', [RecipeComponentController::class, 'update'])->name('recipes.components.update');
+Route::delete('/recipes/{recipe}/components/{component}', [RecipeComponentController::class, 'destroy'])->name('recipes.components.destroy');
+
+
+    // Módulo de Tipos de Componentes
+
+Route::resource('component-types', ComponentTypeController::class)->only(['index', 'store', 'update', 'destroy']);
+
+Route::resource('components', ComponentController::class)->only(['index', 'store', 'update', 'destroy']);
     
     // Rutas de Gestión de Usuarios y Permisos (Asignamos el prefijo 'admin.' exclusivamente aquí)
     Route::name('admin.users.')->group(function () {
