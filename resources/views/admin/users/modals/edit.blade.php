@@ -35,7 +35,7 @@
                             </div>
                         </div>
 
-                        <!-- Fila 2: Correo y Estado (Agregado) -->
+                        <!-- Fila 2: Correo y Estado -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Correo electrónico <span class="text-red-500">*</span></label>
@@ -43,14 +43,14 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Estado de la cuenta <span class="text-red-500">*</span></label>
-                                <select id="editActive" name="is_active" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                                <select id="editActive" name="active" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
                                     <option value="1">Activo</option>
                                     <option value="0">Inactivo (Dado de baja)</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Fila 3: Turno y Estación (Agregado) -->
+                        <!-- Fila 3: Turno y Estación -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Turno</label>
@@ -63,11 +63,11 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Estación de Trabajo</label>
-                                <input type="text" id="editEstacion" name="estacion" placeholder="Ej. Estación 1" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                                <input type="text" id="editPlanta" name="planta" placeholder="Ej. Estación 1" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
                             </div>
                         </div>
 
-                        <!-- Fila 4: Notas (Agregado) -->
+                        <!-- Fila 4: Notas -->
                         <div class="mt-4">
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Notas / Observaciones</label>
                             <textarea id="editNotas" name="notas" rows="2" placeholder="Habilidades, observaciones..." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500"></textarea>
@@ -78,6 +78,20 @@
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Nueva contraseña</label>
                             <input type="password" id="editPassword" name="password" placeholder="Dejar en blanco para no cambiarla" minlength="8" autocomplete="new-password" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
                             <p class="text-xs text-slate-400 mt-1">Déjalo vacío si no quieres cambiar la contraseña del operario.</p>
+                        </div>
+                    </div>
+
+                    <!-- Habilidades de Producción -->
+                    <div class="border-t border-slate-100 pt-5">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Habilidades de Operario</h4>
+                        <p class="text-xs text-slate-500 mb-4">Selecciona las áreas o competencias que domina en la línea de producción.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            @foreach(['Ensamblaje', 'Control de Calidad', 'Soldadura', 'Empaque y Etiquetado', 'Mantenimiento Preventivo', 'Operación de CNC'] as $skillOption)
+                                <label class="flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer">
+                                    <input type="checkbox" name="skills[]" value="{{ $skillOption }}" class="edit-skill-checkbox w-4 h-4 text-blue-600 rounded border-slate-300">
+                                    <span class="text-sm font-semibold text-slate-800">{{ $skillOption }}</span>
+                                </label>
+                            @endforeach
                         </div>
                     </div>
 

@@ -31,7 +31,7 @@
         @endcan
     </div>
 
-    <!-- KPI Cards (Sin Cambios) -->
+    <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
             <p class="text-xs font-bold text-slate-500 tracking-wider uppercase mb-1">Total Usuarios</p>
@@ -65,10 +65,31 @@
         <!-- Grid de Tarjetas -->
         <div id="usersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 transition-all duration-300">
             @forelse($users as $user)
-                @php
-                    $role = $user->roles->first();
-                    $initials = collect(explode(' ', $user->name))->map(fn($n) => strtoupper(substr($n, 0, 1)))->take(2)->implode('');
-                @endphp
+      @php
+    $role = $user->roles->first();
+    $initials = collect(explode(' ', $user->name))->map(fn($n) => strtoupper(substr($n, 0, 1)))->take(2)->implode('');
+    
+    // Procesar órdenes de forma segura evaluando posibles nombres de columnas en la BD
+    $ordersData = $user->productionOrders->map(function($order) {
+        $name = $order->component_name 
+             ?? ($order->name 
+             ?? ($order->title 
+             ?? ($order->descripcion ?? ('Orden #' . $order->order_naumbrer))));
+             
+        return [
+            'id' => $order->order_number,
+            'component_name' => $name,
+            'status' => $order->status ?? 'pendiente'
+        ];
+    });
+
+    // Filtramos estrictamente por 'en_proceso' para que si está terminada o no hay, devuelva null
+    $activeOrder = $user->productionOrders->where('status', 'in_progress')->first();
+                
+    $currentOrderName = $activeOrder 
+        ? ($activeOrder->component_name ?? ($activeOrder->name ?? ($activeOrder->title ?? ('Orden #' . $activeOrder->order_number)))) 
+        : 'Ninguna';
+@endphp
                 <div
                     class="user-card bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:border-blue-300 hover:shadow-md transition-all cursor-pointer relative overflow-hidden group"
                     data-id="{{ $user->id }}"
@@ -82,6 +103,10 @@
                     data-active="{{ $user->active }}"
                     data-notas="{{ $user->notas ?? '' }}"
                     data-created="{{ $user->created_at->translatedFormat('M Y') }}"
+                    data-skills="{{ $user->skills->pluck('skill') }}"
+                    data-permissions="{{ $user->permissions->pluck('id') }}"
+                    data-orders="{{ json_encode($ordersData) }}"
+                    data-current-order="{{ $currentOrderName }}"
                     onclick="selectUser(this)"
                 >
                     <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
@@ -105,7 +130,7 @@
             <p id="noResults" class="text-sm text-slate-400 col-span-full text-center py-10" style="display:none;">No se encontraron usuarios.</p>
         </div>
 
-        <!-- Panel Lateral (Actualizado según Maqueta) -->
+        <!-- Panel Lateral -->
         <div id="userPanel" class="w-full max-w-[380px] shrink-0 bg-white border border-slate-200 rounded-2xl shadow-sm hidden lg:flex flex-col relative" style="display:none;">
 
             <div class="p-4 flex justify-between items-center bg-white rounded-t-2xl">
@@ -132,10 +157,10 @@
                 <div class="mb-6">
                     <div class="flex justify-between items-end mb-2">
                         <span class="text-xs font-bold text-slate-400 tracking-wider uppercase">Eficiencia</span>
-                        <span class="text-base font-bold text-slate-800">94%</span>
+                        <span id="panelEficienciaTexto" class="text-base font-bold text-slate-800">0%</span>
                     </div>
                     <div class="w-full bg-slate-100 rounded-full h-2.5">
-                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: 94%"></div>
+                        <div id="panelEficienciaBarra" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
                     </div>
                 </div>
 
@@ -147,11 +172,11 @@
                     </li>
                     <li class="flex justify-between items-center">
                         <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Órdenes</span>
-                        <span class="text-slate-800 font-bold">312</span>
+                        <span id="panelOrdenes" class="text-slate-800 font-bold">0</span>
                     </li>
                     <li class="flex justify-between items-center">
                         <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Orden Actual</span>
-                        <span class="text-slate-800 font-bold">ORD-2024-0091</span>
+                        <span id="panelOrdenActual" class="text-slate-800 font-bold text-right truncate max-w-[180px]">Ninguna</span>
                     </li>
                     <li class="flex justify-between items-center">
                         <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider">Correo</span>
@@ -163,27 +188,25 @@
                     </li>
                 </ul>
 
-                <!-- Habilidades (Visuales Estáticas según maqueta) -->
-                <div class="mb-6">
-                    <span class="text-slate-400 font-semibold text-xs uppercase tracking-wider block mb-2">Habilidades</span>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-full text-xs font-semibold">Costura</span>
-                        <span class="px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-full text-xs font-semibold">Acabados</span>
-                        <span class="px-3 py-1 bg-white border border-blue-200 text-blue-600 rounded-full text-xs font-semibold">Control Calidad</span>
-                    </div>
+                <!-- Habilidades -->
+                <div class="mt-2">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Habilidades</h4>
+                    <div id="panelSkillsContainer" class="flex flex-wrap gap-2"></div>
+                    <p id="panelNoSkills" class="text-xs text-slate-400" style="display: none;">Aún no se han registrado habilidades.</p>
                 </div>
             </div>
 
             <!-- Botones de Acción Panel -->
             <div class="p-5 border-t border-slate-100 flex flex-col gap-3">
                 @can('manage-operators')
-                <button type="button" onclick="openEditModalFromPanel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm">
-                    Editar Perfil
+                <button type="button" 
+                        onclick="triggerEditModal()" 
+                        class="w-full bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm">
+                    Editar Registro
                 </button>
                 <form id="statusFormPanel" method="POST" class="w-full">
                     @csrf
                     @method('PUT')
-                    <!-- Campos ocultos para mantener los datos al cambiar estado -->
                     <input type="hidden" name="name" id="statusFormName">
                     <input type="hidden" name="email" id="statusFormEmail">
                     <input type="hidden" name="role_id" id="statusFormRole">
@@ -247,10 +270,14 @@
             estacion: card.dataset.estacion,
             active: card.dataset.active === '1',
             notas: card.dataset.notas,
-            created: card.dataset.created
+            created: card.dataset.created,
+            skills: JSON.parse(card.dataset.skills || '[]'),
+            permissions: JSON.parse(card.dataset.permissions || '[]'),
+            orders: JSON.parse(card.dataset.orders || '[]'),
+            currentOrder: card.dataset.currentOrder || 'Ninguna'
         };
 
-        // Llenar panel lateral
+        // Llenar panel lateral textos básicos
         document.getElementById('panelInitials').textContent = currentUser.initials;
         document.getElementById('panelName').textContent = currentUser.name;
         document.getElementById('panelRole').textContent = currentUser.roleName;
@@ -258,6 +285,10 @@
         document.getElementById('panelTurno').textContent = currentUser.turno;
         document.getElementById('panelEstacion').textContent = currentUser.estacion;
         document.getElementById('panelAlta').textContent = currentUser.created;
+
+        // Llenar campos dinámicos de Órdenes en el Panel Lateral
+        document.getElementById('panelOrdenes').textContent = currentUser.orders.length;
+        document.getElementById('panelOrdenActual').textContent = currentUser.currentOrder;
 
         const statusBadge = document.getElementById('panelStatus');
         if(currentUser.active) {
@@ -268,7 +299,43 @@
             statusBadge.className = 'px-3 py-1 text-xs font-semibold rounded-full border border-red-200 text-red-600 bg-red-50';
         }
 
+        // Dibujar las habilidades dinámicamente
+        const skillsContainer = document.getElementById('panelSkillsContainer');
+        const noSkillsMsg = document.getElementById('panelNoSkills');
+        skillsContainer.innerHTML = '';
+
+        if(currentUser.skills.length > 0) {
+            noSkillsMsg.style.display = 'none';
+            currentUser.skills.forEach(skill => {
+                const span = document.createElement('span');
+                span.className = 'inline-block px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-50/50 border border-blue-200 rounded-full';
+                span.textContent = skill;
+                skillsContainer.appendChild(span);
+            });
+        } else {
+            noSkillsMsg.style.display = 'block';
+        }
+
         document.getElementById('userPanel').style.display = 'flex';
+    }
+
+    function triggerEditModal() {
+        if (!currentUser) return;
+        
+        const formattedUser = {
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email,
+            active: currentUser.active,
+            turno: currentUser.turno,
+            planta: currentUser.estacion,
+            notas: currentUser.notas,
+            roles: [{ id: currentUser.roleId }], 
+            skills: currentUser.skills.map(s => ({ skill: s })), 
+            permissions: currentUser.permissions.map(id => ({ id: id })) 
+        };
+
+        openEditModal(formattedUser);
     }
 
     function closePanel() {
@@ -276,7 +343,6 @@
         currentUser = null;
     }
 
-    // Modal Crear
     function openCreateModal() {
         document.getElementById('createModal').style.display = 'block';
     }
@@ -284,58 +350,56 @@
         document.getElementById('createModal').style.display = 'none';
     }
 
-    // Modal Editar
-    function openEditModalFromPanel() {
-        if (!currentUser) return;
-        document.getElementById('editForm').action = '/admin/users/' + currentUser.id;
-        document.getElementById('editName').value = currentUser.name;
-        document.getElementById('editEmail').value = currentUser.email;
+    function openEditModal(user) {
+        const form = document.getElementById('editForm');
+        form.action = `/admin/users/${user.id}`;
+        
+        document.getElementById('editName').value = user.name || '';
+        document.getElementById('editEmail').value = user.email || '';
+        document.getElementById('editRoleId').value = (user.roles && user.roles.length > 0) ? user.roles[0].id : '';
+        document.getElementById('editActive').value = user.active ? 1 : 0;
+        document.getElementById('editTurno').value = user.turno || '';
+        document.getElementById('editPlanta').value = user.planta || '';
+        document.getElementById('editNotas').value = user.notas || '';
         document.getElementById('editPassword').value = '';
-        document.getElementById('editRoleId').value = currentUser.roleId ?? '';
-        document.getElementById('editTurno').value = currentUser.turno !== 'Sin asignar' ? currentUser.turno : '';
-        document.getElementById('editEstacion').value = currentUser.estacion !== 'N/A' ? currentUser.estacion : '';
-        document.getElementById('editActive').value = currentUser.active ? '1' : '0';
-        document.getElementById('editNotas').value = currentUser.notas ?? '';
+
+        const userSkills = user.skills ? user.skills.map(s => s.skill) : [];
+        document.querySelectorAll('.edit-skill-checkbox').forEach(checkbox => {
+            checkbox.checked = userSkills.includes(checkbox.value);
+        });
+
+        const userPermissions = user.permissions ? user.permissions.map(p => p.id) : [];
+        document.querySelectorAll('.permission-checkbox').forEach(checkbox => {
+            checkbox.checked = userPermissions.includes(parseInt(checkbox.value));
+        });
 
         document.getElementById('editModal').style.display = 'block';
     }
+
     function closeEditModal() {
         document.getElementById('editModal').style.display = 'none';
     }
 
-    // Funcionalidad Dar de Baja rápida
-    // Abrir el modal en lugar de usar confirm()
     function toggleStatusFromPanel() {
         if(!currentUser) return;
-        
-        // Colocar el nombre del operario en el texto del modal
         document.getElementById('deactivateUserName').textContent = currentUser.name;
-        
-        // Mostrar el modal
         document.getElementById('deactivateModal').style.display = 'block';
     }
 
-    // Cerrar el modal
     function closeDeactivateModal() {
         document.getElementById('deactivateModal').style.display = 'none';
     }
 
-    // Ejecutar el submit del formulario oculto cuando se confirme
     function confirmDeactivate() {
         if(!currentUser) return;
-        
         document.getElementById('statusFormPanel').action = '/admin/users/' + currentUser.id;
         document.getElementById('statusFormName').value = currentUser.name;
         document.getElementById('statusFormEmail').value = currentUser.email;
         document.getElementById('statusFormRole').value = currentUser.roleId;
-        
-        // Si el modal es específicamente para "Dar de baja", forzamos el valor a 0 (Inactivo)
         document.getElementById('statusFormActive').value = '0'; 
-        
         document.getElementById('statusFormPanel').submit();
     }
 
-    // Modal Eliminar
     function openDeleteModalFromPanel() {
         if (!currentUser) return;
         document.getElementById('deleteForm').action = '/admin/users/' + currentUser.id;

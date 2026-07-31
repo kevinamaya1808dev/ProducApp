@@ -5,7 +5,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Incidence extends Model
 {
-    protected $fillable = ['production_order_id', 'user_id', 'title', 'description', 'status'];
+    protected $fillable = ['production_order_id', 'user_id', 'title', 'description', 'status','importance' // <-- Se añade esta línea
+    ];
 
     public function order() {
         return $this->belongsTo(ProductionOrder::class, 'production_order_id');

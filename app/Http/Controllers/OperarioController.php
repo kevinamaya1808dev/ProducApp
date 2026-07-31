@@ -138,6 +138,20 @@ public function guardarRegistro(Request $request)
         return redirect()->back()->withErrors(['error' => 'Debes ingresar una cantidad o una nota.']);
     }
 
+    // Evita registros duplicados (doble clic / doble envío del mismo formulario)
+    // Si existe un registro idéntico (mismo usuario, misma orden, misma cantidad y misma nota)
+    // creado en los últimos 5 segundos, no se vuelve a contar en la sumatoria de avance.
+    $registroDuplicado = RegistroProduccion::where('user_id', Auth::id())
+        ->where('production_order_id', $request->production_order_id)
+        ->where('cantidad', $request->cantidad ?? 0)
+        ->where('nota', $request->nota)
+        ->where('created_at', '>=', now()->subSeconds(5))
+        ->exists();
+
+    if ($registroDuplicado) {
+        return redirect()->back()->with('warning', 'Este registro ya se guardó hace unos segundos, evitamos duplicarlo.');
+    }
+
     RegistroProduccion::create([
         'user_id' => Auth::id(),
         'production_order_id' => $request->production_order_id,

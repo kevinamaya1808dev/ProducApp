@@ -16,10 +16,10 @@ class User extends Authenticatable
         'password',
         'puesto',
         'turno',
-        'planta', // Lo usaremos como "Estación"
+        'planta', // Estación de trabajo
         'active',
         'meta_diaria',
-        'notas', // Campo nuevo agregado
+        'notas',
     ];
 
     protected $hidden = [
@@ -32,7 +32,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'active' => 'boolean', // Casteo para manejar activo/inactivo fácilmente
+            'active' => 'boolean',
         ];
     }
 
@@ -56,7 +56,7 @@ class User extends Authenticatable
 
     public function productionOrders()
     {
-        return $this->hasMany(ProductionOrder::class);
+        return $this->hasMany(ProductionOrder::class, 'user_id');
     }
 
     public function registrosProduccion()

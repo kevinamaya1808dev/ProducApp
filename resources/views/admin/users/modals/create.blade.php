@@ -42,7 +42,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Estado de la cuenta <span class="text-red-500">*</span></label>
-                                <select name="is_active" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                                <select name="active" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
                                     <option value="1" selected>Activo</option>
                                     <option value="0">Inactivo (Dado de baja)</option>
                                 </select>
@@ -62,7 +62,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Estación de Trabajo</label>
-                                <input type="text" name="estacion" placeholder="Ej. Estación 1" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                                <input type="text" name="planta" placeholder="Ej. Estación 1" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
                             </div>
                         </div>
 
@@ -76,6 +76,20 @@
                         <div class="mt-4 pt-4 border-t border-slate-100">
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Contraseña <span class="text-red-500">*</span></label>
                             <input type="password" name="password" required placeholder="Mínimo 8 caracteres" minlength="8" autocomplete="new-password" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Habilidades de Producción -->
+                    <div class="border-t border-slate-100 pt-5">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Habilidades de Operario</h4>
+                        <p class="text-xs text-slate-500 mb-4">Selecciona las áreas o competencias que domina en la línea de producción.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            @foreach(['Ensamblaje', 'Control de Calidad', 'Soldadura', 'Empaque y Etiquetado', 'Mantenimiento Preventivo', 'Operación de CNC'] as $skillOption)
+                                <label class="flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer">
+                                    <input type="checkbox" name="skills[]" value="{{ $skillOption }}" class="w-4 h-4 text-blue-600 rounded border-slate-300">
+                                    <span class="text-sm font-semibold text-slate-800">{{ $skillOption }}</span>
+                                </label>
+                            @endforeach
                         </div>
                     </div>
 
