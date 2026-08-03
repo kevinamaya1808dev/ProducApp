@@ -34,7 +34,7 @@ class UserController extends Controller
             'role_id'     => 'required|exists:roles,id',
             'active'      => 'required|boolean',
             'turno'       => 'nullable|string|max:50',
-            'planta'      => 'nullable|string|max:100',
+            'estacion'      => 'nullable|string|max:100',
             'notas'       => 'nullable|string',
             'permissions' => 'nullable|array',
             'permissions.*' => 'exists:permissions,id',
@@ -46,7 +46,7 @@ class UserController extends Controller
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
             'turno'    => $validated['turno'] ?? null,
-            'planta'   => $validated['planta'] ?? null,
+            'estacion'   => $validated['estacion'] ?? null,
             'active'   => $validated['active'],
             'notas'    => $validated['notas'] ?? null,
         ]);
@@ -77,7 +77,7 @@ class UserController extends Controller
             'password'    => 'nullable|string|min:8',
             'role_id'     => 'required|exists:roles,id',
             'turno'       => 'nullable|string|max:50',
-            'planta'      => 'nullable|string|max:100',
+            'estacion'      => 'nullable|string|max:100',
             'active'      => 'required|boolean',
             'notas'       => 'nullable|string',
             'permissions' => 'nullable|array',
@@ -88,7 +88,7 @@ class UserController extends Controller
         $user->name   = $validated['name'];
         $user->email  = $validated['email'];
         $user->turno  = $validated['turno'] ?? null;
-        $user->planta = $validated['planta'] ?? null;
+        $user->estacion = $validated['estacion'] ?? null;
         $user->active = $validated['active'];
         $user->notas  = $validated['notas'] ?? null;
 

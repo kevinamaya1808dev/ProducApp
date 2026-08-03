@@ -37,7 +37,7 @@
                 @include('layouts.partials.sidebar')
             @endauth
 
-            <main id="mainContent" class="flex-1 p-4 sm:p-6 transition-all duration-300 @auth lg:ml-64 @else ml-0 @endauth">
+           <main id="mainContent" class="flex-1 min-w-0 p-4 sm:p-6 transition-all duration-300 @auth lg:ml-64 @else ml-0 @endauth">
                 @yield('content')
             </main>
         </div>

@@ -17,17 +17,17 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-    <label class="block text-sm font-semibold text-slate-700 mb-2">Tipo</label>
-    <select name="component_type_id" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-slate-700 bg-white">
-        <option value="">Sin tipo</option>
-        @foreach($componentTypes as $type)
-            <option value="{{ $type->id }}">{{ $type->name }}</option>
-        @endforeach
-    </select>
-    <a href="{{ route('component-types.index') }}" target="_blank" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium mt-1.5 inline-block">
-        + Gestionar tipos de componente
-    </a>
-</div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Tipo</label>
+                            <select name="component_type_id" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-slate-700 bg-white">
+                                <option value="">Sin tipo</option>
+                                @foreach($componentTypes as $type)
+                                    <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                @endforeach
+                            </select>
+                            <a href="{{ route('component-types.index') }}" target="_blank" class="text-[11px] text-emerald-600 hover:text-emerald-700 font-medium mt-1.5 inline-block">
+                                + Gestionar tipos de componente
+                            </a>
+                        </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-2">Unidad</label>
                             <select name="base_unit" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-slate-700 bg-white">

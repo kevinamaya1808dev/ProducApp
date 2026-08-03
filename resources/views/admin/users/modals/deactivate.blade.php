@@ -24,7 +24,7 @@
                     Dar de baja
                 </button>
             </div>
-            
+
         </div>
     </div>
 </div>

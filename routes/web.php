@@ -4,7 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\ComponentTypeController; 
-use App\Http\Controllers\ExportController; // <-- Nuevo controlador agregado
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\IncidenceController;
 use App\Http\Controllers\OperarioController;
 use App\Http\Controllers\ProductController;
@@ -41,11 +41,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
 
     // --- NUEVAS RUTAS DE EXPORTACIÓN (Dashboard e Incidencias) ---
     Route::name('admin.export.')->prefix('export')->group(function () {
-        // Exportaciones del Dashboard
         Route::get('/dashboard/excel', [ExportController::class, 'dashboardExcel'])->name('dashboard.excel');
         Route::get('/dashboard/pdf', [ExportController::class, 'dashboardPdf'])->name('dashboard.pdf');
-        
-        // Exportaciones de Incidencias
         Route::get('/incidences/excel', [ExportController::class, 'incidencesExcel'])->name('incidences.excel');
         Route::get('/incidences/pdf', [ExportController::class, 'incidencesPdf'])->name('incidences.pdf');
     });
@@ -86,10 +83,21 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
 });
 
 // ==========================================
-// MÓDULO: PRODUCTOS (Admin o Becario con permiso)
+// MÓDULO: PRODUCTOS (Admin o usuarios con permiso explícito)
 // ==========================================
 Route::middleware(['auth', 'can:access-products'])->prefix('admin')->group(function () {
     Route::resource('products', ProductController::class);
+});
+
+// ==========================================
+// MÓDULO HíBRIDO: FUNCIONES ESPECIALES PARA OPERARIOS AUTORIZADOS VÍA RUTA
+// ==========================================
+// Permite que un operario interactúe con módulos avanzados (ej. gestión de órdenes o recetas) 
+// si el Administrador le otorgó el permiso correspondiente mediante su usuario.
+Route::middleware(['auth', 'can:gestionar-ordenes'])->prefix('operario/gestion')->name('operario.gestion.')->group(function () {
+    Route::get('/ordenes', [ProductionOrderController::class, 'index'])->name('orders.index');
+    Route::get('/ordenes/crear', [ProductionOrderController::class, 'create'])->name('orders.create');
+    Route::post('/ordenes', [ProductionOrderController::class, 'store'])->name('orders.store');
 });
 
 // ==========================================
@@ -108,7 +116,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':operario'])
         Route::get('/perfil', [OperarioController::class, 'perfil'])->name('perfil');
 
         // Rutas POST / PUT (Acciones y Formularios)
-        Route::post('/registro/guardar', [OperarioController::class, 'guardarRegistro'])->name('registro.guardar');
+        Route::post('/registro/guardar', [OperarioController::class, 'guardارRegistro'])->name('registro.guardar');
         Route::post('/incidencias/guardar', [OperarioController::class, 'crearIncidencia'])->name('incidencias.guardar');
         
         // Acciones de Tareas y Estaciones

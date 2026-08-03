@@ -22,24 +22,21 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // 1. INTERCEPTOR GLOBAL (Super Admin)
-        // Intercepta TODAS las validaciones de permisos (@can, middleware can:, etc.)
         Gate::before(function ($user, $ability) {
             // Si es Administrador, tiene acceso total automáticamente
             if ($user->hasRole('admin')) {
                 return true;
             }
 
-            // Validación general de permisos para operarios y otros roles
+            // Validación general de permisos asignados al operario
             if ($user->hasPermission($ability)) {
                 return true;
             }
             
-            // Retornar null permite que las reglas explícitas de abajo sigan su curso
             return null;
         });
 
-
-        // 2. REGISTRO EXPLÍCITO DE GATES PARA TODAS LAS VISTAS Y MÓDULOS
+        // 2. REGISTRO EXPLÍCITO DE GATES PARA RUTAS Y VISTAS
         
         // Módulo de Productos
         Gate::define('access-products', function (User $user) {
