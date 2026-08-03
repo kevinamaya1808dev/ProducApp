@@ -1,11 +1,18 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Incidence extends Model
 {
-    protected $fillable = ['production_order_id', 'user_id', 'title', 'description', 'status','importance' // <-- Se añade esta línea
+    protected $fillable = [
+        'production_order_id', 
+        'user_id', 
+        'title', 
+        'description', 
+        'status', 
+        'importance'
     ];
 
     public function order() {
@@ -14,5 +21,9 @@ class Incidence extends Model
 
     public function operario() {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function logs() {
+        return $this->hasMany(IncidenceLog::class)->latest();
     }
 }

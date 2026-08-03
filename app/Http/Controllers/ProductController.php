@@ -10,11 +10,36 @@ use Illuminate\Http\RedirectResponse;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $products = Product::with('category')->latest()->paginate(10);
+        // Iniciamos la consulta
+        $query = Product::with('category');
+
+        // Filtro por Búsqueda (Nombre o Código)
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('code', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // Filtro por Categoría
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // Filtro por Estado (Stock)
+        if ($request->filled('status')) {
+            if ($request->status === 'disponible') {
+                $query->where('stock', '>', 0);
+            } elseif ($request->status === 'agotado') {
+                $query->where('stock', '<=', 0);
+            }
+        }
+
+        // Ejecutamos la consulta, paginamos y conservamos los parámetros de la URL
+        $products = $query->latest()->paginate(10)->withQueryString();
         
-        // Agregamos las categorías para pasarlas a los modales de Crear/Editar
         $categories = Category::all();
 
         return view('admin.products.index', compact('products', 'categories'));

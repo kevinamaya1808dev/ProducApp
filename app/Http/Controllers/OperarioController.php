@@ -28,13 +28,13 @@ class OperarioController extends Controller
             ->whereDate('created_at', today())
             ->sum('cantidad');
 
-        // Piezas registradas hoy específicamente para la orden activa
-        $piezasOrdenActiva = 0;
-        if ($ordenActiva) {
-            $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-                ->whereDate('created_at', today())
-                ->sum('cantidad');
-        }
+        // Piezas registradas para la orden activa (acumulado total de la orden para este usuario)
+$piezasOrdenActiva = 0;
+if ($ordenActiva) {
+    $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
+        ->where('user_id', $userId)
+        ->sum('cantidad');
+}
 
         // Incidencias reportadas hoy por el operario
         $incidenciasHoy = Incidence::where('user_id', $userId)
@@ -72,12 +72,13 @@ class OperarioController extends Controller
             ->latest()
             ->first();
 
-        $piezasOrdenActiva = 0;
-        if ($ordenActiva) {
-            $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-                ->whereDate('created_at', today())
-                ->sum('cantidad');
-        }
+        // Piezas registradas para la orden activa (acumulado total de la orden para este usuario)
+$piezasOrdenActiva = 0;
+if ($ordenActiva) {
+    $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
+        ->where('user_id', $userId)
+        ->sum('cantidad');
+}
 
         $tarea = $ordenActiva ? [
             'titulo' => $ordenActiva->product->name ?? 'Sin producto',
