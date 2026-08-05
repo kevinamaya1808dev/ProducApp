@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('production_orders', function (Blueprint $table) {
@@ -15,12 +18,18 @@ return new class extends Migration
             $table->string('order_number')->unique();
             $table->integer('quantity');
             $table->enum('status', ['pending', 'in_progress', 'completed', 'cancelled'])->default('pending');
+            $table->string('estacion')->nullable();
+            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->integer('completed_pieces')->default(0);
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('production_orders');

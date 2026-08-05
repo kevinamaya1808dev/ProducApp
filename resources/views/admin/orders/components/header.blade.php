@@ -1,7 +1,7 @@
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Órdenes de Producción</h1>
-        <p class="text-sm text-slate-500 mt-1">Gestión completa de órdenes &middot; {{ $orders->total() }} registro(s)</p>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-stone-100 tracking-tight">Órdenes de Producción</h1>
+        <p class="text-sm text-slate-500 dark:text-stone-400 mt-1">Gestión completa de órdenes &middot; {{ $orders->total() }} registro(s)</p>
     </div>
 
     @can('manage-orders')

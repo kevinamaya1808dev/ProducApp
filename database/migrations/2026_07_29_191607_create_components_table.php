@@ -6,15 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('components', function (Blueprint $table) {
             $table->id();
             
-            // Relación con tu tabla categories existente
+            // Relación con categories (ahora nullable desde el inicio)
             $table->foreignId('category_id')
+                  ->nullable()
                   ->constrained('categories')
-                  ->onDelete('restrict'); // 'restrict' evita que borres una categoría si tiene componentes
+                  ->onDelete('restrict');
+            
+            // Relación con component_types añadida directamente
+            $table->foreignId('component_type_id')
+                  ->nullable()
+                  ->constrained('component_types')
+                  ->nullOnDelete();
             
             $table->string('name'); // Ej. Tela Mezclilla 12oz
             $table->string('sku')->unique()->nullable(); // Ej. MAT-001
@@ -24,6 +34,9 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('components');

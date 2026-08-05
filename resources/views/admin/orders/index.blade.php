@@ -43,9 +43,9 @@
         currentStatusFilter = status;
         document.querySelectorAll('.status-filter-btn').forEach(b => {
             b.classList.remove('bg-orange-600', 'text-white', 'shadow-sm', 'shadow-orange-600/20');
-            b.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-600');
+            b.classList.add('bg-white', 'dark:bg-stone-900', 'border', 'border-slate-200', 'dark:border-stone-800', 'text-slate-600', 'dark:text-stone-300');
         });
-        btn.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-600');
+        btn.classList.remove('bg-white', 'dark:bg-stone-900', 'border', 'border-slate-200', 'dark:border-stone-800', 'text-slate-600', 'dark:text-stone-300');
         btn.classList.add('bg-orange-600', 'text-white', 'shadow-sm', 'shadow-orange-600/20');
         filterOrders();
     }
