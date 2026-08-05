@@ -18,7 +18,7 @@
         @include('admin.users.components.detail-panel')
     </div>
 
-    @can('manage-operators')
+    @can('manage-users')
         @include('admin.users.modals.create')
         @include('admin.users.modals.edit')
         @include('admin.users.modals.delete')

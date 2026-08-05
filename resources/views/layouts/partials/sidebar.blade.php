@@ -9,83 +9,72 @@
     <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-3">
         <nav class="space-y-1.5 px-3 pb-6">
             
-            {{-- SECCIÓN DE VISTAS SUPERIORES / ADMINISTRATIVAS --}}
-            @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('access-products') || Auth::user()->hasPermission('gestionar-recetas') || Auth::user()->hasPermission('gestionar-categorias') || Auth::user()->hasPermission('gestionar-ordenes') || Auth::user()->hasPermission('gestionar-incidencias') || Auth::user()->hasPermission('gestionar-usuarios') || Auth::user()->hasPermission('gestionar-configuracion'))
+            {{-- SECCIÓN DE VISTAS / MÓDULOS (Valida contra los slugs reales de la BD) --}}
+            @canany(['view-admin-dashboard', 'access-products', 'manage-recipes', 'manage-categories', 'view-orders', 'manage-orders', 'manage-users'])
                 
                 <div class="sidebar-label px-3 pt-2 pb-2 text-[11px] font-bold text-stone-500 uppercase tracking-widest whitespace-nowrap overflow-hidden">
                     {{ Auth::user()->hasRole('admin') ? 'Principal / Admin' : 'Módulos Autorizados' }}
                 </div>
 
-                {{-- Dashboard (Solo Admin) --}}
-                @if(Auth::user()->hasRole('admin'))
+                {{-- Dashboard --}}
+                @can('view-admin-dashboard')
                     <a href="{{ route('admin.dashboard') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Dashboard</span>
                     </a>
-                @endif
+                @endcan
 
                 {{-- Productos --}}
-                @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('access-products'))
+                @can('access-products')
                     <a href="{{ route('products.index') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('products.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Productos</span>
                     </a>
-                @endif
+                @endcan
 
                 {{-- Recetas --}}
-                @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-recetas'))
+                @can('manage-recipes')
                     <a href="{{ route('recipes.index') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('recipes.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Recetas</span>
                     </a>
-                @endif
+                @endcan
 
-                {{-- Categorías --}}
-                @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-categorias'))
+                {{-- Categorías (Corregido a slug: manage-categories) --}}
+                @can('manage-categories')
                     <a href="{{ route('categories.index') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('categories.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Categorías</span>
                     </a>
-                @endif
+                @endcan
 
                 {{-- Órdenes --}}
-                @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-ordenes'))
+                @can('view-orders')
                     <a href="{{ route('orders.index') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('orders.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15"></path></svg>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Órdenes</span>
                     </a>
-                @endif
+                @endcan
 
-                {{-- Gestión de Incidencias --}}
-                @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-incidencias'))
+                {{-- Gestión de Incidencias (Protegido por manage-orders en rutas) --}}
+                @can('manage-orders')
                     <a href="{{ route('admin.incidences.index') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.incidences.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Gestión Incidencias</span>
                     </a>
-                @endif
+                @endcan
 
-                {{-- Operarios / Usuarios --}}
-                @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-usuarios'))
-                    <a href="{{ route('admin.users.index') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('users.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60' }}">
+                {{-- Operarios / Usuarios (Corregido a slug: manage-users) --}}
+                @can('manage-users')
+                    <a href="{{ route('admin.users.index') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.users.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60' }}">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Operarios</span>
                     </a>
-                @endif
+                @endcan
+            @endcanany
 
-                {{-- Configuración --}}
-                @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-configuracion'))
-                    <div class="sidebar-label px-3 pt-4 pb-2 text-[11px] font-bold text-stone-500 uppercase tracking-widest whitespace-nowrap overflow-hidden">
-                        Sistema
-                    </div>
-                    <a href="#" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-stone-400 hover:text-stone-200 hover:bg-stone-800/60">
-                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        <span class="sidebar-label whitespace-nowrap overflow-hidden">Configuración</span>
-                    </a>
-                @endif
-            @endif
-
-            {{-- SECCIÓN EXCLUSIVA DE OPERARIO --}}
-            @if(Auth::user()->hasRole('operario'))
+            {{-- SECCIÓN EXCLUSIVA DE OPERARIO (Validada con access-operario) --}}
+            @can('access-operario')
                 <div class="sidebar-label px-3 pt-4 pb-2 text-[11px] font-bold text-stone-500 uppercase tracking-widest whitespace-nowrap overflow-hidden">
                     Mi Espacio
                 </div>
@@ -114,7 +103,7 @@
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span class="sidebar-label whitespace-nowrap overflow-hidden">Mi Perfil</span>
                 </a>
-            @endif
+            @endcan
         </nav>
     </div>
 

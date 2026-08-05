@@ -29,12 +29,14 @@
     </div>
 </div>
 
-{{-- Inclusión de Modales Organizados --}}
-@include('admin.categories.modals.create')
-@if(isset($activeCategory))
-    @include('admin.categories.modals.edit', ['category' => $activeCategory])
-    @include('admin.categories.modals.delete', ['category' => $activeCategory])
-@endif
+{{-- Inclusión de Modales Organizados protegidos por permiso --}}
+@can('manage-categories')
+    @include('admin.categories.modals.create')
+    @if(isset($activeCategory))
+        @include('admin.categories.modals.edit', ['category' => $activeCategory])
+        @include('admin.categories.modals.delete', ['category' => $activeCategory])
+    @endif
+@endcan
 
 <script>
     function openModal(modalId) {

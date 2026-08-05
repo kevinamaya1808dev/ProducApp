@@ -60,7 +60,8 @@
     </div>
 
     <div class="p-5 border-t border-slate-100 flex flex-col gap-3">
-        @can('manage-operators')
+        <!-- Candado actualizado con el slug correcto de la BD -->
+        @can('manage-users')
         <button type="button"
                 onclick="triggerEditModal()"
                 class="w-full bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm">

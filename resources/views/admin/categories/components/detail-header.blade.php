@@ -9,6 +9,7 @@
         <p class="text-xs text-slate-500 mt-1.5">Creada el {{ $category->created_at->format('d M Y') }} &middot; Última actualización: {{ $category->updated_at->format('d M Y') }}</p>
     </div>
 
+    @can('manage-categories')
     <div class="flex items-center gap-2">
         <button type="button" onclick="openModal('editCategoryModal-{{ $category->id }}')" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium text-sm rounded-xl transition-all shadow-md shadow-orange-600/25">
             Editar Categoría
@@ -17,4 +18,5 @@
             Eliminar
         </button>
     </div>
+    @endcan
 </div>

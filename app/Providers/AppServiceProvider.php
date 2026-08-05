@@ -23,53 +23,72 @@ class AppServiceProvider extends ServiceProvider
     {
         // 1. INTERCEPTOR GLOBAL (Super Admin)
         Gate::before(function ($user, $ability) {
-            // Si es Administrador, tiene acceso total automáticamente
+            // Si es Administrador, tiene acceso total a todo de forma automática
             if ($user->hasRole('admin')) {
                 return true;
             }
 
-            // Validación general de permisos asignados al operario
-            if ($user->hasPermission($ability)) {
-                return true;
-            }
-            
+            // Retornamos null para que Laravel siga evaluando los Gates explícitos de abajo
             return null;
         });
 
-        // 2. REGISTRO EXPLÍCITO DE GATES PARA RUTAS Y VISTAS
+        // ==========================================
+        // 2. REGISTRO EXPLÍCITO DE GATES (Basado en DB)
+        // ==========================================
         
-        // Módulo de Productos
+        // ID 1: Acceso a Productos
         Gate::define('access-products', function (User $user) {
             return $user->hasPermission('access-products');
         });
 
-        // Módulo de Recetas
-        Gate::define('view-recipes', function (User $user) {
-            return $user->hasPermission('view-recipes');
-        });
-        Gate::define('manage-recipes', function (User $user) {
-            return $user->hasPermission('manage-recipes');
-        });
-        Gate::define('gestionar-recetas', function (User $user) {
-            return $user->hasPermission('gestionar-recetas');
+        // ID 2: Ver Órdenes
+        Gate::define('view-orders', function (User $user) {
+            return $user->hasPermission('view-orders');
         });
 
-        // Módulo de Órdenes
+        // ID 3: Gestionar Órdenes
         Gate::define('manage-orders', function (User $user) {
             return $user->hasPermission('manage-orders');
         });
-        Gate::define('gestionar-ordenes', function (User $user) {
-            return $user->hasPermission('gestionar-ordenes');
+
+        // ID 4: Ver Dashboard Admin
+        Gate::define('view-admin-dashboard', function (User $user) {
+            return $user->hasPermission('view-admin-dashboard');
         });
 
-        // Módulo de Usuarios / Operarios
-        Gate::define('gestionar-usuarios', function (User $user) {
-            return $user->hasPermission('gestionar-usuarios');
+        // ID 5: Gestionar Categorías
+        Gate::define('manage-categories', function (User $user) {
+            return $user->hasPermission('manage-categories');
         });
 
-        // Módulo de Configuración del Sistema
-        Gate::define('gestionar-configuracion', function (User $user) {
-            return $user->hasPermission('gestionar-configuracion');
+        // ID 6: Gestionar Usuarios
+        Gate::define('manage-users', function (User $user) {
+            return $user->hasPermission('manage-users');
+        });
+
+        // ID 7: Gestionar Recetas
+        Gate::define('manage-recipes', function (User $user) {
+            return $user->hasPermission('manage-recipes');
+        });
+
+        // ID 8: Acceso Módulo Operario
+        Gate::define('access-operario', function (User $user) {
+            return $user->hasPermission('access-operario');
+        });
+
+        // ID 9: Ver Órdenes Asignadas
+        Gate::define('view-assigned-orders', function (User $user) {
+            return $user->hasPermission('view-assigned-orders');
+        });
+
+        // ID 10: Actualizar Progreso
+        Gate::define('update-progress', function (User $user) {
+            return $user->hasPermission('update-progress');
+        });
+
+        // ID 11: Reportar Incidencias
+        Gate::define('create-incidences', function (User $user) {
+            return $user->hasPermission('create-incidences');
         });
     }
 }

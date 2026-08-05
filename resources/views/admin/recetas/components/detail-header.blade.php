@@ -9,7 +9,7 @@
 </div>
 
 <div class="px-6 pt-5 flex flex-wrap items-center gap-2">
-    @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('gestionar-recetas'))
+    @if(Auth::user()->hasRole('admin') || Auth::user()->hasPermission('manage-recipes'))
         <button type="button" onclick="openModal('addComponentModal')" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-sm rounded-xl border border-emerald-200 transition-all">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Componente
