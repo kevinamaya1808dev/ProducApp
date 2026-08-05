@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserSkill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -14,54 +16,56 @@ class UserController extends Controller
     {
         $totalUsers = User::count();
 
-        // Agregamos 'productionOrders' en el with() para disponibilizar las órdenes en la vista
-        $users = User::with(['roles', 'permissions', 'productionOrders'])
-            ->where('id', '!=', auth()->id())
-            ->get();
+        // Se obtienen todos los usuarios sin omitir al usuario autenticado
+        $users = User::with(['roles', 'permissions', 'productionOrders', 'skills'])->get();
 
-        $roles = \App\Models\Role::all();
-        $permissions = \App\Models\Permission::all();
+        $roles = Role::all();
+        $permissions = Permission::all();
 
         return view('admin.users.index', compact('users', 'roles', 'permissions', 'totalUsers')); 
     }
 
-   public function store(Request $request)
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|email|unique:users,email',
-            'password'    => 'required|string|min:8',
-            'role_id'     => 'required|exists:roles,id',
-            'active'      => 'required|boolean',
-            'turno'       => 'nullable|string|max:50',
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|string|min:8',
+            'role_id'       => 'required|exists:roles,id',
+            'active'        => 'required|boolean',
+            'puesto'        => 'nullable|string|max:100',
+            'turno'         => 'nullable|string|max:50',
             'estacion'      => 'nullable|string|max:100',
-            'notas'       => 'nullable|string',
-            'permissions' => 'nullable|array',
+            'meta_diaria'   => 'nullable|integer|min:0',
+            'notas'         => 'nullable|string',
+            'permissions'   => 'nullable|array',
             'permissions.*' => 'exists:permissions,id',
-            'skills'      => 'nullable|array',
+            'skills'        => 'nullable|array',
         ]);
 
         $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'turno'    => $validated['turno'] ?? null,
-            'estacion'   => $validated['estacion'] ?? null,
-            'active'   => $validated['active'],
-            'notas'    => $validated['notas'] ?? null,
+            'name'        => $validated['name'],
+            'email'       => $validated['email'],
+            'password'    => Hash::make($validated['password']),
+            'puesto'      => $validated['puesto'] ?? null,
+            'turno'       => $validated['turno'] ?? null,
+            'estacion'    => $validated['estacion'] ?? null,
+            'active'      => $validated['active'],
+            'meta_diaria' => $validated['meta_diaria'] ?? null,
+            'notas'       => $validated['notas'] ?? null,
         ]);
 
         $user->roles()->sync([$validated['role_id']]);
-        
+
         if (!empty($validated['permissions'])) {
             $user->permissions()->sync($validated['permissions']);
         }
 
         if (!empty($validated['skills'])) {
             foreach ($validated['skills'] as $skillName) {
-                \App\Models\UserSkill::create([
+                UserSkill::create([
                     'user_id' => $user->id,
-                    'skill'   => $skillName
+                    'skill'   => $skillName,
                 ]);
             }
         }
@@ -72,41 +76,45 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => ['required', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
-            'password'    => 'nullable|string|min:8',
-            'role_id'     => 'required|exists:roles,id',
-            'turno'       => 'nullable|string|max:50',
+            'name'          => 'required|string|max:255',
+            'email'         => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'password'      => 'nullable|string|min:8',
+            'role_id'       => 'required|exists:roles,id',
+            'active'        => 'required|boolean',
+            'puesto'        => 'nullable|string|max:100',
+            'turno'         => 'nullable|string|max:50',
             'estacion'      => 'nullable|string|max:100',
-            'active'      => 'required|boolean',
-            'notas'       => 'nullable|string',
-            'permissions' => 'nullable|array',
+            'meta_diaria'   => 'nullable|integer|min:0',
+            'notas'         => 'nullable|string',
+            'permissions'   => 'nullable|array',
             'permissions.*' => 'exists:permissions,id',
-            'skills'      => 'nullable|array',
+            'skills'        => 'nullable|array',
         ]);
 
-        $user->name   = $validated['name'];
-        $user->email  = $validated['email'];
-        $user->turno  = $validated['turno'] ?? null;
-        $user->estacion = $validated['estacion'] ?? null;
-        $user->active = $validated['active'];
-        $user->notas  = $validated['notas'] ?? null;
+        $user->name        = $validated['name'];
+        $user->email       = $validated['email'];
+        $user->puesto      = $validated['puesto'] ?? null;
+        $user->turno       = $validated['turno'] ?? null;
+        $user->estacion    = $validated['estacion'] ?? null;
+        $user->active      = $validated['active'];
+        $user->meta_diaria = $validated['meta_diaria'] ?? null;
+        $user->notas       = $validated['notas'] ?? null;
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
-        
+
         $user->roles()->sync([$validated['role_id']]);
-        $user->permissions()->sync($validated['permissions'] ?? []); 
+        $user->permissions()->sync($validated['permissions'] ?? []);
 
         $user->skills()->delete();
         if (!empty($validated['skills'])) {
             foreach ($validated['skills'] as $skillName) {
-                \App\Models\UserSkill::create([
+                UserSkill::create([
                     'user_id' => $user->id,
-                    'skill'   => $skillName
+                    'skill'   => $skillName,
                 ]);
             }
         }
@@ -116,12 +124,20 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Protege al administrador raíz (ID 1) de ser eliminado
+        if ($user->id === 1) {
+            return back()->with('error', 'El administrador principal (ID 1) no se puede eliminar.');
+        }
+
+        // Protege al usuario actual de auto-eliminarse
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'No puedes eliminar tu propia cuenta.');
+            return back()->with('error', 'No puedes eliminar tu propia cuenta en uso.');
         }
 
         $name = $user->name;
         $user->roles()->detach();
+        $user->permissions()->detach();
+        $user->skills()->delete();
         $user->delete();
 
         return back()->with('success', "Usuario '{$name}' eliminado correctamente.");

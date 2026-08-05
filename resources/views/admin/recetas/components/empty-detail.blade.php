@@ -1,4 +1,4 @@
-<div class="p-16 text-center text-slate-400 flex flex-col items-center justify-center min-h-[350px]">
-    <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-    <p class="text-sm font-medium text-slate-500">Selecciona una receta de la lista izquierda para ver sus detalles.</p>
+<div class="p-16 text-center text-slate-400 dark:text-stone-500 flex flex-col items-center justify-center min-h-[350px]">
+    <svg class="w-12 h-12 text-slate-300 dark:text-stone-700 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+    <p class="text-sm font-medium text-slate-500 dark:text-stone-400">Selecciona una receta de la lista izquierda para ver sus detalles.</p>
 </div>

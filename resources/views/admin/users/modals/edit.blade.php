@@ -7,6 +7,7 @@
             <form id="editForm" action="#" method="POST">
                 @csrf
                 @method('PUT')
+                
                 <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                     <h3 class="text-lg font-bold text-slate-900">Editar Operario</h3>
                     <button type="button" onclick="closeEditModal()" aria-label="Cerrar modal" class="text-slate-400 hover:text-slate-600">
@@ -50,8 +51,12 @@
                             </div>
                         </div>
 
-                        <!-- Fila 3: Turno y Estación -->
+                        <!-- Fila 3: Puesto y Turno -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Puesto</label>
+                                <input type="text" id="editPuesto" name="puesto" placeholder="Ej. Operario Especialista" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-orange-500">
+                            </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Turno</label>
                                 <select id="editTurno" name="turno" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-orange-500">
@@ -61,19 +66,27 @@
                                     <option value="Nocturno">Nocturno</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <!-- Fila 4: Estación y Meta Diaria -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Estación de Trabajo</label>
-                                <input type="text" id="editPlanta" name="planta" placeholder="Ej. Estación 1" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-orange-500">
+                                <input type="text" id="editEstacion" name="estacion" placeholder="Ej. Estación 1" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-orange-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Meta Diaria (Unidades)</label>
+                                <input type="number" id="editMetaDiaria" name="meta_diaria" min="0" placeholder="Ej. 150" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-orange-500">
                             </div>
                         </div>
 
-                        <!-- Fila 4: Notas -->
+                        <!-- Fila 5: Notas -->
                         <div class="mt-4">
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Notas / Observaciones</label>
-                            <textarea id="editNotas" name="notas" rows="2" placeholder="Habilidades, observaciones..." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-orange-500"></textarea>
+                            <textarea id="editNotas" name="notas" rows="2" placeholder="Observaciones o comentarios adicionales..." class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-orange-500"></textarea>
                         </div>
 
-                        <!-- Fila 5: Contraseña -->
+                        <!-- Fila 6: Contraseña -->
                         <div class="mt-4 pt-4 border-t border-slate-100">
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Nueva contraseña</label>
                             <input type="password" id="editPassword" name="password" placeholder="Dejar en blanco para no cambiarla" minlength="8" autocomplete="new-password" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-orange-500">
@@ -81,7 +94,7 @@
                         </div>
                     </div>
 
-                    <!-- Habilidades de Producción -->
+                    <!-- Habilidades de Producción (Relación UserSkill) -->
                     <div class="border-t border-slate-100 pt-5">
                         <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Habilidades de Operario</h4>
                         <p class="text-xs text-slate-500 mb-4">Selecciona las áreas o competencias que domina en la línea de producción.</p>
@@ -99,11 +112,9 @@
                     <div class="border-t border-slate-100 pt-5">
                         <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Permisos Individuales</h4>
                         <p class="text-xs text-slate-500 mb-4">
-                            Estos permisos se suman a los que el usuario ya tiene por su rol. Úsalos para dar acceso puntual a una función sin cambiarle el rol.
+                            Estos permisos se otorgan directamente al usuario independientemente de su rol.
                         </p>
 
-                        {{-- Garantiza que la clave 'permissions' viaje aunque se desmarquen todos los checkboxes.
-                             En el controlador, usa: $user->permissions()->sync(array_filter($request->input('permissions', []))); --}}
                         <input type="hidden" name="permissions" value="">
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">

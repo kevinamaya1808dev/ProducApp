@@ -9,16 +9,25 @@
 
     <title>{{ config('app.name', 'ProducApp') }}</title>
 
+    <!-- Script inline de prevención de parpadeo (FOUC) para Modo Oscuro -->
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     <!-- Scripts and Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-stone-50 text-stone-800 font-sans antialiased min-h-screen selection:bg-orange-500 selection:text-white relative overflow-x-hidden">
+<body class="bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 font-sans antialiased min-h-screen selection:bg-orange-500 selection:text-white relative overflow-x-hidden transition-colors duration-300">
 
     <!-- Ambient Glow -->
     <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div class="absolute -top-40 -right-40 w-96 h-96 bg-orange-200/40 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-amber-100/50 rounded-full blur-3xl"></div>
-        <div class="absolute inset-0 bg-gradient-to-br from-amber-50/60 via-transparent to-orange-50/30"></div>
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-orange-200/40 dark:bg-orange-950/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-amber-100/50 dark:bg-stone-900/40 rounded-full blur-3xl"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-amber-50/60 dark:from-stone-950 via-transparent to-orange-50/30 dark:to-stone-900/20"></div>
     </div>
 
     <!-- Overlay para sidebar móvil -->
@@ -39,7 +48,7 @@
 
            <main id="mainContent" class="flex-1 min-w-0 p-4 sm:p-6 transition-all duration-300 @auth lg:ml-64 @else ml-0 @endauth">
                 @yield('content')
-            </main>
+           </main>
         </div>
     </div>
 

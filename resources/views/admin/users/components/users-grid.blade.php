@@ -2,7 +2,7 @@
     @forelse($users as $user)
         @include('admin.users.components.user-card', ['user' => $user])
     @empty
-        <p id="emptyState" class="text-sm text-slate-400 col-span-full text-center py-10">No hay operarios gestionables todavía.</p>
+        <p id="emptyState" class="text-sm text-slate-400 dark:text-stone-500 col-span-full text-center py-10">No hay operarios gestionables todavía.</p>
     @endforelse
-    <p id="noResults" class="text-sm text-slate-400 col-span-full text-center py-10" style="display:none;">No se encontraron usuarios.</p>
+    <p id="noResults" class="text-sm text-slate-400 dark:text-stone-500 col-span-full text-center py-10" style="display:none;">No se encontraron usuarios.</p>
 </div>

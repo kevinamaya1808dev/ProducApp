@@ -38,12 +38,32 @@
     @endif
 @endcan
 
+@endsection
+
+@push('scripts')
 <script>
     function openModal(modalId) {
         document.getElementById(modalId)?.classList.remove('hidden');
     }
+    
     function closeModal(modalId) {
         document.getElementById(modalId)?.classList.add('hidden');
     }
+
+    // Cierre global de modales mediante la tecla Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('[id$="Modal"], [id^="modal"]').forEach(modal => {
+                modal.classList.add('hidden');
+            });
+        }
+    });
+
+    // Reapertura automática de modales en caso de errores de validación de Laravel
+    @if ($errors->any() && old('form_source'))
+        document.addEventListener('DOMContentLoaded', function () { 
+            openModal(@json(old('form_source'))); 
+        });
+    @endif
 </script>
-@endsection
+@endpush

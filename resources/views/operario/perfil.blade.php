@@ -2,8 +2,8 @@
 
 @section('content')
 <div class="mb-6">
-    <h1 class="text-2xl font-bold text-stone-800">Mi Perfil</h1>
-    <p class="text-stone-500 text-sm">Tus estadísticas, historial y certificaciones</p>
+    <h1 class="text-2xl font-bold text-stone-800 dark:text-stone-100">Mi Perfil</h1>
+    <p class="text-stone-500 dark:text-stone-400 text-sm">Tus estadísticas, historial y certificaciones</p>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">

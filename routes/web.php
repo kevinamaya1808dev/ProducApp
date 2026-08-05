@@ -45,27 +45,53 @@ Route::middleware(['auth', 'can:view-admin-dashboard'])->prefix('admin')->group(
 // ==========================================
 // MÓDULO: CATEGORÍAS
 // ==========================================
-Route::middleware(['auth', 'can:manage-categories'])->prefix('admin')->group(function () {
-    Route::resource('categories', CategoryController::class);
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    
+    // Rutas de lectura protegidas por 'view-categories'
+    Route::middleware(['can:view-categories'])->group(function () {
+        Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
+    });
+
+    // Rutas de escritura/modificación protegidas estrictamente por 'manage-categories'
+    Route::middleware(['can:manage-categories'])->group(function () {
+        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
+        Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    });
 });
 
 // ==========================================
 // MÓDULO: RECETAS Y COMPONENTES DE RECETA
 // ==========================================
-Route::middleware(['auth', 'can:manage-recipes'])->prefix('admin')->group(function () {
-    Route::resource('recipes', RecipeController::class);
-    Route::post('/recipes/{recipe}/duplicate', [RecipeController::class, 'duplicate'])->name('recipes.duplicate');
-    Route::post('/recipes/{recipe}/components', [RecipeComponentController::class, 'store'])->name('recipes.components.store');
-    Route::put('/recipes/{recipe}/components/{component}', [RecipeComponentController::class, 'update'])->name('recipes.components.update');
-    Route::delete('/recipes/{recipe}/components/{component}', [RecipeComponentController::class, 'destroy'])->name('recipes.components.destroy');
-});
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    
+    // Rutas de lectura protegidas por 'view-recipes'
+    Route::middleware(['can:view-recipes'])->group(function () {
+        Route::get('recipes', [RecipeController::class, 'index'])->name('recipes.index');
+        Route::get('recipes/{recipe}', [RecipeController::class, 'show'])->name('recipes.show');
+    });
 
-// ==========================================
-// MÓDULO: TIPOS DE COMPONENTES Y COMPONENTES
-// ==========================================
-Route::middleware(['auth', 'can:manage-recipes'])->prefix('admin')->group(function () {
-    Route::resource('component-types', ComponentTypeController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::resource('components', ComponentController::class)->only(['index', 'store', 'update', 'destroy']);
+    // Rutas de creación/edición/eliminación protegidas estrictamente por 'manage-recipes'
+    Route::middleware(['can:manage-recipes'])->group(function () {
+        Route::get('recipes/create', [RecipeController::class, 'create'])->name('recipes.create');
+        Route::post('recipes', [RecipeController::class, 'store'])->name('recipes.store');
+        Route::get('recipes/{recipe}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
+        Route::put('recipes/{recipe}', [RecipeController::class, 'update'])->name('recipes.update');
+        Route::delete('recipes/{recipe}', [RecipeController::class, 'destroy'])->name('recipes.destroy');
+        
+        // Acciones especiales de componentes y duplicación
+        Route::post('/recipes/{recipe}/duplicate', [RecipeController::class, 'duplicate'])->name('recipes.duplicate');
+        Route::post('/recipes/{recipe}/components', [RecipeComponentController::class, 'store'])->name('recipes.components.store');
+        Route::put('/recipes/{recipe}/components/{component}', [RecipeComponentController::class, 'update'])->name('recipes.components.update');
+        Route::delete('/recipes/{recipe}/components/{component}', [RecipeComponentController::class, 'destroy'])->name('recipes.components.destroy');
+        
+        // Tipos de Componentes y Catálogo de Componentes
+        Route::resource('component-types', ComponentTypeController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('components', ComponentController::class)->only(['index', 'store', 'update', 'destroy']);
+    });
 });
 
 // ==========================================
@@ -73,7 +99,7 @@ Route::middleware(['auth', 'can:manage-recipes'])->prefix('admin')->group(functi
 // ==========================================
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     
-    // Rutas de lectura protegidas por 'view-orders' o 'manage-orders'
+    // Rutas de lectura protegidas por 'view-orders'
     Route::middleware(['can:view-orders'])->group(function () {
         Route::get('orders', [ProductionOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [ProductionOrderController::class, 'show'])->name('orders.show');

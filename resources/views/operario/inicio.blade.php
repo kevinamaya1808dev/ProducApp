@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6 text-stone-500 text-sm font-medium">
+<div class="mb-6 text-stone-500 dark:text-stone-400 text-sm font-medium">
     {{ auth()->user()->turno ?? 'Turno no asignado' }} · 
     Estación {{ $ordenActiva?->estacion ?? 'Sin asignar' }} · 
     {{ ucfirst(now()->translatedFormat('l d M Y')) }}
