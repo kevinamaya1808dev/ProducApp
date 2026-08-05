@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('puesto')->nullable();
             $table->string('turno')->nullable();
-            // Nota: 'planta' se omite ya que fue eliminada en migraciones posteriores.
+            $table->string('estacion')->nullable(); // Añadido para evitar errores de columna faltante
             $table->boolean('active')->default(true);
             $table->unsignedInteger('meta_diaria')->nullable();
             $table->text('notas')->nullable();

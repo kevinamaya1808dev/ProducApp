@@ -10,14 +10,14 @@
         @include('admin.categories.components.sidebar')
 
         <!-- Columna Derecha: Detalle -->
-        <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div class="lg:col-span-8 bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-stone-800 overflow-hidden">
             @if(isset($activeCategory))
                 @include('admin.categories.components.detail-header', ['category' => $activeCategory])
 
                 <div class="p-6 space-y-6">
                     <div>
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Descripción</h4>
-                        <p class="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                        <h4 class="text-xs font-bold text-slate-400 dark:text-stone-400 uppercase tracking-wider mb-2">Descripción</h4>
+                        <p class="text-sm text-slate-700 dark:text-stone-300 leading-relaxed bg-slate-50 dark:bg-stone-800/50 p-4 rounded-xl border border-slate-200/60 dark:border-stone-700/50">
                             {{ $activeCategory->description ?? 'Esta categoría no cuenta con una descripción detallada.' }}
                         </p>
                     </div>

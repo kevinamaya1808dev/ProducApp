@@ -67,25 +67,24 @@
             Editar Registro
         </button>
         <form id="statusFormPanel" method="POST" class="w-full">
-            @csrf
-            @method('PUT')
-            <input type="hidden" name="name" id="statusFormName">
-            <input type="hidden" name="email" id="statusFormEmail">
-            <input type="hidden" name="role_id" id="statusFormRole">
-            <input type="hidden" name="active" id="statusFormActive">
-            <button type="button" onclick="toggleStatusFromPanel()" class="w-full bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
-                Dar de baja / Alta
-            </button>
-        </form>
-        <form id="deleteUserForm" action="#" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este usuario?')">
-            @csrf
-            @method('DELETE')
-            <button type="submit" 
-                    id="deleteUserBtn" 
-                    class="w-full bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
-                Eliminar Registro
-            </button>
-        </form>
+    @csrf
+    @method('PUT')
+    <input type="hidden" name="name" id="statusFormName">
+    <input type="hidden" name="email" id="statusFormEmail">
+    <input type="hidden" name="role_id" id="statusFormRole">
+    <input type="hidden" name="active" id="statusFormActive">
+    
+    <!-- Añadimos el id en el botón o dentro de un span -->
+    <button type="button" onclick="toggleStatusFromPanel()" class="w-full bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+        <span id="statusButtonText">Dar de baja / Alta</span>
+    </button>
+</form>
+      <button type="button"
+        id="deleteUserBtn"
+        onclick="openDeleteModal()"
+        class="w-full bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+    Eliminar Registro
+</button>
         @else
         <div class="text-center text-xs text-slate-400 dark:text-stone-500 py-1 w-full">
             Modo visualización (Sin privilegios)

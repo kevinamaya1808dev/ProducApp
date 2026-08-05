@@ -1,9 +1,9 @@
 @php
     $colorMap = [
-        'orange'  => ['bg' => 'bg-orange-50',  'text' => 'text-orange-600',  'badgeBg' => 'bg-orange-50',  'badgeText' => 'text-orange-700'],
-        'emerald' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-600', 'badgeBg' => 'bg-emerald-50', 'badgeText' => 'text-emerald-700'],
-        'purple'  => ['bg' => 'bg-purple-50',  'text' => 'text-purple-600',  'badgeBg' => 'bg-purple-50',  'badgeText' => 'text-purple-700'],
-        'amber'   => ['bg' => 'bg-amber-50',   'text' => 'text-amber-600',   'badgeBg' => 'bg-amber-50',   'badgeText' => 'text-amber-700'],
+        'orange'  => ['bg' => 'bg-orange-50 dark:bg-orange-950/50',   'text' => 'text-orange-600 dark:text-orange-400',   'badgeBg' => 'bg-orange-50 dark:bg-orange-950/40',   'badgeText' => 'text-orange-700 dark:text-orange-300'],
+        'emerald' => ['bg' => 'bg-emerald-50 dark:bg-emerald-950/50', 'text' => 'text-emerald-600 dark:text-emerald-400', 'badgeBg' => 'bg-emerald-50 dark:bg-emerald-950/40', 'badgeText' => 'text-emerald-700 dark:text-emerald-300'],
+        'purple'  => ['bg' => 'bg-purple-50 dark:bg-purple-950/50',   'text' => 'text-purple-600 dark:text-purple-400',   'badgeBg' => 'bg-purple-50 dark:bg-purple-950/40',   'badgeText' => 'text-purple-700 dark:text-purple-300'],
+        'amber'   => ['bg' => 'bg-amber-50 dark:bg-amber-950/50',     'text' => 'text-amber-600 dark:text-amber-400',     'badgeBg' => 'bg-amber-50 dark:bg-amber-950/40',     'badgeText' => 'text-amber-700 dark:text-amber-300'],
     ];
     $c = $colorMap[$color] ?? $colorMap['orange'];
 
@@ -16,16 +16,16 @@
     $path = $iconPaths[$icon] ?? $iconPaths['boxes'];
 @endphp
 
-<div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+<div class="bg-white dark:bg-stone-900 p-5 rounded-xl border border-slate-200/80 dark:border-stone-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
     <div class="flex items-center justify-between mb-3">
-        <span class="text-[11px] font-bold text-slate-400 tracking-wider uppercase">{{ $title }}</span>
+        <span class="text-[11px] font-bold text-slate-400 dark:text-stone-400 tracking-wider uppercase">{{ $title }}</span>
         <div class="w-9 h-9 rounded-xl {{ $c['bg'] }} flex items-center justify-center {{ $c['text'] }}">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $path }}"></path>
             </svg>
         </div>
     </div>
-    <div class="text-3xl font-extrabold text-slate-900 mb-3">{{ $value }}</div>
+    <div class="text-3xl font-extrabold text-slate-900 dark:text-stone-100 mb-3">{{ $value }}</div>
     <span class="inline-flex items-center gap-1 text-xs font-semibold {{ $c['badgeText'] }} {{ $c['badgeBg'] }} px-2 py-0.5 rounded-full">
         {{ $badge }}
     </span>

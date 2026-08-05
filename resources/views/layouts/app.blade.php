@@ -24,11 +24,18 @@
 <body class="bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 font-sans antialiased min-h-screen selection:bg-orange-500 selection:text-white relative overflow-x-hidden transition-colors duration-300">
 
     <!-- Ambient Glow -->
-    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div class="absolute -top-40 -right-40 w-96 h-96 bg-orange-200/40 dark:bg-orange-950/20 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-amber-100/50 dark:bg-stone-900/40 rounded-full blur-3xl"></div>
-        <div class="absolute inset-0 bg-gradient-to-br from-amber-50/60 dark:from-stone-950 via-transparent to-orange-50/30 dark:to-stone-900/20"></div>
-    </div>
+<div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+
+    <!-- Base: gradiente vertical sutil (ambos temas) -->
+    <div class="absolute inset-0 bg-gradient-to-b from-amber-50/50 dark:from-stone-950 via-transparent to-orange-50/20 dark:to-stone-900/20"></div>
+
+    <!-- Spotlight superior centrado -->
+    <div class="absolute -top-56 left-1/2 -translate-x-1/2 w-[40rem] h-[28rem] bg-orange-200/40 dark:bg-orange-900/20 rounded-full blur-3xl animate-[pulse_11s_ease-in-out_infinite]"></div>
+
+    <!-- Acento inferior, descentrado para balancear -->
+    <div class="absolute -bottom-32 right-[15%] w-80 h-80 bg-amber-100/45 dark:bg-amber-950/15 rounded-full blur-3xl animate-[pulse_13s_ease-in-out_infinite] [animation-delay:-5s]"></div>
+
+</div>
 
     <!-- Overlay para sidebar móvil -->
     @auth
@@ -51,6 +58,8 @@
            </main>
         </div>
     </div>
+
+@include('layouts.partials.toast-container')
 
     @auth
     <script>
@@ -131,7 +140,6 @@
         })();
     </script>
     @endauth
-
     @stack('scripts')
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>

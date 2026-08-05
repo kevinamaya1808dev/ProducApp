@@ -11,8 +11,4 @@
         <p class="text-xs font-bold text-slate-500 dark:text-stone-400 tracking-wider uppercase mb-1">Operarios</p>
         <p class="text-3xl font-black text-emerald-600 dark:text-emerald-400">{{ $users->filter(fn($u) => $u->roles->contains('slug', 'operario'))->count() }}</p>
     </div>
-    <div class="bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-xl p-5 shadow-sm">
-        <p class="text-xs font-bold text-slate-500 dark:text-stone-400 tracking-wider uppercase mb-1">Becarios</p>
-        <p class="text-3xl font-black text-amber-500 dark:text-amber-400">{{ $users->filter(fn($u) => $u->roles->contains('slug', 'becario'))->count() }}</p>
-    </div>
 </div>

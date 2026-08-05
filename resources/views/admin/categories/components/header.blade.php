@@ -1,7 +1,7 @@
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
     <div>
-        <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">Categorías</h1>
-        <p class="text-slate-500 text-sm mt-1">Gestión de categorías y clasificaciones &middot; {{ $categories->total() ?? $categories->count() }} registros</p>
+        <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-stone-100 tracking-tight">Categorías</h1>
+        <p class="text-slate-500 dark:text-stone-400 text-sm mt-1">Gestión de categorías y clasificaciones &middot; {{ $categories->total() ?? $categories->count() }} registros</p>
     </div>
 
     <div>

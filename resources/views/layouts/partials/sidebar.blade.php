@@ -5,6 +5,11 @@
     <button id="sidebarCloseBtn" type="button" class="lg:hidden absolute right-3 top-4 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-white dark:hover:text-white hover:bg-stone-800 rounded-lg transition-colors cursor-pointer z-30">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
     </button>
+
+    <!-- Botón colapsar / expandir (Escritorio) - pastilla flotante en el borde -->
+    <button id="sidebarCollapseBtn" type="button" class="hidden lg:flex items-center justify-center absolute top-8 -right-3.5 w-7 h-7 rounded-full bg-stone-800 hover:bg-orange-600 border border-stone-700 hover:border-orange-500 text-stone-400 hover:text-white shadow-md hover:shadow-orange-950/40 transition-all duration-200 cursor-pointer z-30 active:scale-90" title="Colapsar / Expandir Sidebar">
+        <svg id="collapseIcon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+    </button>
     
     <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pt-3">
         <nav class="space-y-1.5 px-3 pb-6">
@@ -105,42 +110,6 @@
                 </a>
             @endcan
         </nav>
-    </div>
-
-    <!-- Pie de página -->
-    <div class="p-3 bg-stone-950/95 dark:bg-stone-950 border-t border-stone-800/80 dark:border-stone-800 flex flex-col gap-2">
-        <!-- Botón para alternar Modo Oscuro / Claro -->
-        <button type="button" onclick="toggleDarkMode()" class="sidebar-nav-item w-full flex items-center gap-3 px-3 py-2 text-stone-400 hover:text-white dark:hover:text-white hover:bg-stone-800/60 rounded-xl text-sm font-medium transition-all cursor-pointer" title="Cambiar modo oscuro/claro">
-            <svg class="w-5 h-5 shrink-0 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-            </svg>
-            <svg class="w-5 h-5 shrink-0 block dark:hidden text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-            </svg>
-            <span class="sidebar-label whitespace-nowrap overflow-hidden">Apariencia</span>
-        </button>
-
-        <form action="{{ route('logout') }}" method="POST" class="w-full">
-            @csrf
-            <button type="submit" class="sidebar-nav-item w-full flex items-center gap-3 px-3 py-2 text-red-400 hover:text-white hover:bg-red-600/20 rounded-xl text-sm font-medium transition-all group cursor-pointer" title="Cerrar sesión">
-                <svg class="w-5 h-5 shrink-0 text-red-400 group-hover:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                </svg>
-                <span class="sidebar-label whitespace-nowrap overflow-hidden">Cerrar sesión</span>
-            </button>
-        </form>
-
-        <div class="flex items-center gap-3 px-2 py-1 min-w-0">
-            <div class="w-9 h-9 shrink-0 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xs shadow-md">
-                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-            </div>
-            <div class="sidebar-label flex flex-col min-w-0 overflow-hidden whitespace-nowrap">
-                <span class="text-xs font-bold text-white leading-tight truncate">{{ Auth::user()->name }}</span>
-                <span class="text-[10px] text-stone-400 mt-0.5 truncate">
-                    {{ Auth::user()->roles->pluck('name')->implode(', ') ?: 'Sin rol' }}
-                </span>
-            </div>
-        </div>
     </div>
 </aside>
 
