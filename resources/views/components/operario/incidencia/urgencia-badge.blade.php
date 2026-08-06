@@ -1,19 +1,47 @@
-@props(['orden'])
+@props(['orden' => null])
 
 @php
-$dias = $orden->end_date ? now()->diffInDays($orden->end_date, false) : null;
-
-if (is_null($dias)) {
-    $urgencia = ['label' => 'Sin fecha', 'color' => 'text-stone-400 dark:text-stone-500'];
-} elseif ($dias < 0) {
-    $urgencia = ['label' => 'Vencida', 'color' => 'text-red-600 dark:text-red-400'];
-} elseif ($dias <= 2) {
-    $urgencia = ['label' => 'Alta', 'color' => 'text-red-500 dark:text-red-400'];
-} elseif ($dias <= 5) {
-    $urgencia = ['label' => 'Media', 'color' => 'text-amber-600 dark:text-amber-400'];
-} else {
-    $urgencia = ['label' => 'Baja', 'color' => 'text-stone-400 dark:text-stone-500'];
-}
+    $isObject = is_object($orden);
+    
+    // Extraer la prioridad de forma segura según el tipo de dato
+    $priority = $isObject 
+        ? ($orden->priority ?? 'medium') 
+        : ($orden['priority'] ?? 'medium');
+    
+    // Determinar la clase y la etiqueta evitando errores de tipo
+    if ($isObject) {
+        $badgeClass = $orden->priority_badge_class ?? match ($priority) {
+            'low' => 'bg-stone-500',
+            'medium' => 'bg-amber-500',
+            'high' => 'bg-red-600',
+            default => 'bg-amber-500',
+        };
+        
+        $label = $orden->priority_label ?? match ($priority) {
+            'low' => 'Baja',
+            'medium' => 'Media',
+            'high' => 'Alta',
+            default => 'Media',
+        };
+    } else {
+        $badgeClass = match ($priority) {
+            'low' => 'bg-stone-500',
+            'medium' => 'bg-amber-500',
+            'high' => 'bg-red-600',
+            default => 'bg-amber-500',
+        };
+        
+        $label = match ($priority) {
+            'low' => 'Baja',
+            'medium' => 'Media',
+            'high' => 'Alta',
+            default => 'Media',
+        };
+    }
 @endphp
 
-<span class="text-xs font-bold {{ $urgencia['color'] }}">{{ $urgencia['label'] }}</span>
+@if($orden)
+    <span class="{{ $badgeClass }} text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide shadow-sm">
+        Prioridad {{ $label }}
+    </span>
+@endif

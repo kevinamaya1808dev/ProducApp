@@ -14,15 +14,16 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Componente
         </button>
+        
         <button type="button" onclick="openModal('editRecipeModal-{{ $recipe->id }}')" class="px-4 py-2 bg-white dark:bg-stone-900 border border-orange-200 dark:border-orange-900/50 hover:bg-orange-50 dark:hover:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-semibold text-sm rounded-xl transition-all">
             Editar receta
         </button>
-        <form action="{{ route('recipes.duplicate', $recipe->id) }}" method="POST" onsubmit="return confirm('¿Duplicar esta receta junto con sus componentes?');">
-            @csrf
-            <button type="submit" class="px-4 py-2 bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 hover:bg-slate-50 dark:hover:bg-stone-800 text-slate-600 dark:text-stone-300 font-semibold text-sm rounded-xl transition-all">
-                Duplicar
-            </button>
-        </form>
+
+        <!-- Botón actualizado para abrir el modal de duplicar -->
+        <button type="button" onclick="openModal('duplicateRecipeModal-{{ $recipe->id }}')" class="px-4 py-2 bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 hover:bg-slate-50 dark:hover:bg-stone-800 text-slate-600 dark:text-stone-300 font-semibold text-sm rounded-xl transition-all">
+            Duplicar
+        </button>
+
         <button type="button" onclick="openModal('deleteRecipeModal-{{ $recipe->id }}')" class="px-4 py-2 bg-white dark:bg-stone-900 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 font-semibold text-sm rounded-xl transition-all">
             Eliminar
         </button>

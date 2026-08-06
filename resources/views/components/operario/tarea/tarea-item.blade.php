@@ -10,6 +10,8 @@ $porcentaje = $orden->porcentaje_avance;
     
     <div class="flex justify-between items-center mb-3">
         <x-operario.incidencia.estado-badge :status="$orden->status" />
+        
+        <!-- Componente limpio de prioridad -->
         <x-operario.incidencia.urgencia-badge :orden="$orden" />
     </div>
 

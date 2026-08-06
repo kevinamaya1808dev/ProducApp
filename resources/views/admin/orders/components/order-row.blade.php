@@ -21,6 +21,7 @@
         ? collect(explode(' ', $order->user->name))->map(fn($n) => strtoupper(substr($n, 0, 1)))->take(2)->implode('')
         : '--';
 @endphp
+
 <tr class="order-row border-b border-slate-50 dark:border-stone-800/60 hover:bg-slate-50/50 dark:hover:bg-stone-800/50 transition-colors"
     data-id="{{ $order->id }}"
     data-order-number="{{ $order->order_number }}"
@@ -39,6 +40,16 @@
     data-estacion="{{ $order->estacion }}"
     data-start-date="{{ $order->start_date?->format('Y-m-d') }}"
     data-end-date="{{ $order->end_date?->format('Y-m-d') }}"
+    data-sub-orders='{{ json_encode($order->subOrders->map(fn($sub) => [
+        "id" => $sub->id,
+        "proceso" => $sub->proceso,
+        "user_id" => $sub->user_id,
+        "user_name" => $sub->user->name ?? "Sin asignar",
+        "quantity" => $sub->quantity,
+        "completed_pieces" => $sub->completed_pieces,
+        "estacion" => $sub->estacion ?? "N/A",
+        "status" => $sub->status
+    ])) }}'
 >
     <td class="px-5 py-4">
         <span class="bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-500/20 text-xs font-bold px-2.5 py-1 rounded-md">{{ $order->order_number }}</span>

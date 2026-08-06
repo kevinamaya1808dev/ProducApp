@@ -3,8 +3,6 @@
 @section('content')
 <div class="p-6 lg:p-8 w-full">
 
-    @include('admin.recetas.components.flash-messages')
-
     @include('admin.recetas.components.header')
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -28,6 +26,7 @@
     @include('admin.recetas.modals.create')
     @if(isset($activeRecipe))
         @include('admin.recetas.modals.edit', ['recipe' => $activeRecipe])
+        @include('admin.recetas.modals.duplicate', ['recipe' => $activeRecipe])
         @include('admin.recetas.modals.delete', ['recipe' => $activeRecipe])
         @include('admin.recetas.modals.add-component', ['recipe' => $activeRecipe])
         @foreach($activeRecipe->components as $component)

@@ -102,4 +102,9 @@ class User extends Authenticatable
                   ->orWhere('name', $permission);
         })->exists();
     }
+
+    public function subOrders(): HasMany
+{
+    return $this->hasMany(ProductionSubOrder::class, 'user_id');
+}
 }

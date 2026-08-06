@@ -24,7 +24,7 @@ $restantes = max($orden->quantity - $piezas, 0);
     </div>
 
     <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Columna Progreso -->
             <div>
                 <h4 class="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-3">Progreso</h4>
@@ -60,34 +60,6 @@ $restantes = max($orden->quantity - $piezas, 0);
                     </li>
                 </ul>
             </div>
-        </div>
-
-        <!-- Botones de Acción -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            @if($orden->status === 'pending')
-                <form action="{{ route('operario.tareas.iniciar', $orden->id) }}" method="POST" class="col-span-1 sm:col-span-2">
-                    @csrf
-                    @method('PUT')
-                    <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors text-center cursor-pointer">
-                        Iniciar Tarea
-                    </button>
-                </form>
-            @elseif($orden->status === 'in_progress')
-                <a href="{{ route('operario.inicio') }}" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors text-center flex items-center justify-center">
-                    Registrar Unidades
-                </a>
-                <form action="{{ route('operario.tareas.completar', $orden->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors text-center cursor-pointer">
-                        Marcar como Completada
-                    </button>
-                </form>
-            @else
-                <span class="col-span-1 sm:col-span-2 text-center text-sm text-stone-400 dark:text-stone-400 py-3 bg-stone-50 dark:bg-stone-800/60 rounded-xl border border-stone-100 dark:border-stone-700/60">
-                    Esta tarea ya no admite acciones ({{ $orden->status }}).
-                </span>
-            @endif
         </div>
     </div>
 </div>

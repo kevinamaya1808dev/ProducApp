@@ -31,7 +31,7 @@
                 <span id="panelPriority" class="text-slate-800 dark:text-stone-200 font-bold"></span>
             </li>
             <li class="flex justify-between items-center text-sm border-b border-slate-50 dark:border-stone-800/60 pb-3">
-                <span class="text-slate-400 dark:text-stone-500 font-semibold text-xs tracking-wider uppercase">Operario</span>
+                <span class="text-slate-400 dark:text-stone-500 font-semibold text-xs tracking-wider uppercase">Encargado</span>
                 <span id="panelOperator" class="text-slate-800 dark:text-stone-200 font-bold"></span>
             </li>
             <li class="flex justify-between items-center text-sm border-b border-slate-50 dark:border-stone-800/60 pb-3">
@@ -43,6 +43,18 @@
                 <span id="panelDeadline" class="text-slate-800 dark:text-stone-200 font-bold"></span>
             </li>
         </ul>
+
+        <!-- NUEVA SECCIÓN DE SUBÓRDENES (PROCESOS) -->
+        <div class="mt-6 border-t border-slate-100 dark:border-stone-800 pt-4">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-stone-500">Procesos Asignados</h4>
+                <span id="panelSubOrdersCount" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-stone-800 text-slate-600 dark:text-stone-400">0</span>
+            </div>
+        
+            <div id="panelSubOrdersList" class="space-y-2.5">
+                <!-- Se inyecta dinámicamente vía Javascript -->
+            </div>
+        </div>
     </div>
 
     <div class="p-4 border-t border-slate-100 dark:border-stone-800 bg-slate-50/50 dark:bg-stone-900/50 rounded-b-2xl flex gap-2">

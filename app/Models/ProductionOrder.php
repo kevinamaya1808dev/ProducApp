@@ -28,6 +28,7 @@ class ProductionOrder extends Model
         'end_date',
     ];
 
+    // --- Relaciones ---
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
@@ -46,6 +47,24 @@ class ProductionOrder extends Model
     public function incidences(): HasMany
     {
         return $this->hasMany(Incidence::class);
+    }
+
+    public function subOrders(): HasMany
+    {
+        return $this->hasMany(ProductionSubOrder::class);
+    }
+
+    // --- Accessors ---
+
+    // Este método devuelve la clase CSS según la prioridad
+    public function getPriorityBadgeClassAttribute(): string
+    {
+        return match ($this->priority) {
+            'low' => 'bg-stone-500',
+            'medium' => 'bg-amber-500',
+            'high' => 'bg-red-600',
+            default => 'bg-stone-400',
+        };
     }
 
     public function getPiezasRegistradasAttribute(): int
@@ -80,7 +99,18 @@ class ProductionOrder extends Model
             'low' => 'Baja',
             'medium' => 'Media',
             'high' => 'Alta',
-            default => $this->priority,
+            default => $this->priority ?? 'Sin definir',
         };
+    }
+
+    public function getPorcentajeAvanceGlobalAttribute(): float
+    {
+        if ($this->subOrders->isEmpty()) {
+            return $this->porcentaje_avance;
+        }
+
+        return round($this->subOrders->avg(function ($sub) {
+            return $sub->porcentaje_avance;
+        }), 2);
     }
 }

@@ -137,6 +137,22 @@ if ($ordenActiva) {
             return redirect()->back()->withErrors(['error' => 'Debes ingresar una cantidad o una nota.']);
         }
 
+        // Validar límite máximo de la orden si se envía una cantidad mayor a 0
+        if ($request->filled('cantidad') && $request->cantidad > 0) {
+            $orden = ProductionOrder::findOrFail($request->production_order_id);
+            
+            // Sumar piezas previamente registradas por este usuario en esta orden
+            $piezasRegistradas = RegistroProduccion::where('production_order_id', $orden->id)
+                ->where('user_id', Auth::id())
+                ->sum('cantidad');
+
+            $maxPermitido = max(0, $orden->quantity - $piezasRegistradas);
+
+            if ($request->cantidad > $maxPermitido) {
+                return redirect()->back()->withErrors(['cantidad' => 'Esa cantidad no puede ser ingresada']);
+            }
+        }
+
         $registroDuplicado = RegistroProduccion::where('user_id', Auth::id())
             ->where('production_order_id', $request->production_order_id)
             ->where('cantidad', $request->cantidad ?? 0)
@@ -232,11 +248,16 @@ if ($ordenActiva) {
             ];
         }
 
-        $historial = ProductionOrder::with('product')
+       $historial = ProductionOrder::with('product')
             ->where('user_id', $user->id)
             ->where('status', 'completed')
+            // Ocultar si la fecha de vencimiento ya pasó hace más de 1 mes, 
+            // o mostrar solo las terminadas a tiempo / vigentes en el último mes
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                      ->orWhere('end_date', '>=', now()->subMonth());
+            })
             ->latest('updated_at')
-            ->take(10)
             ->get()
             ->map(fn($orden) => [
                 'orden' => $orden->order_number,

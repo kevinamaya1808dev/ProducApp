@@ -10,8 +10,7 @@
     <!-- Controles Izquierda -->
     <div class="lg:col-span-4 space-y-6">
         <x-operario.registro.registros-tarea-info :tarea="$tarea ?? null" />
-        <x-operario.registro.registros-registro-rapido :routeGuardar="$routeGuardar ?? '#'" :ordenId="$ordenId ?? null" />
-        <x-operario.registro.registros-entrada-manual :routeGuardar="$routeGuardar ?? '#'" :ordenId="$ordenId ?? null" />
+        <x-operario.registro.registros-entrada-manual :routeGuardar="$routeGuardar ?? '#'" :ordenId="$ordenId ?? ($tarea->id ?? null)" :orden="$tarea ?? null" />
     </div>
 
     <!-- Tabla Historial (Derecha) -->
