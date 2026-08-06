@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ProductionSubOrder extends Model
 {
@@ -17,9 +18,8 @@ class ProductionSubOrder extends Model
 
     protected $fillable = [
         'production_order_id',
-        'user_id',
+        'recipe_component_id',
         'proceso',
-        'estacion',
         'quantity',
         'completed_pieces',
         'status',
@@ -33,9 +33,18 @@ class ProductionSubOrder extends Model
         return $this->belongsTo(ProductionOrder::class);
     }
 
-    public function user(): BelongsTo
+    // Relación con el componente de la receta (si aplica)
+    public function recipeComponent(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(RecipeComponent::class);
+    }
+
+    // Operarios y estaciones asignadas a esta suborden (Muchos a Muchos)
+    public function assignedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'production_sub_order_user')
+                    ->withPivot('estacion', 'pieces_contributed')
+                    ->withTimestamps();
     }
 
     public function getPorcentajeAvanceAttribute(): float

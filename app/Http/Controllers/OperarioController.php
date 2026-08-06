@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Incidence;
 use App\Models\ProductionOrder;
+use App\Models\ProductionSubOrder;
 use App\Models\RegistroProduccion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OperarioController extends Controller
 {
@@ -15,9 +17,14 @@ class OperarioController extends Controller
         $userId = Auth::id();
         $user = Auth::user();
 
-        // Busca primero una orden en progreso; si no existe, toma la pendiente más reciente
-        $ordenActiva = ProductionOrder::with('product')
-            ->where('user_id', $userId)
+        // Busca primero una orden en progreso o pendiente asignada directamente o mediante subórdenes
+        $ordenActiva = ProductionOrder::with(['product', 'subOrders.assignedUsers'])
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->orWhereHas('subOrders.assignedUsers', function ($q) use ($userId) {
+                          $q->where('users.id', $userId);
+                      });
+            })
             ->whereIn('status', ['in_progress', 'pending', 'Pending'])
             ->orderByRaw("CASE WHEN LOWER(status) = 'in_progress' THEN 1 ELSE 2 END")
             ->latest()
@@ -29,12 +36,41 @@ class OperarioController extends Controller
             ->sum('cantidad');
 
         // Piezas registradas para la orden activa (acumulado total de la orden para este usuario)
-$piezasOrdenActiva = 0;
-if ($ordenActiva) {
-    $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-        ->where('user_id', $userId)
-        ->sum('cantidad');
-}
+        $piezasOrdenActiva = 0;
+        $alertaCercana = false;
+        $restantes = 0;
+        $colegasInvolucrados = collect();
+        $subOrdenActiva = null;
+
+        if ($ordenActiva) {
+            $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
+                ->where('user_id', $userId)
+                ->sum('cantidad');
+
+            // Obtener la suborden específica en la que participa este operario
+            $subOrdenActiva = $ordenActiva->subOrders()
+                ->where(function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                      ->orWhereHas('assignedUsers', function ($subQ) use ($userId) {
+                          $subQ->where('users.id', $userId);
+                      });
+                })
+                ->first();
+
+            if ($subOrdenActiva) {
+                $restantes = max(0, $subOrdenActiva->quantity - $subOrdenActiva->completed_pieces);
+                
+                // Activar bandera si faltan entre 1 y 3 registros para terminar la tarea
+                if ($restantes > 0 && $restantes <= 3) {
+                    $alertaCercana = true;
+                }
+
+                // Obtener compañeros trabajando en la misma suborden / estación
+                $colegasInvolucrados = $subOrdenActiva->assignedUsers()
+                    ->where('users.id', '!=', $userId)
+                    ->get();
+            }
+        }
 
         // Incidencias reportadas hoy por el operario
         $incidenciasHoy = Incidence::where('user_id', $userId)
@@ -54,6 +90,10 @@ if ($ordenActiva) {
 
         return view('operario.inicio', compact(
             'ordenActiva', 
+            'subOrdenActiva',
+            'restantes',
+            'alertaCercana',
+            'colegasInvolucrados',
             'piezasHoy', 
             'piezasOrdenActiva', 
             'incidenciasHoy',
@@ -66,25 +106,40 @@ if ($ordenActiva) {
     {
         $userId = Auth::id();
 
-        $ordenActiva = ProductionOrder::with('product')
-            ->where('user_id', $userId)
+        $ordenActiva = ProductionOrder::with(['product', 'subOrders.assignedUsers'])
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->orWhereHas('subOrders.assignedUsers', function ($q) use ($userId) {
+                          $q->where('users.id', $userId);
+                      });
+            })
             ->where('status', 'in_progress')
             ->latest()
             ->first();
 
-        // Piezas registradas para la orden activa (acumulado total de la orden para este usuario)
-$piezasOrdenActiva = 0;
-if ($ordenActiva) {
-    $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-        ->where('user_id', $userId)
-        ->sum('cantidad');
-}
+        $piezasOrdenActiva = 0;
+        $subOrdenActiva = null;
+        if ($ordenActiva) {
+            $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
+                ->where('user_id', $userId)
+                ->sum('cantidad');
+
+            $subOrdenActiva = $ordenActiva->subOrders()
+                ->where(function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                      ->orWhereHas('assignedUsers', function ($subQ) use ($userId) {
+                          $subQ->where('users.id', $userId);
+                      });
+                })
+                ->first();
+        }
 
         $tarea = $ordenActiva ? [
-            'titulo' => $ordenActiva->product->name ?? 'Sin producto',
+            'titulo' => $subOrdenActiva ? "{$ordenActiva->product->name} - {$subOrdenActiva->proceso}" : ($ordenActiva->product->name ?? 'Sin producto'),
             'descripcion' => $ordenActiva->product->description ?? $ordenActiva->order_number,
-            'actual' => $piezasOrdenActiva,
-            'total' => $ordenActiva->quantity,
+            'actual' => $subOrdenActiva ? $subOrdenActiva->completed_pieces : $piezasOrdenActiva,
+            'total' => $subOrdenActiva ? $subOrdenActiva->quantity : $ordenActiva->quantity,
+            'sub_order_id' => $subOrdenActiva?->id,
         ] : null;
 
         $registrosHoy = RegistroProduccion::where('user_id', $userId)
@@ -120,6 +175,7 @@ if ($ordenActiva) {
         return view('operario.registro', [
             'tarea' => $tarea,
             'ordenId' => $ordenActiva->id ?? null,
+            'subOrdenId' => $subOrdenActiva?->id ?? null,
             'routeGuardar' => route('operario.registro.guardar'),
             'registros' => $registros,
         ]);
@@ -129,48 +185,65 @@ if ($ordenActiva) {
     {
         $request->validate([
             'production_order_id' => 'required|exists:production_orders,id',
-            'cantidad' => 'nullable|integer|min:0',
-            'nota' => 'nullable|string|max:255',
+            'sub_order_id'        => 'nullable|exists:production_sub_orders,id',
+            'cantidad'            => 'nullable|integer|min:0',
+            'nota'                => 'nullable|string|max:255',
         ]);
 
-        if (($request->cantidad === null || $request->cantidad == 0) && empty($request->nota)) {
-            return redirect()->back()->withErrors(['error' => 'Debes ingresar una cantidad o una nota.']);
-        }
+        $userId = Auth::id();
+        $cantidad = $request->cantidad ?? 0;
 
-        // Validar límite máximo de la orden si se envía una cantidad mayor a 0
-        if ($request->filled('cantidad') && $request->cantidad > 0) {
-            $orden = ProductionOrder::findOrFail($request->production_order_id);
-            
-            // Sumar piezas previamente registradas por este usuario en esta orden
-            $piezasRegistradas = RegistroProduccion::where('production_order_id', $orden->id)
-                ->where('user_id', Auth::id())
-                ->sum('cantidad');
+        DB::transaction(function () use ($request, $userId, $cantidad) {
+            // 1. Guardar el registro de producción general
+            RegistroProduccion::create([
+                'user_id'             => $userId,
+                'production_order_id' => $request->production_order_id,
+                'sub_order_id'        => $request->sub_order_id,
+                'cantidad'            => $cantidad,
+                'nota'                => $request->nota,
+                'fecha_registro'      => now(),
+            ]);
 
-            $maxPermitido = max(0, $orden->quantity - $piezasRegistradas);
+            // 2. Si está asociado a una Suborden, actualizar su avance y la tabla pivote
+            if ($request->filled('sub_order_id')) {
+                $subOrder = ProductionSubOrder::findOrFail($request->sub_order_id);
+                $subOrder->increment('completed_pieces', $cantidad);
 
-            if ($request->cantidad > $maxPermitido) {
-                return redirect()->back()->withErrors(['cantidad' => 'Esa cantidad no puede ser ingresada']);
+                if ($subOrder->completed_pieces >= $subOrder->quantity) {
+                    $subOrder->update(['status' => 'completed']);
+                } else {
+                    $subOrder->update(['status' => 'in_progress']);
+                }
+
+                // Actualizar aportación del operario en la tabla pivote de manera segura
+                $estacionActual = Auth::user()->estacion ?? Auth::user()->planta ?? 'General';
+                $existsPivot = $subOrder->assignedUsers()->where('user_id', $userId)->exists();
+
+                if ($existsPivot) {
+                    $currentContributed = $subOrder->assignedUsers()->where('user_id', $userId)->first()->pivot->pieces_contributed;
+                    $subOrder->assignedUsers()->updateExistingPivot($userId, [
+                        'estacion'           => $estacionActual,
+                        'pieces_contributed' => $currentContributed + $cantidad,
+                    ]);
+                } else {
+                    $subOrder->assignedUsers()->attach($userId, [
+                        'estacion'           => $estacionActual,
+                        'pieces_contributed' => $cantidad,
+                    ]);
+                }
             }
-        }
 
-        $registroDuplicado = RegistroProduccion::where('user_id', Auth::id())
-            ->where('production_order_id', $request->production_order_id)
-            ->where('cantidad', $request->cantidad ?? 0)
-            ->where('nota', $request->nota)
-            ->where('created_at', '>=', now()->subSeconds(5))
-            ->exists();
+            // 3. Incrementar el contador global en la Orden de Producción Principal
+            if ($cantidad > 0) {
+                $orden = ProductionOrder::findOrFail($request->production_order_id);
+                $orden->increment('completed_pieces', $cantidad);
 
-        if ($registroDuplicado) {
-            return redirect()->back()->with('warning', 'Este registro ya se guardó hace unos segundos, evitamos duplicarlo.');
-        }
-
-        RegistroProduccion::create([
-            'user_id' => Auth::id(),
-            'production_order_id' => $request->production_order_id,
-            'cantidad' => $request->cantidad ?? 0,
-            'nota' => $request->nota,
-            'fecha_registro' => now(),
-        ]);
+                // Si la orden principal alcanza el total solicitado, marcarla como completada
+                if ($orden->completed_pieces >= $orden->quantity) {
+                    $orden->update(['status' => 'completed']);
+                }
+            }
+        });
 
         return redirect()->back()->with('success', '¡Registro guardado correctamente!');
     }
