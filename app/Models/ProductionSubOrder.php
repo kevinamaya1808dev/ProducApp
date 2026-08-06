@@ -12,17 +12,19 @@ class ProductionSubOrder extends Model
     use HasFactory;
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date'   => 'date',
+        'start_date'    => 'date',
+        'end_date'      => 'date',
+        'es_ensamblaje' => 'boolean',
     ];
 
     protected $fillable = [
         'production_order_id',
-        'recipe_component_id',
+        'component_id',
         'proceso',
         'quantity',
         'completed_pieces',
         'status',
+        'es_ensamblaje',
         'start_date',
         'end_date',
         'notas',
@@ -33,13 +35,12 @@ class ProductionSubOrder extends Model
         return $this->belongsTo(ProductionOrder::class);
     }
 
-    // Relación con el componente de la receta (si aplica)
-    public function recipeComponent(): BelongsTo
+    // Renombrado: antes apuntaba a un modelo/tabla que no existía
+    public function component(): BelongsTo
     {
-        return $this->belongsTo(RecipeComponent::class);
+        return $this->belongsTo(Component::class);
     }
 
-    // Operarios y estaciones asignadas a esta suborden (Muchos a Muchos)
     public function assignedUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'production_sub_order_user')
@@ -51,5 +52,17 @@ class ProductionSubOrder extends Model
     {
         if ($this->quantity <= 0) return 0;
         return min(($this->completed_pieces / $this->quantity) * 100, 100);
+    }
+
+    // Piezas que faltan para terminar esta fase
+    public function getRestantesAttribute(): int
+    {
+        return max(0, $this->quantity - $this->completed_pieces);
+    }
+
+    // true cuando quedan entre 1 y 3 piezas (para disparar la alerta a todos los operarios asignados)
+    public function getAlertaCercanaAttribute(): bool
+    {
+        return $this->restantes > 0 && $this->restantes <= 3;
     }
 }

@@ -10,8 +10,8 @@
     <!-- Columna Perfil (Izquierda) -->
     <div class="lg:col-span-3 space-y-6">
         <x-operario.perfil.perfil-info-card :usuario="$usuario ?? null" />
-        <x-operario.perfil.perfil-habilidades :habilidades="$habilidades ?? []" />
-        <x-operario.perfil.perfil-certificaciones :certificaciones="$certificaciones ?? []" />
+    
+        <x-operario.perfil.perfil-permisos :permisos="$permisos ?? []" />
     </div>
 
     <!-- Columna Datos (Derecha) -->

@@ -7,7 +7,7 @@
             </button>
         </div>
 
-        <form id="edit_product_form" method="POST">
+        <form id="edit_product_form" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -41,6 +41,11 @@
                     <div class="col-span-2">
                         <label class="block text-xs font-semibold text-slate-700 dark:text-stone-300 mb-1">Stock *</label>
                         <input type="number" id="edit_stock" name="stock" min="0" required class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-stone-300 mb-1">Imagen del Producto</label>
+                        <input type="file" name="image" accept="image/*" class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-orange-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 dark:file:bg-orange-950/50 dark:file:text-orange-400">
                     </div>
 
                     <div class="col-span-2">

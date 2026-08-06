@@ -16,6 +16,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->integer('stock')->default(0);
             $table->decimal('unit_cost', 10, 2)->default(0.00);
+            $table->string('image')->nullable();
             $table->timestamps();
         });
     }

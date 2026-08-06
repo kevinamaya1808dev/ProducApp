@@ -1,26 +1,31 @@
 @extends('layouts.app')
 
 @section('content')
-
 <div class="p-6 max-w-[1600px] mx-auto overflow-hidden">
 
+    {{-- Header --}}
     @include('admin.orders.components.header')
 
+    {{-- KPI Cards --}}
     @include('admin.orders.components.kpi-cards', ['orders' => $orders])
 
+    {{-- Filters & Search --}}
     @include('admin.orders.components.filters')
 
-    <!-- Tabla + Panel -->
-   <div class="flex items-start gap-6 relative">
-    <div class="flex-1 min-w-0">
-        @include('admin.orders.components.orders-table', ['orders' => $orders])
+    {{-- Tabla + Panel Lateral --}}
+    <div class="flex items-start gap-6 relative">
+        <div class="flex-1 min-w-0">
+            @include('admin.orders.components.orders-table', ['orders' => $orders])
+        </div>
+        @include('admin.orders.components.detail-panel')
     </div>
-    @include('admin.orders.components.detail-panel')
-</div>
+
+    {{-- Paginación --}}
     <div class="mt-6">
         {{ $orders->links() }}
     </div>
 
+    {{-- Modales (Solo para usuarios con permisos) --}}
     @can('manage-orders')
         @include('admin.orders.modals.create')
         @include('admin.orders.modals.edit')
@@ -28,7 +33,6 @@
     @endcan
 
 </div>
-
 @endsection
 
 @push('scripts')
@@ -68,7 +72,6 @@
     // ===== Panel lateral =====
     function viewOrder(row) {
         currentOrder = { ...row.dataset };
-        // Parsear las subórdenes enviadas desde el atributo de data
         const subOrders = JSON.parse(currentOrder.subOrders || '[]');
 
         document.getElementById('panelOrderNumber').textContent = currentOrder.orderNumber;
@@ -83,7 +86,6 @@
         document.getElementById('panelStation').textContent = currentOrder.estacion || 'Sin asignar';
         document.getElementById('panelDeadline').textContent = currentOrder.endDate || 'Sin fecha';
 
-        // Llenar el contenedor de Subórdenes
         const container = document.getElementById('panelSubOrdersList');
         document.getElementById('panelSubOrdersCount').textContent = subOrders.length;
         container.innerHTML = '';
@@ -92,19 +94,33 @@
             container.innerHTML = `<p class="text-xs text-slate-400 dark:text-stone-500 italic mt-2">No hay procesos desglosados.</p>`;
         } else {
             subOrders.forEach(sub => {
-                container.innerHTML += `
-                    <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-stone-800/60 border border-slate-100 dark:border-stone-800 text-xs">
-                        <div class="flex justify-between font-bold text-slate-800 dark:text-stone-200">
-                            <span>${sub.proceso}</span>
-                            <span class="text-orange-600 dark:text-orange-400">${sub.completed_pieces}/${sub.quantity} pzas</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-1 text-[11px] text-slate-400 dark:text-stone-400">
-                            <span>Op: <strong class="text-slate-600 dark:text-stone-300">${sub.user_name}</strong></span>
-                            <span class="uppercase tracking-wider font-semibold text-[10px] bg-slate-200 dark:bg-stone-700 text-slate-700 dark:text-stone-300 px-1.5 py-0.5 rounded">${sub.estacion}</span>
-                        </div>
-                    </div>
-                `;
-            });
+    const operariosHtml = (sub.operarios || []).length
+        ? sub.operarios.map(op => `
+            <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-stone-400 pl-2 border-l-2 border-orange-200 dark:border-orange-500/30 mt-1">
+                <span>${op.nombre} <span class="text-slate-400">· ${op.estacion}</span></span>
+                <span class="font-semibold text-slate-600 dark:text-stone-300">${op.aportadas} pzas</span>
+            </div>
+        `).join('')
+        : `<p class="text-[11px] text-slate-400 italic pl-2 mt-1">Sin operarios asignados</p>`;
+
+    const restantes = sub.quantity - sub.completed_pieces;
+    const alertaBadge = (restantes > 0 && restantes <= 3)
+        ? `<span class="text-[9px] font-bold uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded ml-1.5">¡Casi listo!</span>`
+        : '';
+    const ensamblajeBadge = sub.es_ensamblaje
+        ? `<span class="text-[9px] font-bold uppercase bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded ml-1.5">Ensamblaje</span>`
+        : '';
+
+    container.innerHTML += `
+        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-stone-800/60 border border-slate-100 dark:border-stone-800 text-xs">
+            <div class="flex justify-between items-center font-bold text-slate-800 dark:text-stone-200">
+                <span>${sub.proceso} ${ensamblajeBadge} ${alertaBadge}</span>
+                <span class="text-orange-600 dark:text-orange-400">${sub.completed_pieces}/${sub.quantity} pzas</span>
+            </div>
+            ${operariosHtml}
+        </div>
+    `;
+});
         }
 
         document.getElementById('orderPanel').style.display = 'flex';
@@ -117,48 +133,54 @@
 
     // ===== Generador Dinámico de Subórdenes para Modales =====
     function addSubOrderRow(containerId, data = null) {
-        const container = document.getElementById(containerId);
-        const index = container.children.length;
-        
-        const operariosOptions = `
-            <option value="">Seleccionar Operario</option>
-            @foreach($operarios as $op)
-                <option value="{{ $op->id }}">{{ $op->name }}</option>
-            @endforeach
-        `;
+    const container = document.getElementById(containerId);
+    const index = container.children.length;
 
-        const row = document.createElement('div');
-        row.className = 'grid grid-cols-12 gap-2 bg-slate-50 dark:bg-stone-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-stone-800 items-center suborder-row mb-2';
-        row.innerHTML = `
-            <div class="col-span-4">
-                <input type="text" name="sub_orders[${index}][proceso]" value="${data?.proceso || ''}" placeholder="Ej. Ensamblaje" required class="w-full text-xs bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-orange-600/50">
-            </div>
-            <div class="col-span-4">
-                <select name="sub_orders[${index}][user_id]" class="w-full text-xs bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 rounded-lg px-2 py-1.5 text-slate-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-orange-600/50">
-                    ${operariosOptions}
-                </select>
-            </div>
-            <div class="col-span-3">
-                <input type="number" name="sub_orders[${index}][quantity]" value="${data?.quantity || ''}" placeholder="Cant." min="1" required class="w-full text-xs bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 rounded-lg px-2 py-1.5 text-slate-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-orange-600/50">
-            </div>
-            <div class="col-span-1 text-right">
-                <button type="button" onclick="this.closest('.suborder-row').remove()" class="text-red-500 hover:text-red-700 font-bold text-sm bg-red-50 dark:bg-red-500/10 w-6 h-6 rounded-full flex items-center justify-center ml-auto">&times;</button>
-            </div>
-        `;
+    const operariosOptions = `
+        @foreach($operarios ?? [] as $op)
+            <option value="{{ $op->id }}">{{ $op->name }}</option>
+        @endforeach
+    `;
 
-        container.appendChild(row);
+    const row = document.createElement('div');
+    row.className = 'grid grid-cols-12 gap-2 bg-slate-50 dark:bg-stone-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-stone-800 items-start suborder-row mb-2';
+    row.innerHTML = `
+        <div class="col-span-4">
+            <input type="text" name="sub_orders[${index}][proceso]" value="${data?.proceso || ''}" placeholder="Ej. Ensamblaje" required class="w-full text-xs bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-orange-600/50">
+            <label class="flex items-center gap-1.5 mt-1.5 text-[11px] text-slate-500 dark:text-stone-400 cursor-pointer select-none">
+                <input type="checkbox" name="sub_orders[${index}][es_ensamblaje]" value="1" ${data?.es_ensamblaje ? 'checked' : ''} class="rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                Fase final (ensamblaje) — suma al stock
+            </label>
+        </div>
+        <div class="col-span-4">
+            <select name="sub_orders[${index}][operarios][]" multiple size="3" class="w-full text-xs bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 rounded-lg px-2 py-1.5 text-slate-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-orange-600/50">
+                ${operariosOptions}
+            </select>
+            <p class="text-[10px] text-slate-400 mt-1">Ctrl/Cmd + clic para elegir varios</p>
+        </div>
+        <div class="col-span-3">
+            <input type="number" name="sub_orders[${index}][quantity]" value="${data?.quantity || ''}" placeholder="Cant." min="1" required class="w-full text-xs bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 rounded-lg px-2 py-1.5 text-slate-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-orange-600/50">
+        </div>
+        <div class="col-span-1 text-right">
+            <button type="button" onclick="this.closest('.suborder-row').remove()" class="text-red-500 hover:text-red-700 font-bold text-sm bg-red-50 dark:bg-red-500/10 w-6 h-6 rounded-full flex items-center justify-center ml-auto">&times;</button>
+        </div>
+    `;
 
-        if (data?.user_id) {
-            row.querySelector(`select[name="sub_orders[${index}][user_id]"]`).value = data.user_id;
-        }
+    container.appendChild(row);
+
+    if (data?.operarios?.length) {
+        const select = row.querySelector(`select[name="sub_orders[${index}][operarios][]"]`);
+        data.operarios.forEach(id => {
+            const opt = select.querySelector(`option[value="${id}"]`);
+            if (opt) opt.selected = true;
+        });
     }
+}
 
     // ===== Modal: Crear =====
     function openCreateModal() {
-        // Limpiamos los contenedores de subórdenes
         const container = document.getElementById('createSubOrdersContainer');
         if(container) container.innerHTML = '';
-        
         document.getElementById('createOrderModal').style.display = 'block';
     }
     function closeCreateModal() {
@@ -179,7 +201,6 @@
         document.getElementById('editStartDate').value = currentOrder.startDate || '';
         document.getElementById('editEndDate').value = currentOrder.endDate || '';
 
-        // Cargar las subórdenes dinámicas
         const editContainer = document.getElementById('editSubOrdersContainer');
         if (editContainer) {
             editContainer.innerHTML = '';

@@ -12,30 +12,48 @@ use Illuminate\Support\Facades\DB;
 
 class OperarioController extends Controller
 {
-    public function inicio()
-    {
-        $userId = Auth::id();
-        $user = Auth::user();
+    // Estados que consideramos "orden con trabajo pendiente/activo" —
+    // antes inicio() y registro() usaban criterios distintos y eso rompía el flujo.
+    private const ESTADOS_ACTIVOS = ['in_progress', 'pending', 'Pending'];
 
-        // Busca primero una orden en progreso o pendiente asignada directamente o mediante subórdenes
-        $ordenActiva = ProductionOrder::with(['product', 'subOrders.assignedUsers'])
+    private function buscarOrdenActiva(int $userId): ?ProductionOrder
+    {
+        return ProductionOrder::with(['product', 'subOrders.assignedUsers'])
             ->where(function ($query) use ($userId) {
                 $query->where('user_id', $userId)
                       ->orWhereHas('subOrders.assignedUsers', function ($q) use ($userId) {
                           $q->where('users.id', $userId);
                       });
             })
-            ->whereIn('status', ['in_progress', 'pending', 'Pending'])
+            ->whereIn('status', self::ESTADOS_ACTIVOS)
             ->orderByRaw("CASE WHEN LOWER(status) = 'in_progress' THEN 1 ELSE 2 END")
             ->latest()
             ->first();
+    }
 
-        // Total de piezas hechas hoy por el operario (todas las órdenes)
+    private function buscarSubOrdenDelUsuario(ProductionOrder $orden, int $userId): ?ProductionSubOrder
+    {
+        return $orden->subOrders()
+            ->where(function ($q) use ($userId) {
+                $q->where('user_id', $userId)
+                  ->orWhereHas('assignedUsers', function ($subQ) use ($userId) {
+                      $subQ->where('users.id', $userId);
+                  });
+            })
+            ->first();
+    }
+
+    public function inicio()
+    {
+        $userId = Auth::id();
+        $user = Auth::user();
+
+        $ordenActiva = $this->buscarOrdenActiva($userId);
+
         $piezasHoy = RegistroProduccion::where('user_id', $userId)
             ->whereDate('created_at', today())
             ->sum('cantidad');
 
-        // Piezas registradas para la orden activa (acumulado total de la orden para este usuario)
         $piezasOrdenActiva = 0;
         $alertaCercana = false;
         $restantes = 0;
@@ -47,40 +65,25 @@ class OperarioController extends Controller
                 ->where('user_id', $userId)
                 ->sum('cantidad');
 
-            // Obtener la suborden específica en la que participa este operario
-            $subOrdenActiva = $ordenActiva->subOrders()
-                ->where(function ($q) use ($userId) {
-                    $q->where('user_id', $userId)
-                      ->orWhereHas('assignedUsers', function ($subQ) use ($userId) {
-                          $subQ->where('users.id', $userId);
-                      });
-                })
-                ->first();
+            $subOrdenActiva = $this->buscarSubOrdenDelUsuario($ordenActiva, $userId);
 
             if ($subOrdenActiva) {
-                $restantes = max(0, $subOrdenActiva->quantity - $subOrdenActiva->completed_pieces);
-                
-                // Activar bandera si faltan entre 1 y 3 registros para terminar la tarea
-                if ($restantes > 0 && $restantes <= 3) {
-                    $alertaCercana = true;
-                }
+                $restantes = $subOrdenActiva->restantes;
+                $alertaCercana = $subOrdenActiva->alerta_cercana;
 
-                // Obtener compañeros trabajando en la misma suborden / estación
                 $colegasInvolucrados = $subOrdenActiva->assignedUsers()
                     ->where('users.id', '!=', $userId)
                     ->get();
             }
         }
 
-        // Incidencias reportadas hoy por el operario
         $incidenciasHoy = Incidence::where('user_id', $userId)
             ->whereDate('created_at', today())
             ->count();
 
-        // Cálculo de eficiencia en base a la meta diaria asignada (por defecto 100 piezas)
         $metaDiaria = $user->meta_diaria ?? 100;
-        $eficiencia = $metaDiaria > 0 
-            ? min(round(($piezasHoy / $metaDiaria) * 100), 100) 
+        $eficiencia = $metaDiaria > 0
+            ? min(round(($piezasHoy / $metaDiaria) * 100), 100)
             : 0;
 
         $actividadesRecientes = RegistroProduccion::where('user_id', $userId)
@@ -89,13 +92,13 @@ class OperarioController extends Controller
             ->get();
 
         return view('operario.inicio', compact(
-            'ordenActiva', 
+            'ordenActiva',
             'subOrdenActiva',
             'restantes',
             'alertaCercana',
             'colegasInvolucrados',
-            'piezasHoy', 
-            'piezasOrdenActiva', 
+            'piezasHoy',
+            'piezasOrdenActiva',
             'incidenciasHoy',
             'eficiencia',
             'actividadesRecientes'
@@ -106,16 +109,9 @@ class OperarioController extends Controller
     {
         $userId = Auth::id();
 
-        $ordenActiva = ProductionOrder::with(['product', 'subOrders.assignedUsers'])
-            ->where(function ($query) use ($userId) {
-                $query->where('user_id', $userId)
-                      ->orWhereHas('subOrders.assignedUsers', function ($q) use ($userId) {
-                          $q->where('users.id', $userId);
-                      });
-            })
-            ->where('status', 'in_progress')
-            ->latest()
-            ->first();
+        // Antes: ->where('status', 'in_progress') -> si la orden seguía en "pending"
+        // el operario no encontraba nada que registrar, aunque sí tuviera trabajo asignado.
+        $ordenActiva = $this->buscarOrdenActiva($userId);
 
         $piezasOrdenActiva = 0;
         $subOrdenActiva = null;
@@ -124,14 +120,7 @@ class OperarioController extends Controller
                 ->where('user_id', $userId)
                 ->sum('cantidad');
 
-            $subOrdenActiva = $ordenActiva->subOrders()
-                ->where(function ($q) use ($userId) {
-                    $q->where('user_id', $userId)
-                      ->orWhereHas('assignedUsers', function ($subQ) use ($userId) {
-                          $subQ->where('users.id', $userId);
-                      });
-                })
-                ->first();
+            $subOrdenActiva = $this->buscarSubOrdenDelUsuario($ordenActiva, $userId);
         }
 
         $tarea = $ordenActiva ? [
@@ -140,6 +129,8 @@ class OperarioController extends Controller
             'actual' => $subOrdenActiva ? $subOrdenActiva->completed_pieces : $piezasOrdenActiva,
             'total' => $subOrdenActiva ? $subOrdenActiva->quantity : $ordenActiva->quantity,
             'sub_order_id' => $subOrdenActiva?->id,
+            'restantes' => $subOrdenActiva?->restantes ?? 0,
+            'alerta_cercana' => $subOrdenActiva?->alerta_cercana ?? false,
         ] : null;
 
         $registrosHoy = RegistroProduccion::where('user_id', $userId)
@@ -177,6 +168,7 @@ class OperarioController extends Controller
             'ordenId' => $ordenActiva->id ?? null,
             'subOrdenId' => $subOrdenActiva?->id ?? null,
             'routeGuardar' => route('operario.registro.guardar'),
+            'routeEstadoSuborden' => $subOrdenActiva ? route('operario.suborden.estado', $subOrdenActiva->id) : null,
             'registros' => $registros,
         ]);
     }
@@ -194,7 +186,6 @@ class OperarioController extends Controller
         $cantidad = $request->cantidad ?? 0;
 
         DB::transaction(function () use ($request, $userId, $cantidad) {
-            // 1. Guardar el registro de producción general
             RegistroProduccion::create([
                 'user_id'             => $userId,
                 'production_order_id' => $request->production_order_id,
@@ -204,18 +195,18 @@ class OperarioController extends Controller
                 'fecha_registro'      => now(),
             ]);
 
-            // 2. Si está asociado a una Suborden, actualizar su avance y la tabla pivote
+            $orden = ProductionOrder::findOrFail($request->production_order_id);
+
             if ($request->filled('sub_order_id')) {
                 $subOrder = ProductionSubOrder::findOrFail($request->sub_order_id);
                 $subOrder->increment('completed_pieces', $cantidad);
 
                 if ($subOrder->completed_pieces >= $subOrder->quantity) {
                     $subOrder->update(['status' => 'completed']);
-                } else {
+                } elseif ($cantidad > 0) {
                     $subOrder->update(['status' => 'in_progress']);
                 }
 
-                // Actualizar aportación del operario en la tabla pivote de manera segura
                 $estacionActual = Auth::user()->estacion ?? Auth::user()->planta ?? 'General';
                 $existsPivot = $subOrder->assignedUsers()->where('user_id', $userId)->exists();
 
@@ -231,27 +222,56 @@ class OperarioController extends Controller
                         'pieces_contributed' => $cantidad,
                     ]);
                 }
+
+                // La suborden es la fase de ensamblaje: cada pieza registrada aquí
+                // es una unidad de producto terminado -> se suma al stock.
+                if ($subOrder->es_ensamblaje && $cantidad > 0) {
+                    $orden->product()->increment('stock', $cantidad);
+                }
+
+                // Si el pedido principal seguía "pending", al recibir trabajo real
+                // pasa a "in_progress" para que el admin lo vea reflejado de inmediato.
+                if ($cantidad > 0 && strtolower($orden->status) === 'pending') {
+                    $orden->status = 'in_progress';
+                }
             }
 
-            // 3. Incrementar el contador global en la Orden de Producción Principal
             if ($cantidad > 0) {
-                $orden = ProductionOrder::findOrFail($request->production_order_id);
                 $orden->increment('completed_pieces', $cantidad);
 
-                // Si la orden principal alcanza el total solicitado, marcarla como completada
                 if ($orden->completed_pieces >= $orden->quantity) {
-                    $orden->update(['status' => 'completed']);
+                    $orden->status = 'completed';
                 }
+
+                $orden->save();
             }
         });
 
         return redirect()->back()->with('success', '¡Registro guardado correctamente!');
     }
 
+    // Endpoint ligero para que la vista de registro consulte, cada pocos segundos,
+    // si quedan pocas piezas y quiénes están asignados — sin recargar toda la página.
+    public function estadoSuborden(ProductionSubOrder $subOrder)
+    {
+        $subOrder->load('assignedUsers');
+
+        return response()->json([
+            'restantes'      => $subOrder->restantes,
+            'alerta_cercana' => $subOrder->alerta_cercana,
+            'completed'      => $subOrder->status === 'completed',
+            'colegas'        => $subOrder->assignedUsers->map(fn ($u) => [
+                'id'       => $u->id,
+                'nombre'   => $u->name,
+                'estacion' => $u->pivot->estacion,
+                'aportadas'=> $u->pivot->pieces_contributed,
+            ]),
+        ]);
+    }
+
     public function perfil()
     {
-        // Obtenemos los datos frescos del usuario directo de la BD junto a sus relaciones
-        $user = \App\Models\User::with(['skills', 'certifications'])->find(Auth::id());
+        $user = \App\Models\User::with(['skills', 'permissions'])->find(Auth::id());
 
         $ultimaOrden = ProductionOrder::where('user_id', $user->id)
             ->whereNotNull('estacion')
@@ -266,21 +286,16 @@ class OperarioController extends Controller
             'puesto' => $user->puesto ?? 'Operario',
             'estado' => $user->active ? 'Activo' : 'Inactivo',
             'id_operario' => 'OP-' . str_pad($user->id, 3, '0', STR_PAD_LEFT),
-            
-            // LA MAGIA ESTÁ AQUÍ: 
-            // Ahora leemos la columna 'planta' de la base de datos, 
-            // pero la mandamos a la vista con el nombre 'estacion'
             'estacion' => $user->planta ?? $ultimaOrden->estacion ?? 'Sin asignar',
-            
             'turno' => $user->turno ?? 'Sin definir',
             'alta_desde' => optional($user->created_at)->translatedFormat('M Y') ?? '—',
         ];
 
         $habilidades = $user->skills->pluck('skill')->toArray();
 
-        $certificaciones = $user->certifications->map(fn($cert) => [
-            'nombre' => $cert->nombre,
-            'fecha' => $cert->fecha_obtencion?->translatedFormat('M Y') ?? '—',
+        $permisos = $user->permissions->map(fn($perm) => [
+            'nombre' => $perm->name,
+            'descripcion' => 'Permiso clave: ' . $perm->slug,
         ])->toArray();
 
         $desde = now()->subDays(30);
@@ -321,11 +336,9 @@ class OperarioController extends Controller
             ];
         }
 
-       $historial = ProductionOrder::with('product')
+        $historial = ProductionOrder::with('product')
             ->where('user_id', $user->id)
             ->where('status', 'completed')
-            // Ocultar si la fecha de vencimiento ya pasó hace más de 1 mes, 
-            // o mostrar solo las terminadas a tiempo / vigentes en el último mes
             ->where(function ($query) {
                 $query->whereNull('end_date')
                       ->orWhere('end_date', '>=', now()->subMonth());
@@ -343,7 +356,7 @@ class OperarioController extends Controller
         return view('operario.perfil', [
             'usuario' => $usuario,
             'habilidades' => $habilidades,
-            'certificaciones' => $certificaciones,
+            'permisos' => $permisos,
             'eficiencia' => $eficiencia,
             'ordenesCompletas' => $ordenesCompletas,
             'incidencias' => $incidenciasRecientes,
@@ -430,10 +443,6 @@ class OperarioController extends Controller
 
     public function iniciarTarea(ProductionOrder $productionOrder)
     {
-        if ($productionOrder->user_id !== Auth::id()) {
-            abort(403);
-        }
-
         $productionOrder->update(['status' => 'in_progress']);
 
         return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
@@ -442,10 +451,6 @@ class OperarioController extends Controller
 
     public function completarTarea(ProductionOrder $productionOrder)
     {
-        if ($productionOrder->user_id !== Auth::id()) {
-            abort(403);
-        }
-
         $productionOrder->update(['status' => 'completed']);
 
         return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])

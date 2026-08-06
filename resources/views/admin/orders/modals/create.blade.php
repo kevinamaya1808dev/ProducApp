@@ -73,6 +73,14 @@
                             <input type="date" name="end_date" value="{{ old('end_date') }}" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500 dark:focus:border-orange-500">
                         </div>
                     </div>
+
+                    <div class="border-t border-slate-100 dark:border-stone-800 pt-4 mt-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300">Desglose de Subórdenes (Procesos)</label>
+                            <button type="button" onclick="addSubOrderRow('createSubOrdersContainer')" class="text-xs bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors">+ Añadir Proceso</button>
+                        </div>
+                        <div id="createSubOrdersContainer" class="space-y-2"></div>
+                    </div>
                 </div>
 
                 <div class="px-6 py-4 bg-slate-50 dark:bg-stone-800/50 border-t border-slate-100 dark:border-stone-800 flex justify-end gap-3">

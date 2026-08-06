@@ -18,6 +18,9 @@ class Product extends Model
         'description',
         'stock',
         'unit_cost',
+
+        'image',
+
     ];
 
     public function category(): BelongsTo
@@ -28,5 +31,10 @@ class Product extends Model
     public function productionOrders(): HasMany
     {
         return $this->hasMany(ProductionOrder::class);
+    }
+
+    public function recipes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Recipe::class);
     }
 }

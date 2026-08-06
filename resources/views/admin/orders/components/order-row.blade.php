@@ -41,15 +41,19 @@
     data-start-date="{{ $order->start_date?->format('Y-m-d') }}"
     data-end-date="{{ $order->end_date?->format('Y-m-d') }}"
     data-sub-orders='{{ json_encode($order->subOrders->map(fn($sub) => [
-        "id" => $sub->id,
-        "proceso" => $sub->proceso,
-        "user_id" => $sub->user_id,
-        "user_name" => $sub->user->name ?? "Sin asignar",
-        "quantity" => $sub->quantity,
-        "completed_pieces" => $sub->completed_pieces,
-        "estacion" => $sub->estacion ?? "N/A",
-        "status" => $sub->status
-    ])) }}'
+    "id" => $sub->id,
+    "proceso" => $sub->proceso,
+    "quantity" => $sub->quantity,
+    "completed_pieces" => $sub->completed_pieces,
+    "status" => $sub->status,
+    "es_ensamblaje" => (bool) $sub->es_ensamblaje,
+    "operarios" => $sub->assignedUsers->map(fn($u) => [
+        "id" => $u->id,
+        "nombre" => $u->name,
+        "estacion" => $u->pivot->estacion ?: "Sin asignar",
+        "aportadas" => $u->pivot->pieces_contributed,
+    ]),
+])) }}'
 >
     <td class="px-5 py-4">
         <span class="bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-500/20 text-xs font-bold px-2.5 py-1 rounded-md">{{ $order->order_number }}</span>

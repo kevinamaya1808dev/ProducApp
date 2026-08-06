@@ -196,4 +196,6 @@ Route::middleware(['auth', 'can:access-operario'])
             Route::put('/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('tareas.iniciar');
             Route::put('/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('tareas.completar');
         });
+        Route::get('/operario/suborden/{subOrder}/estado', [OperarioController::class, 'estadoSuborden'])
+    ->name('operario.suborden.estado');
     });

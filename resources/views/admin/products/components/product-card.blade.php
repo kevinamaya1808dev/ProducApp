@@ -1,9 +1,11 @@
 @php
+    use Illuminate\Support\Facades\Storage;
+
     $themes = [
         ['bg' => 'bg-orange-100/50 dark:bg-orange-950/30', 'text' => 'text-orange-200 dark:text-orange-900/50', 'badge' => 'bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-400 border border-orange-200/60 dark:border-orange-900/50'],
         ['bg' => 'bg-purple-100/50 dark:bg-purple-950/30', 'text' => 'text-purple-200 dark:text-purple-900/50', 'badge' => 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 border border-purple-200/60 dark:border-purple-900/50'],
-        ['bg' => 'bg-sky-100/50 dark:bg-sky-950/30',       'text' => 'text-sky-200 dark:text-sky-900/50',       'badge' => 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-400 border border-sky-200/60 dark:border-sky-900/50'],
-        ['bg' => 'bg-pink-100/50 dark:bg-pink-950/30',     'text' => 'text-pink-200 dark:text-pink-900/50',     'badge' => 'bg-pink-50 dark:bg-pink-950/50 text-pink-700 dark:text-pink-400 border border-pink-200/60 dark:border-pink-900/50'],
+        ['bg' => 'bg-sky-100/50 dark:bg-sky-950/30',      'text' => 'text-sky-200 dark:text-sky-900/50',      'badge' => 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-400 border border-sky-200/60 dark:border-sky-900/50'],
+        ['bg' => 'bg-pink-100/50 dark:bg-pink-950/30',    'text' => 'text-pink-200 dark:text-pink-900/50',    'badge' => 'bg-pink-50 dark:bg-pink-950/50 text-pink-700 dark:text-pink-400 border border-pink-200/60 dark:border-pink-900/50'],
         ['bg' => 'bg-emerald-100/50 dark:bg-emerald-950/30','text' => 'text-emerald-200 dark:text-emerald-900/50','badge' => 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/50'],
     ];
     $theme = $themes[$product->id % count($themes)];
@@ -20,7 +22,7 @@
     @can('manage-products')
     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10">
         <button type="button"
-            data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-code="{{ $product->code }}" data-category_id="{{ $product->category_id }}" data-stock="{{ $product->stock }}" data-unit_cost="{{ $product->unit_cost }}" data-description="{{ $product->description }}"
+            data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-code="{{ $product->code }}" data-category_id="{{ $product->category_id }}" data-stock="{{ $product->stock }}" data-unit_cost="{{ $product->unit_cost }}" data-description="{{ $product->description }}" data-image="{{ $product->image && Storage::disk('public')->exists($product->image) ? asset('storage/' . $product->image) : '' }}"
             onclick="openEditModal(this)"
             class="p-1.5 bg-white/90 dark:bg-stone-900/90 backdrop-blur text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/40 shadow-sm transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -31,8 +33,12 @@
     </div>
     @endcan
 
-    <div class="h-32 {{ $theme['bg'] }} flex items-center justify-center">
-        <span class="font-black text-6xl {{ $theme['text'] }} select-none tracking-tighter">{{ $siglas }}</span>
+    <div class="h-32 {{ $theme['bg'] }} flex items-center justify-center overflow-hidden relative">
+        @if($product->image && Storage::disk('public')->exists($product->image))
+            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+        @else
+            <span class="font-black text-6xl {{ $theme['text'] }} select-none tracking-tighter">{{ $siglas }}</span>
+        @endif
     </div>
 
     <div class="p-5 flex-1 flex flex-col">

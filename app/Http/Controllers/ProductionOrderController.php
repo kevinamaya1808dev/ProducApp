@@ -15,8 +15,10 @@ class ProductionOrderController extends Controller
 {
     public function index(): View
     {
-        $orders = ProductionOrder::with(['product', 'user', 'subOrders.user'])->latest()->paginate(9);
+        // Añadimos assignedUsers para cargar correctamente la relación pivote de las subórdenes
+        $orders = ProductionOrder::with(['product', 'user', 'subOrders.assignedUsers'])->latest()->paginate(9);
         $products = Product::orderBy('name')->get();
+        // Solo traemos a los usuarios que puedan ser operarios (ajusta si tienes un whereRole)
         $operarios = User::orderBy('name')->get();
 
         return view('admin.orders.index', compact('orders', 'products', 'operarios'));
@@ -31,16 +33,26 @@ class ProductionOrderController extends Controller
 
             if ($request->has('sub_orders')) {
                 foreach ($request->sub_orders as $subOrderData) {
-                    $order->subOrders()->create([
-                        'user_id'    => $subOrderData['user_id'] ?? null,
+                    $subOrder = $order->subOrders()->create([
                         'proceso'    => $subOrderData['proceso'],
-                        'estacion'   => $subOrderData['estacion'] ?? null,
                         'quantity'   => $subOrderData['quantity'] ?? $order->quantity,
                         'status'     => $subOrderData['status'] ?? 'pending',
                         'start_date' => $subOrderData['start_date'] ?? $order->start_date,
                         'end_date'   => $subOrderData['end_date'] ?? $order->end_date,
                         'notas'      => $subOrderData['notas'] ?? null,
                     ]);
+
+                    // Asignar múltiples operarios a través de la tabla pivote
+                    if (!empty($subOrderData['operarios'])) {
+                        $syncData = [];
+                        foreach ($subOrderData['operarios'] as $operarioId) {
+                            $syncData[$operarioId] = [
+                                'estacion'           => $subOrderData['estacion'] ?? 'General',
+                                'pieces_contributed' => 0,
+                            ];
+                        }
+                        $subOrder->assignedUsers()->attach($syncData);
+                    }
                 }
             }
         });
@@ -56,21 +68,48 @@ class ProductionOrderController extends Controller
             $order->update($validated);
 
             if ($request->has('sub_orders')) {
-                // Sincronización simple: eliminamos subórdenes anteriores y recreamos
-                $order->subOrders()->delete();
+                // Obtener IDs de las subórdenes que vienen en la petición (para no borrarlas)
+                $incomingIds = collect($request->sub_orders)->pluck('id')->filter()->toArray();
+
+                // Borrar solo las subórdenes que ya no existen en la petición
+                $order->subOrders()->whereNotIn('id', $incomingIds)->delete();
 
                 foreach ($request->sub_orders as $subOrderData) {
-                    $order->subOrders()->create([
-                        'user_id'    => $subOrderData['user_id'] ?? null,
-                        'proceso'    => $subOrderData['proceso'],
-                        'estacion'   => $subOrderData['estacion'] ?? null,
-                        'quantity'   => $subOrderData['quantity'] ?? $order->quantity,
-                        'status'     => $subOrderData['status'] ?? 'pending',
-                        'start_date' => $subOrderData['start_date'] ?? $order->start_date,
-                        'end_date'   => $subOrderData['end_date'] ?? $order->end_date,
-                        'notas'      => $subOrderData['notas'] ?? null,
-                    ]);
+                    // Actualizar si existe el ID, o crear una nueva si no
+                    $subOrder = $order->subOrders()->updateOrCreate(
+                        ['id' => $subOrderData['id'] ?? null],
+                        [
+                            'proceso'    => $subOrderData['proceso'],
+                            'quantity'   => $subOrderData['quantity'] ?? $order->quantity,
+                            'status'     => $subOrderData['status'] ?? 'pending',
+                            'start_date' => $subOrderData['start_date'] ?? $order->start_date,
+                            'end_date'   => $subOrderData['end_date'] ?? $order->end_date,
+                            'notas'      => $subOrderData['notas'] ?? null,
+                        ]
+                    );
+
+                    // Sincronizar operarios en la tabla pivote sin perder su progreso actual
+                    if (!empty($subOrderData['operarios'])) {
+                        $syncData = [];
+                        foreach ($subOrderData['operarios'] as $operarioId) {
+                            // Buscar si el operario ya estaba asignado para conservar sus piezas aportadas
+                            $existingPivot = $subOrder->assignedUsers()->where('user_id', $operarioId)->first();
+                            $piecesContributed = $existingPivot ? $existingPivot->pivot->pieces_contributed : 0;
+
+                            $syncData[$operarioId] = [
+                                'estacion'           => $subOrderData['estacion'] ?? 'General',
+                                'pieces_contributed' => $piecesContributed,
+                            ];
+                        }
+                        $subOrder->assignedUsers()->sync($syncData);
+                    } else {
+                        // Si se quitaron todos los operarios de esta suborden
+                        $subOrder->assignedUsers()->detach();
+                    }
                 }
+            } else {
+                // Si el request no trae ninguna suborden, borramos las existentes
+                $order->subOrders()->delete();
             }
         });
 
@@ -89,28 +128,34 @@ class ProductionOrderController extends Controller
         $uniqueRule = 'unique:production_orders,order_number' . ($ignoreId ? ',' . $ignoreId : '');
 
         return $request->validate([
-            'product_id'                 => 'required|exists:products,id',
-            'user_id'                    => 'required|exists:users,id', // Supervisor / Encargado general
-            'order_number'               => 'required|string|max:50|' . $uniqueRule,
-            'quantity'                   => 'required|integer|min:1',
-            'status'                     => 'required|in:pending,in_progress,completed,cancelled',
-            'priority'                   => 'required|in:low,medium,high',
-            'estacion'                   => 'nullable|string|max:50',
-            'start_date'                 => 'nullable|date',
+            'product_id'                   => 'required|exists:products,id',
+            'user_id'                      => 'required|exists:users,id', // Supervisor / Encargado general
+            'order_number'                 => 'required|string|max:50|' . $uniqueRule,
+            'quantity'                     => 'required|integer|min:1',
+            'status'                       => 'required|in:pending,in_progress,completed,cancelled',
+            'priority'                     => 'required|in:low,medium,high',
+            'estacion'                     => 'nullable|string|max:50',
+            'start_date'                   => 'nullable|date',
             'end_date'                   => 'nullable|date|after_or_equal:start_date',
+            
             // Validaciones para las subórdenes
-            'sub_orders'                 => 'nullable|array',
-            'sub_orders.*.proceso'       => 'required_with:sub_orders|string|max:100',
-            'sub_orders.*.user_id'       => 'nullable|exists:users,id',
-            'sub_orders.*.quantity'      => 'required_with:sub_orders|integer|min:1',
-            'sub_orders.*.estacion'      => 'nullable|string|max:50',
+            'sub_orders'                   => 'nullable|array',
+            'sub_orders.*.id'              => 'nullable|exists:production_sub_orders,id',
+            'sub_orders.*.proceso'         => 'required_with:sub_orders|string|max:100',
+            
+            // Validar arreglo de operarios en lugar de un solo user_id
+            'sub_orders.*.operarios'       => 'nullable|array',
+            'sub_orders.*.operarios.*'     => 'exists:users,id',
+            
+            'sub_orders.*.quantity'        => 'required_with:sub_orders|integer|min:1',
+            'sub_orders.*.estacion'        => 'nullable|string|max:50',
         ], [
-            'product_id.required'           => 'Selecciona un producto.',
-            'user_id.required'              => 'Selecciona un encargado principal.',
-            'order_number.required'         => 'El número de orden es obligatorio.',
-            'order_number.unique'           => 'Ese número de orden ya existe.',
-            'sub_orders.*.proceso.required'  => 'Escribe el nombre del proceso para la suborden.',
-            'sub_orders.*.user_id.exists'   => 'El operario asignado a la suborden no existe.',
+            'product_id.required'             => 'Selecciona un producto.',
+            'user_id.required'                => 'Selecciona un encargado principal.',
+            'order_number.required'           => 'El número de orden es obligatorio.',
+            'order_number.unique'             => 'Ese número de orden ya existe.',
+            'sub_orders.*.proceso.required'    => 'Escribe el nombre del proceso para la suborden.',
+            'sub_orders.*.operarios.*.exists'  => 'Uno de los operarios seleccionados no es válido.',
         ]);
     }
 }
