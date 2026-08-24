@@ -17,12 +17,12 @@
                 <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Número de Orden <span class="text-red-500">*</span></label>
-                        <input type="text" id="editOrderNumber" name="order_number" required placeholder="Ej: ORD-2026-0001" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500 outline-none focus:border-orange-500 dark:focus:border-orange-500">
+                        <input type="text" id="editOrderNumber" name="order_number" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Producto a fabricar <span class="text-red-500">*</span></label>
-                        <select id="editProductId" name="product_id" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500 dark:focus:border-orange-500">
+                        <select id="editProductId" name="product_id" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                             <option value="" class="dark:bg-stone-800">Seleccione un producto...</option>
                             @foreach($products as $product)
                                 <option value="{{ $product->id }}" class="dark:bg-stone-800">{{ $product->name }}</option>
@@ -33,19 +33,19 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Cantidad (Pzas) <span class="text-red-500">*</span></label>
-                            <input type="number" id="editQuantity" name="quantity" min="1" required placeholder="Ej. 500" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500 outline-none focus:border-orange-500 dark:focus:border-orange-500">
+                            <input type="number" id="editQuantity" name="quantity" min="1" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Prioridad <span class="text-red-500">*</span></label>
-                            <select id="editPriority" name="priority" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500 dark:focus:border-orange-500">
+                            <select id="editPriority" name="priority" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                                 <option value="low" class="dark:bg-stone-800">Baja</option>
                                 <option value="medium" class="dark:bg-stone-800">Media</option>
                                 <option value="high" class="dark:bg-stone-800">Alta</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Operario Asignado <span class="text-red-500">*</span></label>
-                            <select id="editUserId" name="user_id" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500 dark:focus:border-orange-500">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Operario Asignado</label>
+                            <select id="editUserId" name="user_id" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                                 <option value="" class="dark:bg-stone-800">Sin asignar</option>
                                 @foreach($operarios as $operario)
                                     <option value="{{ $operario->id }}" class="dark:bg-stone-800">{{ $operario->name }}</option>
@@ -54,7 +54,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Estado <span class="text-red-500">*</span></label>
-                            <select id="editStatus" name="status" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500 dark:focus:border-orange-500">
+                            <select id="editStatus" name="status" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                                 <option value="pending" class="dark:bg-stone-800">Pendiente</option>
                                 <option value="in_progress" class="dark:bg-stone-800">En Progreso</option>
                                 <option value="completed" class="dark:bg-stone-800">Completada</option>
@@ -63,24 +63,14 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Estación</label>
-                            <input type="text" id="editEstacion" name="estacion" placeholder="Ej: Estación 4" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500 outline-none focus:border-orange-500 dark:focus:border-orange-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Fecha Inicio</label>
-                            <input type="date" id="editStartDate" name="start_date" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500 dark:focus:border-orange-500">
+                            <input type="text" id="editEstacion" name="estacion" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Fecha Límite</label>
-                            <input type="date" id="editEndDate" name="end_date" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500 dark:focus:border-orange-500">
+                            <input type="date" id="editEndDate" name="end_date" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                         </div>
-                    </div>
-
-                    <div class="border-t border-slate-100 dark:border-stone-800 pt-4 mt-4">
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300">Desglose de Subórdenes (Procesos)</label>
-                            <button type="button" onclick="addSubOrderRow('editSubOrdersContainer')" class="text-xs bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors">+ Añadir Proceso</button>
-                        </div>
-                        <div id="editSubOrdersContainer" class="space-y-2"></div>
+                        <!-- Campo oculto para fecha inicio -->
+                        <input type="hidden" id="editStartDate" name="start_date">
                     </div>
                 </div>
 

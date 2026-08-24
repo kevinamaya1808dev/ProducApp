@@ -8,11 +8,12 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\IncidenceController;
 use App\Http\Controllers\OperarioController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\AlmacenController;
 use App\Http\Controllers\ProductionOrderController;
 use App\Http\Controllers\RecipeComponentController;
 use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\SubOrderController;
 use App\Http\Controllers\UserController;
-use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -34,9 +35,10 @@ Auth::routes(['register' => false]);
 // ==========================================
 // MÓDULO: DASHBOARD ADMIN
 // ==========================================
-Route::middleware(['auth', 'can:view-admin-dashboard'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::name('admin.export.')->prefix('export')->group(function () {
+Route::middleware(['auth', 'can:view-admin-dashboard'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    
+    Route::name('export.')->prefix('export')->group(function () {
         Route::get('/dashboard/excel', [ExportController::class, 'dashboardExcel'])->name('dashboard.excel');
         Route::get('/dashboard/pdf', [ExportController::class, 'dashboardPdf'])->name('dashboard.pdf');
     });
@@ -45,15 +47,12 @@ Route::middleware(['auth', 'can:view-admin-dashboard'])->prefix('admin')->group(
 // ==========================================
 // MÓDULO: CATEGORÍAS
 // ==========================================
-Route::middleware(['auth'])->prefix('admin')->group(function () {
-    
-    // Rutas de lectura protegidas por 'view-categories'
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['can:view-categories'])->group(function () {
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::get('categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
     });
 
-    // Rutas de escritura/modificación protegidas estrictamente por 'manage-categories'
     Route::middleware(['can:manage-categories'])->group(function () {
         Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
         Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
@@ -66,15 +65,12 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 // ==========================================
 // MÓDULO: RECETAS Y COMPONENTES DE RECETA
 // ==========================================
-Route::middleware(['auth'])->prefix('admin')->group(function () {
-    
-    // Rutas de lectura protegidas por 'view-recipes'
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['can:view-recipes'])->group(function () {
         Route::get('recipes', [RecipeController::class, 'index'])->name('recipes.index');
         Route::get('recipes/{recipe}', [RecipeController::class, 'show'])->name('recipes.show');
     });
 
-    // Rutas de creación/edición/eliminación protegidas estrictamente por 'manage-recipes'
     Route::middleware(['can:manage-recipes'])->group(function () {
         Route::get('recipes/create', [RecipeController::class, 'create'])->name('recipes.create');
         Route::post('recipes', [RecipeController::class, 'store'])->name('recipes.store');
@@ -82,40 +78,38 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         Route::put('recipes/{recipe}', [RecipeController::class, 'update'])->name('recipes.update');
         Route::delete('recipes/{recipe}', [RecipeController::class, 'destroy'])->name('recipes.destroy');
         
-        // Acciones especiales de componentes y duplicación
         Route::post('/recipes/{recipe}/duplicate', [RecipeController::class, 'duplicate'])->name('recipes.duplicate');
         Route::post('/recipes/{recipe}/components', [RecipeComponentController::class, 'store'])->name('recipes.components.store');
         Route::put('/recipes/{recipe}/components/{component}', [RecipeComponentController::class, 'update'])->name('recipes.components.update');
         Route::delete('/recipes/{recipe}/components/{component}', [RecipeComponentController::class, 'destroy'])->name('recipes.components.destroy');
         
-        // Tipos de Componentes y Catálogo de Componentes
         Route::resource('component-types', ComponentTypeController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('components', ComponentController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 });
 
 // ==========================================
-// MÓDULO: ÓRDENES DE PRODUCCIÓN
+// MÓDULO: ÓRDENES DE PRODUCCIÓN Y SUBÓRDENES
 // ==========================================
-Route::middleware(['auth'])->prefix('admin')->group(function () {
-    
-    // Rutas de lectura protegidas por 'view-orders'
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['can:view-orders'])->group(function () {
         Route::get('orders', [ProductionOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [ProductionOrderController::class, 'show'])->name('orders.show');
     });
 
-    // Rutas de escritura/modificación protegidas estrictamente por 'manage-orders'
     Route::middleware(['can:manage-orders'])->group(function () {
         Route::get('orders/create', [ProductionOrderController::class, 'create'])->name('orders.create');
         Route::post('orders', [ProductionOrderController::class, 'store'])->name('orders.store');
         Route::get('orders/{order}/edit', [ProductionOrderController::class, 'edit'])->name('orders.edit');
         Route::put('orders/{order}', [ProductionOrderController::class, 'update'])->name('orders.update');
         Route::delete('orders/{order}', [ProductionOrderController::class, 'destroy'])->name('orders.destroy');
+
+        Route::post('sub-orders', [SubOrderController::class, 'store'])->name('sub-orders.store');
+        Route::put('sub-orders/{subOrder}', [SubOrderController::class, 'update'])->name('sub-orders.update');
+        Route::delete('sub-orders/{subOrder}', [SubOrderController::class, 'destroy'])->name('sub-orders.destroy');
     });
 
-    // Rutas de Exportación de Incidencias
-    Route::middleware(['can:manage-orders'])->name('admin.export.')->prefix('export')->group(function () {
+    Route::middleware(['can:manage-orders'])->name('export.')->prefix('export')->group(function () {
         Route::get('/incidences/excel', [ExportController::class, 'incidencesExcel'])->name('incidences.excel');
         Route::get('/incidences/pdf', [ExportController::class, 'incidencesPdf'])->name('incidences.pdf');
     });
@@ -124,15 +118,26 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 // ==========================================
 // MÓDULO: PRODUCTOS
 // ==========================================
-Route::middleware(['auth', 'can:access-products'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'can:access-products'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('products', ProductController::class);
+});
+
+// ==========================================
+// MÓDULO: ALMACÉN (MATERIALES Y RECETAS DE PRODUCTOS)
+// ==========================================
+Route::middleware(['auth', 'can:view-almacen'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/almacen', [AlmacenController::class, 'index'])->name('almacen.index');
+    Route::post('/almacen/material', [AlmacenController::class, 'storeMaterial'])->name('almacen.material.store');
+    Route::put('/almacen/material/{material}', [AlmacenController::class, 'updateMaterial'])->name('almacen.material.update');
+    Route::delete('/almacen/material/{material}', [AlmacenController::class, 'destroyMaterial'])->name('almacen.material.destroy');
+    Route::post('/almacen/recipe', [AlmacenController::class, 'storeRecipe'])->name('almacen.recipe.store');
 });
 
 // ==========================================
 // MÓDULO: GESTIÓN DE INCIDENCIAS (ADMIN)
 // ==========================================
-Route::middleware(['auth', 'can:manage-orders'])->prefix('admin')->group(function () {
-    Route::name('admin.incidences.')->prefix('incidencias')->group(function () {
+Route::middleware(['auth', 'can:manage-orders'])->prefix('admin')->name('admin.')->group(function () {
+    Route::name('incidences.')->prefix('incidencias')->group(function () {
         Route::get('/', [IncidenceController::class, 'index'])->name('index');
         Route::post('/', [IncidenceController::class, 'store'])->name('store');
         Route::patch('/{incidence}/status', [IncidenceController::class, 'updateStatus'])->name('updateStatus');
@@ -145,8 +150,8 @@ Route::middleware(['auth', 'can:manage-orders'])->prefix('admin')->group(functio
 // ==========================================
 // MÓDULO: GESTIÓN DE USUARIOS Y PERMISOS
 // ==========================================
-Route::middleware(['auth', 'can:manage-users'])->prefix('admin')->group(function () {
-    Route::name('admin.users.')->group(function () {
+Route::middleware(['auth', 'can:manage-users'])->prefix('admin')->name('admin.')->group(function () {
+    Route::name('users.')->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('index');
         Route::post('/users', [UserController::class, 'store'])->name('store');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('update');
@@ -165,7 +170,7 @@ Route::middleware(['auth', 'can:manage-orders'])->prefix('operario/gestion')->na
 });
 
 // ==========================================
-// GRUPO: MÓDULO OPERARIO (Basado en slug: access-operario)
+// GRUPO: MÓDULO OPERARIO
 // ==========================================
 Route::middleware(['auth', 'can:access-operario'])
     ->prefix('operario')
@@ -174,7 +179,6 @@ Route::middleware(['auth', 'can:access-operario'])
     
         Route::get('/inicio', [OperarioController::class, 'inicio'])->name('inicio');
         
-        // Protegido específicamente con el permiso 'view-assigned-orders' para visualizar tareas
         Route::middleware(['can:view-assigned-orders'])->group(function () {
             Route::get('/tareas', [OperarioController::class, 'tareas'])->name('tareas');
         });
@@ -185,17 +189,18 @@ Route::middleware(['auth', 'can:access-operario'])
 
         Route::post('/registro/guardar', [OperarioController::class, 'guardarRegistro'])->name('registro.guardar');
         
-        // Protegido específicamente con el slug create-incidences
         Route::middleware(['can:create-incidences'])->group(function () {
             Route::post('/incidencias/guardar', [OperarioController::class, 'crearIncidencia'])->name('incidencias.guardar');
         });
         
-        // Protegido específicamente con el slug update-progress
         Route::middleware(['can:update-progress'])->group(function () {
             Route::put('/orden/{productionOrder}/estacion', [OperarioController::class, 'actualizarEstacion'])->name('estacion.actualizar');
             Route::put('/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('tareas.iniciar');
             Route::put('/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('tareas.completar');
+            
+            // Ruta para registrar el avance de producción en una suborden y descontar inventario automáticamente
+            Route::post('/sub-orders/{subOrder}/progress', [SubOrderController::class, 'registerProgress'])->name('suborders.progress');
         });
-        Route::get('/operario/suborden/{subOrder}/estado', [OperarioController::class, 'estadoSuborden'])
-    ->name('operario.suborden.estado');
+
+        Route::get('/suborden/{subOrder}/estado', [OperarioController::class, 'estadoSuborden'])->name('suborden.estado');
     });

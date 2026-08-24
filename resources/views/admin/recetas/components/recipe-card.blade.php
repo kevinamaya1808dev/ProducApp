@@ -1,5 +1,5 @@
 @php $isActive = isset($activeRecipe) && $activeRecipe->id === $recipe->id; @endphp
-<a href="{{ route('recipes.index', ['recipe' => $recipe->id, 'search' => request('search')]) }}"
+<a href="{{ route('admin.recipes.index', ['recipe' => $recipe->id, 'search' => request('search')]) }}"
    class="block bg-white dark:bg-stone-900 {{ $isActive ? 'border-l-4 border-orange-600 dark:border-orange-500 ring-1 ring-slate-900/5 dark:ring-stone-100/5 shadow-sm' : 'hover:bg-slate-50/80 dark:hover:bg-stone-800/60 border border-slate-200/80 dark:border-stone-800' }} rounded-2xl p-4 transition-all">
     <div class="flex items-start justify-between gap-2">
         <h3 class="font-{{ $isActive ? 'bold text-slate-900 dark:text-stone-100' : 'semibold text-slate-800 dark:text-stone-200' }} text-sm leading-snug">{{ $recipe->name }}</h3>

@@ -12,7 +12,11 @@
     <div class="lg:col-span-8 space-y-6">
         <x-operario.inicio.inicio-activa-card 
             :ordenActiva="$ordenActiva" 
-            :piezasOrdenActiva="$piezasOrdenActiva" 
+            :piezasOrdenActiva="$piezasOrdenActiva"
+            :subOrdenActiva="$subOrdenActiva ?? null"
+            :restantes="$restantes ?? 0"
+            :alertaCercana="$alertaCercana ?? false"
+            :colegasInvolucrados="$colegasInvolucrados ?? collect()"
         />
     </div>
 

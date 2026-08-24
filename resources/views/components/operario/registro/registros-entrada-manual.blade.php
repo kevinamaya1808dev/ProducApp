@@ -1,4 +1,4 @@
-@props(['routeGuardar' => '#', 'ordenId' => null, 'orden' => null])
+@props(['routeGuardar' => '#', 'ordenId' => null, 'subOrdenId' => null, 'orden' => null])
 
 @php
     $maxPiezas = null;
@@ -27,8 +27,12 @@
         <form action="{{ $routeGuardar }}" method="POST" class="space-y-4">
             @csrf
             <input type="hidden" name="production_order_id" value="{{ $ordenId }}">
+            {{-- Antes faltaba este campo: los registros manuales no quedaban ligados
+                 a la suborden del operario (sin actualizar su avance ni el stock por ensamblaje). --}}
+            @if($subOrdenId)
+                <input type="hidden" name="sub_order_id" value="{{ $subOrdenId }}">
+            @endif
 
-            <!-- Cantidad con límite máximo -->
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <label class="block text-xs font-medium text-stone-500 dark:text-stone-400">Cantidad</label>
@@ -50,7 +54,6 @@
                 @enderror
             </div>
 
-            <!-- Nota / Observación -->
             <div>
                 <label class="block text-xs font-medium text-stone-500 dark:text-stone-400 mb-1">Nota / Observación (Opcional)</label>
                 <input type="text" 
@@ -60,7 +63,6 @@
                        class="w-full bg-stone-50 dark:bg-stone-800 border border-amber-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all">
             </div>
 
-            <!-- Botón de Guardar -->
             <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 rounded-xl transition-colors cursor-pointer text-sm shadow-sm">
                 Guardar Registro
             </button>

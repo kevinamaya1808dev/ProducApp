@@ -4,7 +4,7 @@
             <h3 class="font-bold text-slate-900 dark:text-stone-100 text-lg">Crear Nueva Categoría</h3>
             <button type="button" onclick="closeModal('createCategoryModal')" class="text-slate-400 dark:text-stone-400 hover:text-slate-600 dark:hover:text-stone-200 transition-colors">&times;</button>
         </div>
-        <form action="{{ route('categories.store') }}" method="POST">
+        <form action="{{ route('admin.categories.store') }}" method="POST">
             @csrf
             <div class="p-6 space-y-4">
                 <div>

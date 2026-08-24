@@ -11,7 +11,7 @@
                     <br><span class="text-red-500 dark:text-red-400 font-medium">Tiene {{ $type->components_count }} componente(s) asignados.</span>
                 @endif
             </p>
-            <form action="{{ route('component-types.destroy', $type->id) }}" method="POST">
+            <form action="{{ route('admin.component-types.destroy', $type->id) }}" method="POST">
                 @csrf @method('DELETE')
                 <div class="flex gap-3">
                     <button type="button" onclick="closeModal('deleteTypeModal-{{ $type->id }}')" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-stone-800 hover:bg-slate-200 dark:hover:bg-stone-700 text-slate-700 dark:text-stone-300 text-sm font-semibold rounded-xl transition-colors">Cancelar</button>

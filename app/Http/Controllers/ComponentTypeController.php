@@ -23,7 +23,7 @@ class ComponentTypeController extends Controller
 
         ComponentType::create($validated);
 
-        return redirect()->route('component-types.index')->with('success', 'Tipo de componente creado.');
+        return redirect()->route('admin.component-types.index')->with('success', 'Tipo de componente creado.');
     }
 
     public function update(Request $request, ComponentType $componentType)

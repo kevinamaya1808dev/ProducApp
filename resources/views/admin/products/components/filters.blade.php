@@ -1,4 +1,4 @@
-<form id="filter-form" method="GET" action="{{ route('products.index') }}" class="flex flex-col xl:flex-row gap-4 items-center justify-between">
+<form id="filter-form" method="GET" action="{{ route('admin.products.index') }}" class="flex flex-col xl:flex-row gap-4 items-center justify-between">
 
     <!-- Búsqueda -->
     <div class="relative w-full xl:w-80 shrink-0">
@@ -13,11 +13,11 @@
 
     <!-- Píldoras de Categorías -->
     <div class="flex-1 w-full flex overflow-x-auto gap-2 items-center hide-scrollbar pb-2 xl:pb-0">
-        <a href="{{ route('products.index', ['search' => request('search')]) }}" class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors {{ !request('category_id') ? 'bg-orange-600 text-white shadow-sm' : 'bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 text-slate-600 dark:text-stone-300 hover:bg-slate-50 dark:hover:bg-stone-800' }}">
+        <a href="{{ route('admin.products.index', ['search' => request('search')]) }}" class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors {{ !request('category_id') ? 'bg-orange-600 text-white shadow-sm' : 'bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 text-slate-600 dark:text-stone-300 hover:bg-slate-50 dark:hover:bg-stone-800' }}">
             Todos
         </a>
         @foreach($categories as $category)
-            <a href="{{ route('products.index', ['search' => request('search'), 'category_id' => $category->id]) }}" class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors {{ request('category_id') == $category->id ? 'bg-orange-600 text-white shadow-sm' : 'bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 text-slate-600 dark:text-stone-300 hover:bg-slate-50 dark:hover:bg-stone-800' }}">
+            <a href="{{ route('admin.products.index', ['search' => request('search'), 'category_id' => $category->id]) }}" class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors {{ request('category_id') == $category->id ? 'bg-orange-600 text-white shadow-sm' : 'bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 text-slate-600 dark:text-stone-300 hover:bg-slate-50 dark:hover:bg-stone-800' }}">
                 {{ $category->name }}
             </a>
         @endforeach

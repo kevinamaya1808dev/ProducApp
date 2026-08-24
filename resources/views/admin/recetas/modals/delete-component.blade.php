@@ -6,7 +6,7 @@
             </div>
             <h3 class="text-lg font-bold text-slate-900 dark:text-stone-100 mb-1">Quitar Componente</h3>
             <p class="text-sm text-slate-500 dark:text-stone-400 mb-6">¿Quitar "{{ $component->name }}" de esta receta?</p>
-            <form action="{{ route('recipes.components.destroy', [$recipe->id, $component->id]) }}" method="POST">
+            <form action="{{ route('admin.recipes.components.destroy', [$recipe->id, $component->id]) }}" method="POST">
                 @csrf
                 @method('DELETE')
                 <div class="flex gap-3">

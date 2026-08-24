@@ -53,7 +53,7 @@ class RecipeController extends Controller
 
         $recipe = Recipe::create($validated);
 
-        return redirect()->route('recipes.index', ['recipe' => $recipe->id])
+        return redirect()->route('admin.recipes.index', ['recipe' => $recipe->id])
                          ->with('success', 'Receta creada exitosamente.');
     }
 
@@ -67,7 +67,7 @@ class RecipeController extends Controller
 
         $recipe->update($validated);
 
-        return redirect()->route('recipes.index', ['recipe' => $recipe->id])
+        return redirect()->route('admin.recipes.index', ['recipe' => $recipe->id])
                          ->with('success', 'Receta actualizada exitosamente.');
     }
 
@@ -75,7 +75,7 @@ class RecipeController extends Controller
     {
         $recipe->delete();
 
-        return redirect()->route('recipes.index')
+        return redirect()->route('admin.recipes.index')
                          ->with('success', 'Receta eliminada correctamente.');
     }
 
@@ -95,7 +95,7 @@ class RecipeController extends Controller
             return $copy;
         });
 
-        return redirect()->route('recipes.index', ['recipe' => $newRecipe->id])
+        return redirect()->route('admin.recipes.index', ['recipe' => $newRecipe->id])
                          ->with('success', 'Receta duplicada exitosamente.');
     }
 }

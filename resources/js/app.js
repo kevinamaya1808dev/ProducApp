@@ -1,5 +1,5 @@
 import './bootstrap';
-
+import './modals'; // <-- Importación para que openEditModal y los modales funcionen en todo el sitio
 /**
  * Script global de actualización automática inteligente (Polling con detección de cambios)
  * Sincroniza las vistas de administrador y operario automáticamente solo cuando detecta modificaciones.

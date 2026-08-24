@@ -63,7 +63,7 @@
         }
     };
 
-    // 2. Lógica de los Modales (Mantenida intacta)
+    // 2. Lógica de los Modales y Control de Imágenes Integrado
     document.addEventListener('DOMContentLoaded', function() {
         window.openModal = function(modalId) {
             const modal = document.getElementById(modalId);
@@ -93,6 +93,24 @@
             document.getElementById('edit_unit_cost').value = button.dataset.unit_cost;
             document.getElementById('edit_description').value = button.dataset.description;
 
+            // Carga y previsualización de la imagen actual del producto en el modal
+            const imageUrl = button.dataset.image;
+            const previewImage = document.getElementById('edit_image_preview');
+            const placeholder = document.getElementById('image_placeholder');
+            const removeBtn = document.getElementById('remove_image_btn');
+            const fileInput = document.getElementById('edit_image_input');
+
+            if (fileInput) fileInput.value = ''; // Limpiar input file
+
+            if (imageUrl && imageUrl.trim() !== '') {
+                previewImage.src = imageUrl;
+                previewImage.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                removeBtn.classList.remove('hidden');
+            } else {
+                window.clearEditImage();
+            }
+
             const form = document.getElementById('edit_product_form');
             form.action = `/admin/products/${id}`;
 
@@ -105,5 +123,41 @@
             openModal('modal-delete');
         };
     });
+
+    // 3. Funciones globales para previsualizar y limpiar la imagen seleccionada
+    window.previewEditImage = function(event) {
+        const reader = new FileReader();
+        const file = event.target.files[0];
+        
+        const previewImage = document.getElementById('edit_image_preview');
+        const placeholder = document.getElementById('image_placeholder');
+        const removeBtn = document.getElementById('remove_image_btn');
+
+        if (file) {
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                removeBtn.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        }
+    };
+
+    window.clearEditImage = function(event) {
+        if (event) event.stopPropagation(); // Evita que se abra el explorador de archivos al dar click en la X
+
+        const input = document.getElementById('edit_image_input');
+        const previewImage = document.getElementById('edit_image_preview');
+        const placeholder = document.getElementById('image_placeholder');
+        const removeBtn = document.getElementById('remove_image_btn');
+
+        if (input) input.value = '';
+        if (previewImage) previewImage.src = '';
+        
+        if (previewImage) previewImage.classList.add('hidden');
+        if (placeholder) placeholder.classList.remove('hidden');
+        if (removeBtn) removeBtn.classList.add('hidden');
+    };
 </script>
 @endpush

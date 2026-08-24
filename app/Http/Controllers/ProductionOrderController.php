@@ -57,7 +57,7 @@ class ProductionOrderController extends Controller
             }
         });
 
-        return redirect()->route('orders.index')->with('success', 'Orden de producción y subórdenes creadas correctamente.');
+        return redirect()->route('admin.orders.index')->with('success', 'Orden de producción y subórdenes creadas correctamente.');
     }
 
     public function update(Request $request, ProductionOrder $order): RedirectResponse

@@ -3,7 +3,7 @@
 @section('content')
 <div class="p-6 lg:p-8 w-full max-w-3xl mx-auto">
 
-    <a href="{{ route('recipes.index') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-stone-400 hover:text-slate-700 dark:hover:text-stone-200 mb-4 transition-colors">
+    <a href="{{ route('admin.recipes.index') }}" class="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-stone-400 hover:text-slate-700 dark:hover:text-stone-200 mb-4 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         Volver a Recetas
     </a>

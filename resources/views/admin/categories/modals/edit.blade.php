@@ -4,7 +4,7 @@
             <h3 class="font-bold text-slate-900 dark:text-stone-100 text-lg">Editar Categoría: {{ $category->name }}</h3>
             <button type="button" onclick="closeModal('editCategoryModal-{{ $category->id }}')" class="text-slate-400 dark:text-stone-400 hover:text-slate-600 dark:hover:text-stone-200 transition-colors">&times;</button>
         </div>
-        <form action="{{ route('categories.update', $category->id) }}" method="POST">
+        <form action="{{ route('admin.categories.update', $category->id) }}" method="POST">
             @csrf
             @method('PUT')
             <div class="p-6 space-y-4">

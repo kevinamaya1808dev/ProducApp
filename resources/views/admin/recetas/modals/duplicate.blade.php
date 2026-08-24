@@ -11,7 +11,7 @@
         </div>
 
         <!-- Form -->
-        <form action="{{ route('recipes.duplicate', $recipe->id) }}" method="POST" class="p-6 space-y-4">
+        <form action="{{ route('admin.recipes.duplicate', $recipe->id) }}" method="POST" class="p-6 space-y-4">
             @csrf
             <input type="hidden" name="form_source" value="duplicateRecipeModal-{{ $recipe->id }}">
 

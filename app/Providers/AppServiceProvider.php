@@ -22,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('view-categories', fn (User $user) => $user->hasPermission('view-categories'));
         Gate::define('manage-categories', fn (User $user) => $user->hasPermission('manage-categories'));
 
+        //almacén e insumos
+        Gate::define('view-almacen', function ($user) {
+        return $user->hasRole('admin'); // O ajusta según cómo identifiques al administrador
+    });
+
         // Recetas
         Gate::define('view-recipes', fn (User $user) => $user->hasPermission('view-recipes'));
         Gate::define('manage-recipes', fn (User $user) => $user->hasPermission('manage-recipes'));

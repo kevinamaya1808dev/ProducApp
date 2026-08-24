@@ -18,7 +18,7 @@ class OperarioController extends Controller
 
     private function buscarOrdenActiva(int $userId): ?ProductionOrder
     {
-        return ProductionOrder::with(['product', 'subOrders.assignedUsers'])
+        return ProductionOrder::with(['product.recipes.material', 'subOrders.assignedUsers'])
             ->where(function ($query) use ($userId) {
                 $query->where('user_id', $userId)
                       ->orWhereHas('subOrders.assignedUsers', function ($q) use ($userId) {
@@ -34,11 +34,8 @@ class OperarioController extends Controller
     private function buscarSubOrdenDelUsuario(ProductionOrder $orden, int $userId): ?ProductionSubOrder
     {
         return $orden->subOrders()
-            ->where(function ($q) use ($userId) {
-                $q->where('user_id', $userId)
-                  ->orWhereHas('assignedUsers', function ($subQ) use ($userId) {
-                      $subQ->where('users.id', $userId);
-                  });
+            ->whereHas('assignedUsers', function ($subQ) use ($userId) {
+                $subQ->where('users.id', $userId);
             })
             ->first();
     }
@@ -109,8 +106,6 @@ class OperarioController extends Controller
     {
         $userId = Auth::id();
 
-        // Antes: ->where('status', 'in_progress') -> si la orden seguía en "pending"
-        // el operario no encontraba nada que registrar, aunque sí tuviera trabajo asignado.
         $ordenActiva = $this->buscarOrdenActiva($userId);
 
         $piezasOrdenActiva = 0;
@@ -195,7 +190,7 @@ class OperarioController extends Controller
                 'fecha_registro'      => now(),
             ]);
 
-            $orden = ProductionOrder::findOrFail($request->production_order_id);
+            $orden = ProductionOrder::with('product.recipes.material')->findOrFail($request->production_order_id);
 
             if ($request->filled('sub_order_id')) {
                 $subOrder = ProductionSubOrder::findOrFail($request->sub_order_id);
@@ -223,14 +218,10 @@ class OperarioController extends Controller
                     ]);
                 }
 
-                // La suborden es la fase de ensamblaje: cada pieza registrada aquí
-                // es una unidad de producto terminado -> se suma al stock.
                 if ($subOrder->es_ensamblaje && $cantidad > 0) {
                     $orden->product()->increment('stock', $cantidad);
                 }
 
-                // Si el pedido principal seguía "pending", al recibir trabajo real
-                // pasa a "in_progress" para que el admin lo vea reflejado de inmediato.
                 if ($cantidad > 0 && strtolower($orden->status) === 'pending') {
                     $orden->status = 'in_progress';
                 }
@@ -244,14 +235,27 @@ class OperarioController extends Controller
                 }
 
                 $orden->save();
+
+                // ==========================================
+                // DESCUENTO AUTOMÁTICO DE MATERIALES (ALMACÉN)
+                // ==========================================
+                if ($orden->product && $orden->product->recipes) {
+                    foreach ($orden->product->recipes as $recipe) {
+                        $cantidadDescontar = $recipe->quantity_required * $cantidad;
+                        $material = $recipe->material;
+
+                        if ($material) {
+                            $material->stock_actual = max(0, $material->stock_actual - $cantidadDescontar);
+                            $material->save();
+                        }
+                    }
+                }
             }
         });
 
-        return redirect()->back()->with('success', '¡Registro guardado correctamente!');
+        return redirect()->back()->with('success', '¡Registro guardado correctamente y materiales descontados de almacén!');
     }
 
-    // Endpoint ligero para que la vista de registro consulte, cada pocos segundos,
-    // si quedan pocas piezas y quiénes están asignados — sin recargar toda la página.
     public function estadoSuborden(ProductionSubOrder $subOrder)
     {
         $subOrder->load('assignedUsers');

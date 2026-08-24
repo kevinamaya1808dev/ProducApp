@@ -4,7 +4,7 @@
             <span id="panelCategory" class="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded">Categoría</span>
             <h3 id="panelOrderNumber" class="text-lg font-bold text-slate-900 dark:text-stone-100 mt-0.5">ORD-0000</h3>
         </div>
-        <button type="button" onclick="closePanel()" class="text-slate-400 hover:text-slate-600 dark:hover:text-stone-200">
+        <button type="button" onclick="closePanel()" class="text-slate-400 hover:text-slate-600 dark:hover:text-stone-200 transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
     </div>
@@ -53,10 +53,12 @@
         <div>
             <div class="flex justify-between items-center mb-3">
                 <h4 class="font-bold text-slate-800 dark:text-stone-200">Desglose de Procesos (<span id="panelSubOrdersCount">0</span>)</h4>
+                @can('manage-orders')
+                <button type="button" onclick="openCreateSubOrderModalFromPanel()" class="text-xs text-orange-600 dark:text-orange-400 font-bold hover:underline">+ Proceso</button>
+                @endcan
             </div>
-            <div id="panelSubOrdersList" class="space-y-2">
-                <!-- Inyectado vía JS -->
-            </div>
+            <!-- Inyectado vía JS con viewOrder() -->
+            <div id="panelSubOrdersList" class="space-y-2"></div>
         </div>
     </div>
 

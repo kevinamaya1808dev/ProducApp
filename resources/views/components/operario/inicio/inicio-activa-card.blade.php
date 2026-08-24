@@ -1,16 +1,35 @@
-@props(['ordenActiva', 'piezasOrdenActiva'])
+@props([
+    'ordenActiva',
+    'piezasOrdenActiva',
+    'subOrdenActiva' => null,
+    'restantes' => 0,
+    'alertaCercana' => false,
+    'colegasInvolucrados' => null,
+])
 
 @if($ordenActiva)
 @php
     $estado = strtolower($ordenActiva->status);
-    $piezasRestantes = max(0, $ordenActiva->quantity - $piezasOrdenActiva);
-    
+    $colegas = $colegasInvolucrados ?? collect();
+
+    // Si el operario tiene una suborden asignada, el avance/lote se calcula
+    // sobre ESA fase (no sobre el total de la orden, que puede involucrar a otros procesos/operarios).
+    if ($subOrdenActiva) {
+        $piezasRestantes = $restantes;
+        $actualSubOrden = $subOrdenActiva->completed_pieces;
+        $totalSubOrden = $subOrdenActiva->quantity;
+    } else {
+        $piezasRestantes = max(0, $ordenActiva->quantity - $piezasOrdenActiva);
+        $actualSubOrden = null;
+        $totalSubOrden = null;
+    }
+
     if ($piezasRestantes <= 1) {
         $loteDinamico = 0;
     } elseif ($piezasRestantes <= 4) {
-        $loteDinamico = $piezasRestantes; 
+        $loteDinamico = $piezasRestantes;
     } else {
-        $loteDinamico = 5; 
+        $loteDinamico = 5;
     }
 @endphp
 <div class="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-amber-100 dark:border-stone-800 overflow-hidden">
@@ -18,8 +37,6 @@
         <h2 class="text-white font-bold text-sm tracking-wide uppercase">
             {{ $estado === 'in_progress' ? 'Tarea Activa' : 'Nueva Tarea Asignada' }}
         </h2>
-        
-        <!-- Componente limpio de prioridad -->
         <x-operario.incidencia.urgencia-badge :orden="$ordenActiva" />
     </div>
     
@@ -29,6 +46,9 @@
                 <div class="flex items-center space-x-2 mb-1">
                     <span class="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase">Orden</span>
                     <span class="text-xs font-bold text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/50 px-2 py-0.5 rounded">#{{ $ordenActiva->order_number }}</span>
+                    @if($subOrdenActiva)
+                        <span class="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded">{{ $subOrdenActiva->proceso }}</span>
+                    @endif
                 </div>
                 <h3 class="text-2xl font-bold text-stone-800 dark:text-stone-100">{{ $ordenActiva->product->name ?? 'Producto sin nombre' }}</h3>
                 <p class="text-stone-500 dark:text-stone-400 text-sm">{{ $ordenActiva->product->description ?? '' }}</p>
@@ -43,7 +63,7 @@
             </div>
         </div>
 
-        <div class="mb-8">
+        <div class="mb-6">
             <div class="flex justify-between items-end mb-2">
                 <span class="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wide">Avance de Hoy</span>
                 <div class="text-right">
@@ -65,6 +85,38 @@
                 <span class="text-stone-400 dark:text-stone-500">100%</span>
             </div>
         </div>
+
+        {{-- Bloque específico de la suborden/proceso del operario: avance, alerta y compañeros --}}
+        @if($subOrdenActiva)
+        <div class="mb-8 bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800 rounded-xl p-4">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wide">
+                    Tu proceso: {{ $subOrdenActiva->proceso }}
+                </span>
+                @if($alertaCercana)
+                    <span class="text-[10px] font-bold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full animate-pulse">
+                        ¡Quedan {{ $piezasRestantes }}!
+                    </span>
+                @endif
+            </div>
+            <div class="flex justify-between items-baseline mb-2">
+                <span class="text-sm font-semibold text-stone-700 dark:text-stone-300">{{ $actualSubOrden }}/{{ $totalSubOrden }} pzas</span>
+                <span class="text-xs text-stone-400 dark:text-stone-500">{{ $piezasRestantes }} restantes</span>
+            </div>
+
+            @if($colegas->isNotEmpty())
+                <div class="mt-3 pt-3 border-t border-stone-200 dark:border-stone-700 space-y-1.5">
+                    <span class="text-[11px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wide">Compañeros en esta suborden</span>
+                    @foreach($colegas as $colega)
+                        <div class="flex justify-between text-xs text-stone-600 dark:text-stone-300">
+                            <span>{{ $colega->name }} <span class="text-stone-400">· {{ $colega->pivot->estacion ?? 'Sin estación' }}</span></span>
+                            <span class="font-semibold">{{ $colega->pivot->pieces_contributed ?? 0 }} pzas</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+        @endif
 
         <div>
             @if($estado === 'pending')
@@ -88,6 +140,11 @@
                     <form action="{{ route('operario.registro.guardar') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                         @csrf
                         <input type="hidden" name="production_order_id" value="{{ $ordenActiva->id }}">
+                        {{-- Antes faltaba este campo: sin él, los botones rápidos nunca actualizaban
+                             la suborden, la tabla pivote de operarios, ni el stock por ensamblaje. --}}
+                        @if($subOrdenActiva)
+                            <input type="hidden" name="sub_order_id" value="{{ $subOrdenActiva->id }}">
+                        @endif
                         
                         @if($piezasRestantes >= 1)
                             <button type="submit" name="cantidad" value="1" class="bg-orange-600/15 hover:bg-orange-600 text-orange-700 dark:text-orange-300 hover:text-white border border-orange-200 dark:border-orange-800/60 hover:border-orange-600 font-bold py-4 rounded-xl shadow-sm transition-colors duration-200 text-lg cursor-pointer">

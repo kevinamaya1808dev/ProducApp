@@ -37,7 +37,7 @@ class RecipeComponentController extends Controller
             ]);
         });
 
-        return redirect()->route('recipes.index', ['recipe' => $recipe->id])
+        return redirect()->route('admin.recipes.index', ['recipe' => $recipe->id])
                          ->with('success', 'Componente agregado a la receta.');
     }
 
@@ -62,7 +62,7 @@ class RecipeComponentController extends Controller
             ]);
         });
 
-        return redirect()->route('recipes.index', ['recipe' => $recipe->id])
+        return redirect()->route('admin.recipes.index', ['recipe' => $recipe->id])
                          ->with('success', 'Componente actualizado correctamente.');
     }
 
@@ -70,7 +70,7 @@ class RecipeComponentController extends Controller
     {
         $recipe->components()->detach($component->id);
 
-        return redirect()->route('recipes.index', ['recipe' => $recipe->id])
+        return redirect()->route('admin.recipes.index', ['recipe' => $recipe->id])
                          ->with('success', 'Componente removido de la receta.');
     }
 }

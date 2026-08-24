@@ -9,7 +9,7 @@
             </h3>
             <button type="button" onclick="closeModal('deleteRecipeModal-{{ $recipe->id }}')" class="text-slate-400 dark:text-stone-400 hover:text-slate-600 dark:hover:text-stone-200">&times;</button>
         </div>
-        <form action="{{ route('recipes.destroy', $recipe->id) }}" method="POST">
+        <form action="{{ route('admin.recipes.destroy', $recipe->id) }}" method="POST">
             @csrf
             @method('DELETE')
             <div class="p-6 space-y-3">

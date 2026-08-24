@@ -10,7 +10,12 @@
     <!-- Controles Izquierda -->
     <div class="lg:col-span-4 space-y-6">
         <x-operario.registro.registros-tarea-info :tarea="$tarea ?? null" />
-        <x-operario.registro.registros-entrada-manual :routeGuardar="$routeGuardar ?? '#'" :ordenId="$ordenId ?? ($tarea->id ?? null)" :orden="$tarea ?? null" />
+        <x-operario.registro.registros-entrada-manual 
+            :routeGuardar="$routeGuardar ?? '#'" 
+            :ordenId="$ordenId ?? ($tarea->id ?? null)" 
+            :subOrdenId="$subOrdenId ?? null"
+            :orden="$tarea ?? null" 
+        />
     </div>
 
     <!-- Tabla Historial (Derecha) -->
@@ -71,10 +76,10 @@
             }
 
             if (!data.alerta_cercana) {
-                yaAvisado = false; // se resetea si vuelve a subir el restante (ej. se ajustó la cantidad)
+                yaAvisado = false;
             }
         } catch (e) {
-            // Silencioso: no queremos interrumpir al operario por un fallo de red puntual
+            // Silencioso: no interrumpimos al operario por un fallo de red puntual
         }
     };
 

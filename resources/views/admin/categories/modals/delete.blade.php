@@ -9,7 +9,7 @@
             </h3>
             <button type="button" onclick="closeModal('deleteCategoryModal-{{ $category->id }}')" class="text-slate-400 dark:text-stone-400 hover:text-slate-600 dark:hover:text-stone-200 transition-colors">&times;</button>
         </div>
-        <form action="{{ route('categories.destroy', $category->id) }}" method="POST">
+        <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST">
             @csrf
             @method('DELETE')
             <div class="p-6 space-y-3">

@@ -47,7 +47,7 @@ class CategoryController extends Controller
         $category = Category::create($validated);
 
         // Redirigir seleccionando automáticamente la categoría recién creada
-        return redirect()->route('categories.index', ['category' => $category->id])
+        return redirect()->route('admin.categories.index', ['category' => $category->id])
                          ->with('success', 'Categoría creada correctamente.');
     }
 
@@ -63,7 +63,7 @@ class CategoryController extends Controller
         $category->update($validated);
 
         // Redirigir manteniendo seleccionada la categoría actualizada
-        return redirect()->route('categories.index', ['category' => $category->id])
+        return redirect()->route('admin.categories.index', ['category' => $category->id])
                          ->with('success', 'Categoría actualizada correctamente.');
     }
 
@@ -71,7 +71,7 @@ class CategoryController extends Controller
     {
         $category->delete();
 
-        return redirect()->route('categories.index')
+        return redirect()->route('admin.categories.index')
                          ->with('success', 'Categoría eliminada correctamente.');
     }
 }
