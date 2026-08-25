@@ -63,8 +63,25 @@
 
                 {{-- Almacén e Insumos (Protegido por el Gate view-almacen) --}}
                 @can('view-almacen')
+                    @php
+                        // NUEVO: conteo de materiales en o por debajo del stock mínimo.
+                        // Consulta ligera (COUNT), solo corre si el usuario tiene permiso
+                        // de ver este módulo.
+                        $lowStockCount = \App\Models\Material::whereColumn('stock_actual', '<=', 'stock_minimo')->count();
+                    @endphp
                     <a href="{{ route('admin.almacen.index') }}" class="sidebar-nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.almacen.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 dark:hover:text-stone-200 hover:bg-stone-800/60' }}">
-                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                        {{-- El ícono se envuelve en un contenedor "relative" para poder anclar
+                             el badge en su esquina. Así el aviso se ve siempre, incluso con
+                             el sidebar colapsado (el texto "sidebar-label" sí se oculta,
+                             pero este badge NO usa esa clase a propósito). --}}
+                        <span class="relative shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            @if($lowStockCount > 0)
+                                <span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold leading-none bg-amber-500 text-stone-900 ring-2 ring-stone-900" title="{{ $lowStockCount }} material(es) en stock bajo">
+                                    {{ $lowStockCount > 9 ? '9+' : $lowStockCount }}
+                                </span>
+                            @endif
+                        </span>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Almacén e Insumos</span>
                     </a>
                 @endcan

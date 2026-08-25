@@ -120,7 +120,7 @@ class ProductionOrderController extends Controller
     {
         $order->delete();
 
-        return redirect()->route('orders.index')->with('success', 'Orden de producción eliminada correctamente.');
+        return redirect()->route('admin.orders.index')->with('success', 'Orden de producción eliminada correctamente.');
     }
 
     private function validateOrder(Request $request, ?int $ignoreId = null): array

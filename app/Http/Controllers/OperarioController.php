@@ -432,19 +432,33 @@ class OperarioController extends Controller
     }
 
     public function tareas(Request $request)
-    {
-        $ordenes = ProductionOrder::with('product')
-            ->where('user_id', Auth::id())
-            ->latest()
-            ->get();
+{
+    $userId = Auth::id();
 
-        $ordenSeleccionada = $request->filled('orden')
-            ? $ordenes->firstWhere('id', (int) $request->query('orden'))
-            : $ordenes->first();
+    $ordenes = ProductionOrder::with(['product', 'subOrders.assignedUsers'])
+        ->where(function ($query) use ($userId) {
+            $query->where('user_id', $userId)
+                  ->orWhereHas('subOrders.assignedUsers', function ($q) use ($userId) {
+                      $q->where('users.id', $userId);
+                  });
+        })
+        ->latest()
+        ->get();
 
-        return view('operario.tareas', compact('ordenes', 'ordenSeleccionada'));
-    }
+    // Le asignamos a cada orden la suborden específica de este operario (si la tiene),
+    // para que la vista muestre su avance real y no el de toda la orden.
+    $ordenes->each(function ($orden) use ($userId) {
+        $orden->miSubOrden = $orden->subOrders->first(
+            fn ($subOrden) => $subOrden->assignedUsers->contains('id', $userId)
+        );
+    });
 
+    $ordenSeleccionada = $request->filled('orden')
+        ? $ordenes->firstWhere('id', (int) $request->query('orden'))
+        : $ordenes->first();
+
+    return view('operario.tareas', compact('ordenes', 'ordenSeleccionada'));
+}
     public function iniciarTarea(ProductionOrder $productionOrder)
     {
         $productionOrder->update(['status' => 'in_progress']);

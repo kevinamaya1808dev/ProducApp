@@ -15,7 +15,7 @@
                 </button>
             </div>
 
-            <form action="{{ route('almacen.material.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('admin.almacen.material.store') }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 dark:text-stone-400">Nombre del Material</label>

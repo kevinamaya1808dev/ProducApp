@@ -1,9 +1,11 @@
 @props(['orden'])
 
 @php
-$piezas = $orden->piezas_registradas;
-$porcentaje = $orden->porcentaje_avance;
-$restantes = max($orden->quantity - $piezas, 0);
+$subOrden = $orden->miSubOrden ?? null;
+$piezas = $subOrden ? $subOrden->completed_pieces : $orden->piezas_registradas;
+$total = $subOrden ? $subOrden->quantity : $orden->quantity;
+$porcentaje = $subOrden ? $subOrden->porcentaje_avance : $orden->porcentaje_avance;
+$restantes = max($total - $piezas, 0);
 @endphp
 
 <div class="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-amber-100 dark:border-stone-800 overflow-hidden sticky top-24">
@@ -13,6 +15,9 @@ $restantes = max($orden->quantity - $piezas, 0);
             <div class="flex space-x-2 mb-2 text-xs font-bold">
                 <span class="bg-orange-500/80 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-lg border border-white/10">{{ $orden->order_number }}</span>
                 <span class="bg-white/20 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-lg border border-white/10">#{{ $orden->id }}</span>
+                @if($subOrden)
+                    <span class="bg-white/20 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-lg border border-white/10">Fase: {{ $subOrden->proceso }}</span>
+                @endif
             </div>
             <h2 class="text-2xl font-bold text-white mb-1">{{ $orden->product->name ?? 'Producto sin nombre' }}</h2>
             <p class="text-orange-100 text-sm leading-relaxed">{{ $orden->product->description ?? '' }}</p>
@@ -27,10 +32,12 @@ $restantes = max($orden->quantity - $piezas, 0);
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Columna Progreso -->
             <div>
-                <h4 class="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-3">Progreso</h4>
+                <h4 class="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-3">
+                    {{ $subOrden ? 'Progreso de tu fase' : 'Progreso' }}
+                </h4>
                 <div class="flex items-end space-x-1 mb-2">
                     <span class="text-4xl font-bold text-stone-800 dark:text-stone-100">{{ $piezas }}</span>
-                    <span class="text-stone-400 dark:text-stone-500 font-medium pb-1">/{{ $orden->quantity }} pzas</span>
+                    <span class="text-stone-400 dark:text-stone-500 font-medium pb-1">/{{ $total }} pzas</span>
                 </div>
                 <div class="w-full bg-stone-100 dark:bg-stone-800 rounded-full h-2.5 mb-2 overflow-hidden">
                     <div class="bg-orange-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ $porcentaje }}%"></div>
@@ -42,6 +49,12 @@ $restantes = max($orden->quantity - $piezas, 0);
             <div>
                 <h4 class="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-3">Detalles</h4>
                 <ul class="space-y-2 text-sm">
+                    @if($subOrden)
+                        <li class="flex justify-between border-b border-stone-100 dark:border-stone-800 pb-1.5">
+                            <span class="text-stone-500 dark:text-stone-400 font-medium">Fase asignada</span>
+                            <span class="font-semibold text-stone-800 dark:text-stone-200">{{ $subOrden->proceso }}</span>
+                        </li>
+                    @endif
                     <li class="flex justify-between border-b border-stone-100 dark:border-stone-800 pb-1.5">
                         <span class="text-stone-500 dark:text-stone-400 font-medium">Estación</span>
                         <span class="font-semibold text-stone-800 dark:text-stone-200">{{ $orden->estacion ?? 'Sin asignar' }}</span>

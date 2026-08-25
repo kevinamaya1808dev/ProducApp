@@ -33,10 +33,16 @@
                         <input type="text" name="unit" x-model="activeMaterial.unit" required class="w-full mt-1 px-3 py-2 text-sm bg-slate-50 dark:bg-stone-900 border rounded-lg border-slate-300 dark:border-stone-700 text-slate-800 dark:text-stone-200">
                     </div>
                 </div>
+
+                {{-- CORRECCIÓN: "Stock Actual" ya no es editable aquí. Se movió a su propio
+                     flujo ("Agregar Stock" en la tabla), que SUMA en vez de sobreescribir.
+                     Se deja visible en modo solo lectura para dar contexto sin permitir
+                     que alguien lo cambie a un valor arbitrario por accidente. --}}
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 dark:text-stone-400">Stock Actual</label>
-                        <input type="number" step="0.01" name="stock_actual" x-model="activeMaterial.stock_actual" required class="w-full mt-1 px-3 py-2 text-sm bg-slate-50 dark:bg-stone-900 border rounded-lg border-slate-300 dark:border-stone-700 text-slate-800 dark:text-stone-200">
+                        <input type="text" :value="activeMaterial.stock_actual" disabled class="w-full mt-1 px-3 py-2 text-sm bg-slate-100 dark:bg-stone-800 border rounded-lg border-slate-200 dark:border-stone-700 text-slate-500 dark:text-stone-500 cursor-not-allowed">
+                        <p class="text-[10px] text-slate-400 dark:text-stone-500 mt-1">Usa "Agregar Stock" en la tabla para modificarlo.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 dark:text-stone-400">Stock Mínimo (Alerta)</label>

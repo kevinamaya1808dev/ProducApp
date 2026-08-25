@@ -15,7 +15,11 @@ class AlmacenController extends Controller
         $materials = Material::latest()->get();
         $products = Product::with('recipes.material')->get();
 
-        return view('admin.almacen.index', compact('materials', 'products'));
+        // NUEVO: conteo de materiales en o por debajo de su stock mínimo,
+        // para mostrar el banner de alerta en la vista.
+        $lowStockMaterials = $materials->filter(fn ($mat) => $mat->stock_actual <= $mat->stock_minimo);
+
+        return view('admin.almacen.index', compact('materials', 'products', 'lowStockMaterials'));
     }
 
     public function storeMaterial(Request $request)
@@ -57,6 +61,10 @@ class AlmacenController extends Controller
 
     /**
      * Actualiza la información de un material existente.
+     * CORRECCIÓN: "stock_actual" ya no se acepta aquí, ni siquiera si alguien
+     * lo manda manipulando el formulario/HTML. El stock ahora solo se modifica
+     * a través de addStock(), para que quede como una entrada registrada y no
+     * como un valor sobreescrito arbitrariamente.
      */
     public function updateMaterial(Request $request, Material $material)
     {
@@ -64,7 +72,6 @@ class AlmacenController extends Controller
             'name'         => 'required|string|max:255',
             'sku'          => 'required|string|max:50|unique:materials,sku,' . $material->id,
             'unit'         => 'required|string|max:20',
-            'stock_actual' => 'required|numeric|min:0',
             'stock_minimo' => 'required|numeric|min:0',
             'proveedor'    => 'nullable|string|max:255',
         ]);
@@ -73,13 +80,28 @@ class AlmacenController extends Controller
             'name'         => $request->name,
             'sku'          => $request->sku,
             'unit'         => $request->unit,
-            'stock_actual' => $request->stock_actual,
             'stock_minimo' => $request->stock_minimo,
             'proveedor'    => $request->proveedor,
         ]);
 
         return redirect()->route('admin.almacen.index')
             ->with('success', '¡Material actualizado correctamente!');
+    }
+
+    /**
+     * NUEVO: agrega unidades al stock existente de un material (suma, no reemplaza).
+     * Es la única vía permitida para modificar stock_actual desde el panel admin.
+     */
+    public function addStock(Request $request, Material $material)
+    {
+        $request->validate([
+            'quantity_added' => 'required|numeric|min:0.01',
+        ]);
+
+        $material->increment('stock_actual', $request->quantity_added);
+
+        return redirect()->route('admin.almacen.index')
+            ->with('success', "Se agregaron {$request->quantity_added} {$material->unit} de \"{$material->name}\" al stock.");
     }
 
     /**

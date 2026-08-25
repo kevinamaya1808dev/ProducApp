@@ -130,6 +130,7 @@ Route::middleware(['auth', 'can:view-almacen'])->prefix('admin')->name('admin.')
     Route::post('/almacen/material', [AlmacenController::class, 'storeMaterial'])->name('almacen.material.store');
     Route::put('/almacen/material/{material}', [AlmacenController::class, 'updateMaterial'])->name('almacen.material.update');
     Route::delete('/almacen/material/{material}', [AlmacenController::class, 'destroyMaterial'])->name('almacen.material.destroy');
+    Route::post('/almacen/material/{material}/add-stock', [AlmacenController::class, 'addStock'])->name('almacen.material.add-stock');
     Route::post('/almacen/recipe', [AlmacenController::class, 'storeRecipe'])->name('almacen.recipe.store');
 });
 

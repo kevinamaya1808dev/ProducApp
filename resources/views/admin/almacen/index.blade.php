@@ -6,6 +6,7 @@
     openRecipeModal: false, 
     openEditModal: false, 
     openDeleteModal: false, 
+    openAddStockModal: false,
     activeMaterial: {} 
 }">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -27,8 +28,26 @@
             </div>
         </div>
 
+        {{-- NUEVO: banner de alerta cuando hay materiales en stock bajo --}}
+        @if($lowStockMaterials->isNotEmpty())
+            <div class="flex items-start gap-3 p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30">
+                <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <circle cx="12" cy="16.5" r="0.75" fill="currentColor" stroke="none" />
+                </svg>
+                <div>
+                    <p class="text-sm font-bold text-amber-800 dark:text-amber-300">
+                        {{ $lowStockMaterials->count() }} {{ $lowStockMaterials->count() === 1 ? 'material está' : 'materiales están' }} en o por debajo del stock mínimo
+                    </p>
+                    <p class="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                        {{ $lowStockMaterials->pluck('name')->implode(', ') }}. Se generó una incidencia automática por cada uno para su seguimiento.
+                    </p>
+                </div>
+            </div>
+        @endif
+
         <!-- Tabla de Inventario de Materiales Actuales -->
-        @include('admin.almacen.partials.inventory-table')
+        @include('admin.almacen.components.inventory-table')
 
     </div>
 
@@ -37,5 +56,6 @@
     @include('admin.almacen.modals.recipe-modal')
     @include('admin.almacen.modals.edit-material-modal')
     @include('admin.almacen.modals.delete-material-modal')
+    @include('admin.almacen.modals.add-stock-modal')
 </div>
 @endsection

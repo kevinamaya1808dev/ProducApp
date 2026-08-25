@@ -1,8 +1,10 @@
 @props(['orden', 'activa' => false])
 
 @php
-$piezas = $orden->piezas_registradas;
-$porcentaje = $orden->porcentaje_avance;
+$subOrden = $orden->miSubOrden ?? null;
+$piezas = $subOrden ? $subOrden->completed_pieces : $orden->piezas_registradas;
+$total = $subOrden ? $subOrden->quantity : $orden->quantity;
+$porcentaje = $subOrden ? $subOrden->porcentaje_avance : $orden->porcentaje_avance;
 @endphp
 
 <a href="{{ route('operario.tareas', ['orden' => $orden->id]) }}"
@@ -21,6 +23,11 @@ $porcentaje = $orden->porcentaje_avance;
         </span>
         <h4 class="font-bold text-stone-800 dark:text-stone-100 text-base leading-tight">{{ $orden->product->name ?? 'Producto sin nombre' }}</h4>
         <p class="text-xs text-stone-500 dark:text-stone-400 line-clamp-1 mt-0.5">{{ $orden->product->description ?? '' }}</p>
+        @if($subOrden)
+            <span class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 inline-block mt-1">
+                Fase: {{ $subOrden->proceso }}
+            </span>
+        @endif
     </div>
 
     <div>
@@ -28,7 +35,7 @@ $porcentaje = $orden->porcentaje_avance;
             <div class="bg-orange-500 h-1.5 rounded-full transition-all duration-300" style="width: {{ $porcentaje }}%"></div>
         </div>
         <div class="flex justify-between text-[11px] text-stone-500 dark:text-stone-400 font-semibold">
-            <span>{{ $piezas }}/{{ $orden->quantity }} pzas</span>
+            <span>{{ $piezas }}/{{ $total }} pzas</span>
             <span>Límite: {{ $orden->end_date?->format('d M Y') ?? 'Sin fecha' }}</span>
         </div>
     </div>

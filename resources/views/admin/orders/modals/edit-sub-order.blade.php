@@ -17,25 +17,25 @@
 
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Nombre del Proceso <span class="text-red-500">*</span></label>
+                        <label for="editSubOrderProceso" class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Nombre del Proceso <span class="text-red-500">*</span></label>
                         <input type="text" name="proceso" id="editSubOrderProceso" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Cantidad Total <span class="text-red-500">*</span></label>
+                            <label for="editSubOrderQuantity" class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Cantidad Total <span class="text-red-500">*</span></label>
                             <input type="number" name="quantity" id="editSubOrderQuantity" min="1" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                         </div>
                         <div>
                             <!-- Este ID se ajustó a "editSubOrderCompleted" para coincidir con tu JS -->
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Completadas</label>
+                            <label for="editSubOrderCompleted" class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Completadas</label>
                             <input type="number" name="completed_quantity" id="editSubOrderCompleted" min="0" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                         </div>
                     </div>
                     
                     <!-- Este campo se agregó porque tu JS lo buscaba (editSubOrderStatus) -->
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Estado</label>
+                        <label for="editSubOrderStatus" class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Estado</label>
                         <select name="status" id="editSubOrderStatus" required class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                             <option value="pending" class="dark:bg-stone-800">Pendiente</option>
                             <option value="in_progress" class="dark:bg-stone-800">En Progreso</option>
@@ -44,7 +44,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Operarios Asignados</label>
+                        <label for="editSubOrderOperarios" class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Operarios Asignados</label>
                         <select name="operarios[]" id="editSubOrderOperarios" multiple size="3" class="w-full px-3 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                             @foreach($operarios as $op)
                                 <option value="{{ $op->id }}" class="dark:bg-stone-800">{{ $op->name }}</option>
@@ -53,7 +53,7 @@
                     </div>
 
                     <div class="pt-2">
-                        <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-stone-300 cursor-pointer select-none">
+                        <label for="editSubOrderEsEnsamblaje" class="flex items-center gap-2 text-sm text-slate-700 dark:text-stone-300 cursor-pointer select-none">
                             <input type="checkbox" name="es_ensamblaje" id="editSubOrderEsEnsamblaje" value="1" class="rounded border-slate-300 text-orange-600 focus:ring-orange-500 w-4 h-4">
                             <span class="font-semibold">Fase final (ensamblaje)</span>
                         </label>

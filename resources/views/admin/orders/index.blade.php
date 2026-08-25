@@ -42,6 +42,7 @@
 <script>
     let currentOrder = null;
     let currentStatusFilter = 'all';
+    let currentSubOrders = []; // Almacenará las subórdenes de la orden seleccionada actual
 
     // ===== Filtro por estado =====
     function setStatusFilter(status, btn) {
@@ -75,7 +76,7 @@
     // ===== Panel Lateral =====
     function viewOrder(row) {
         currentOrder = { ...row.dataset };
-        const subOrders = JSON.parse(currentOrder.subOrders || '[]');
+        currentSubOrders = JSON.parse(currentOrder.subOrders || '[]'); // Guardamos de forma segura en memoria
 
         document.getElementById('panelOrderNumber').textContent = currentOrder.orderNumber;
         document.getElementById('panelProduct').textContent = currentOrder.productName;
@@ -90,13 +91,13 @@
         document.getElementById('panelDeadline').textContent = currentOrder.endDate || 'Sin fecha';
 
         const container = document.getElementById('panelSubOrdersList');
-        document.getElementById('panelSubOrdersCount').textContent = subOrders.length;
+        document.getElementById('panelSubOrdersCount').textContent = currentSubOrders.length;
         container.innerHTML = '';
 
-        if (subOrders.length === 0) {
+        if (currentSubOrders.length === 0) {
             container.innerHTML = `<p class="text-xs text-slate-400 dark:text-stone-500 italic mt-2">No hay procesos desglosados.</p>`;
         } else {
-            subOrders.forEach(sub => {
+            currentSubOrders.forEach(sub => {
                 const operariosHtml = (sub.operarios || []).length
                     ? sub.operarios.map(op => `
                         <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-stone-400 pl-2 border-l-2 border-orange-200 dark:border-orange-500/30 mt-1">
@@ -106,7 +107,7 @@
                     `).join('')
                     : `<p class="text-[11px] text-slate-400 italic pl-2 mt-1">Sin operarios asignados</p>`;
 
-                const restantes = sub.quantity - sub.completed_pieces;
+                const restantes = sub.quantity - (sub.completed_pieces || sub.completed_quantity || 0);
                 const alertaBadge = (restantes > 0 && restantes <= 3)
                     ? `<span class="text-[9px] font-bold uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded ml-1.5">¡Casi listo!</span>`
                     : '';
@@ -114,15 +115,14 @@
                     ? `<span class="text-[9px] font-bold uppercase bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded ml-1.5">Ensamblaje</span>`
                     : '';
 
-                const subJson = JSON.stringify(sub).replace(/"/g, '&quot;');
-
+                // Usamos únicamente el ID de la suborden para evitar errores de inyección de comillas en HTML
                 container.innerHTML += `
                     <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-stone-800/60 border border-slate-100 dark:border-stone-800 text-xs">
                         <div class="flex justify-between items-center font-bold text-slate-800 dark:text-stone-200 mb-1">
                             <span>${sub.proceso} ${ensamblajeBadge} ${alertaBadge}</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-orange-600 dark:text-orange-400">${sub.completed_pieces}/${sub.quantity} pzas</span>
-                                <button type="button" onclick="openEditSubOrderModal(${subJson})" class="text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 p-0.5" title="Editar proceso">
+                                <span class="text-orange-600 dark:text-orange-400">${sub.completed_pieces || sub.completed_quantity || 0}/${sub.quantity} pzas</span>
+                                <button type="button" onclick="openEditSubOrderModalById(${sub.id})" class="text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 p-0.5" title="Editar proceso">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 210.3H3v-3.572L16.732 3.732z"></path></svg>
                                 </button>
                                 <button type="button" onclick="openDeleteSubOrderModal(${sub.id}, '${sub.proceso}')" class="text-slate-400 hover:text-red-600 p-0.5" title="Eliminar proceso">
@@ -142,6 +142,7 @@
     function closePanel() {
         document.getElementById('orderPanel').style.display = 'none';
         currentOrder = null;
+        currentSubOrders = [];
     }
 
     // ===== Generador Dinámico para Formulario Inicial de Orden =====
@@ -240,21 +241,32 @@
         document.getElementById('createSubOrderModal').style.display = 'none';
     }
 
-    function openEditSubOrderModal(subOrder) {
+    // Nueva función segura basada en búsqueda por ID dentro del array cargado
+    function openEditSubOrderModalById(subOrderId) {
+        const subOrder = currentSubOrders.find(s => s.id == subOrderId);
+        if (!subOrder) return;
+
         document.getElementById('editSubOrderForm').action = '/admin/sub-orders/' + subOrder.id;
-        document.getElementById('editSubOrderProceso').value = subOrder.proceso;
-        document.getElementById('editSubOrderQuantity').value = subOrder.quantity;
-        document.getElementById('editSubOrderCompleted').value = subOrder.completed_pieces;
-        document.getElementById('editSubOrderStatus').value = subOrder.status;
-        document.getElementById('editSubOrderEsEnsamblaje').checked = !!subOrder.es_ensamblaje;
+        document.getElementById('editSubOrderProceso').value = subOrder.proceso || '';
+        document.getElementById('editSubOrderQuantity').value = subOrder.quantity || '';
+        document.getElementById('editSubOrderCompleted').value = subOrder.completed_pieces || subOrder.completed_quantity || 0;
+        
+        const statusSelect = document.getElementById('editSubOrderStatus');
+        if (statusSelect) statusSelect.value = subOrder.status || 'pending';
+
+        const checkboxEnsamblaje = document.getElementById('editSubOrderEsEnsamblaje');
+        if (checkboxEnsamblaje) checkboxEnsamblaje.checked = !!subOrder.es_ensamblaje;
 
         const select = document.getElementById('editSubOrderOperarios');
-        Array.from(select.options).forEach(opt => {
-            opt.selected = (subOrder.operarios || []).some(op => (op.id || op) == opt.value);
-        });
+        if (select) {
+            Array.from(select.options).forEach(opt => {
+                opt.selected = (subOrder.operarios || []).some(op => (op.id || op) == opt.value);
+            });
+        }
 
         document.getElementById('editSubOrderModal').style.display = 'block';
     }
+
     function closeEditSubOrderModal() {
         document.getElementById('editSubOrderModal').style.display = 'none';
     }

@@ -15,7 +15,8 @@
                 @forelse($orders as $order)
                     @php
                         $totalPieces = $order->quantity;
-                        $completedPieces = $order->subOrders->sum('completed_pieces') ?? 0;
+                    
+                        $completedPieces = $order->subOrders->where('es_ensamblaje', true)->sum('completed_pieces') ?? 0;
                         $percentage = $totalPieces > 0 ? min(100, round(($completedPieces / $totalPieces) * 100)) : 0;
                         
                         $statusColors = [
@@ -41,7 +42,10 @@
                         data-order-number="{{ $order->order_number }}"
                         data-product-name="{{ $order->product->name ?? 'Producto eliminado' }}"
                         data-product-id="{{ $order->product_id }}"
-                        data-category="{{ $order->product->category ?? 'General' }}"
+                        {{-- CORRECCIÓN: category es una relación (objeto Category), no un texto.
+                             Faltaba "->name" para mostrar el nombre en vez del modelo completo
+                             convertido a JSON. --}}
+                        data-category="{{ $order->product->category->name ?? 'General' }}"
                         data-quantity="{{ $order->quantity }}"
                         data-piezas="{{ $completedPieces }}"
                         data-porcentaje="{{ $percentage }}"

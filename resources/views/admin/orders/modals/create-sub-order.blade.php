@@ -6,7 +6,8 @@
         <div class="inline-block align-bottom bg-white dark:bg-stone-900 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-200 dark:border-stone-800">
             <form id="createSubOrderForm" action="{{ route('admin.sub-orders.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="order_id" id="createSubOrderOrderId">
+                {{-- CORRECCIÓN: antes se llamaba "order_id" y el controlador esperaba "production_order_id" --}}
+                <input type="hidden" name="production_order_id" id="createSubOrderOrderId">
 
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-stone-800 flex justify-between items-center bg-slate-50 dark:bg-stone-800/50">
                     <h3 class="text-lg font-bold text-slate-900 dark:text-stone-100">Agregar Proceso</h3>
@@ -17,23 +18,35 @@
 
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Nombre del Proceso <span class="text-red-500">*</span></label>
-                        <input type="text" name="proceso" required placeholder="Ej: Corte, Ensamblaje, Pintura" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
+                        <label for="createSubOrderProceso" class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Nombre del Proceso <span class="text-red-500">*</span></label>
+                        <input type="text" name="proceso" id="createSubOrderProceso" required placeholder="Ej: Corte, Ensamblaje, Pintura" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Cantidad Requerida (Pzas) <span class="text-red-500">*</span></label>
-                        <input type="number" name="quantity" min="1" required placeholder="Ej: 10" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
+                        <label for="createSubOrderQuantity" class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Cantidad Requerida (Pzas) <span class="text-red-500">*</span></label>
+                        <input type="number" name="quantity" id="createSubOrderQuantity" min="1" required placeholder="Ej: 10" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
                     </div>
 
+                    {{-- CORRECCIÓN + MEJORA: antes era un <select multiple> (requiere Ctrl+clic,
+                         poco intuitivo). Ahora son chips que se activan con un toque, y el
+                         controlador ya sí guarda esta selección en la tabla pivote. --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Operarios Asignados</label>
-                        <select name="operarios[]" multiple size="3" class="w-full px-3 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-700 dark:text-stone-100 outline-none focus:border-orange-500">
-                            @foreach($operarios as $op)
-                                <option value="{{ $op->id }}" class="dark:bg-stone-800">{{ $op->name }}</option>
-                            @endforeach
-                        </select>
-                        <p class="text-[10px] text-slate-400 dark:text-stone-500 mt-1">Mantén presionado Ctrl (o Cmd) para seleccionar varios.</p>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-2">Operarios Asignados</label>
+                        @if($operarios->isEmpty())
+                            <p class="text-xs text-slate-400 dark:text-stone-500 italic">No hay operarios disponibles para asignar.</p>
+                        @else
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($operarios as $op)
+                                    <label class="cursor-pointer select-none">
+                                        <input type="checkbox" name="operarios[]" value="{{ $op->id }}" class="peer hidden">
+                                        <span class="inline-block px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200 dark:border-stone-700 text-slate-600 dark:text-stone-300 bg-white dark:bg-stone-800 peer-checked:bg-orange-600 peer-checked:text-white peer-checked:border-orange-600 transition-colors">
+                                            {{ $op->name }}
+                                        </span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="text-[10px] text-slate-400 dark:text-stone-500 mt-1.5">Toca uno o varios para seleccionarlos.</p>
+                        @endif
                     </div>
 
                     <div class="pt-2">
