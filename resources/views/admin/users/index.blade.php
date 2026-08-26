@@ -4,9 +4,9 @@
 
 <div class="p-6 max-w-[1600px] mx-auto overflow-hidden">
 
-    @include('admin.users.components.header', ['totalUsers' => $totalUsers, 'users' =>$users])
+    @include('admin.users.components.header', ['totalUsers' => $totalUsers, 'users' => $users])
 
-    @include('admin.users.components.kpi-cards', ['totalUsers' => $totalUsers, 'users' =>$users])
+    @include('admin.users.components.kpi-cards', ['totalUsers' => $totalUsers, 'users' => $users])
 
     @include('admin.users.components.search-bar')
 
@@ -29,8 +29,8 @@
 
 @push('scripts')
 <script>
-let currentUser = null;
-    const authUserId = {{ auth()->id() }}; // ID del usuario autenticado en Laravel
+    let currentUser = null;
+    const authUserId = {{ auth()->id() }};
 
     function filterUsers() {
         const query = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -38,8 +38,8 @@ let currentUser = null;
         let visibleCount = 0;
 
         cards.forEach(card => {
-            const name = card.dataset.name.toLowerCase();
-            const email = card.dataset.email.toLowerCase();
+            const name = card.dataset.name ? card.dataset.name.toLowerCase() : '';
+            const email = card.dataset.email ? card.dataset.email.toLowerCase() : '';
             const matches = name.includes(query) || email.includes(query);
             card.style.display = matches ? '' : 'none';
             if (matches) visibleCount++;
@@ -52,23 +52,31 @@ let currentUser = null;
     }
 
     function selectUser(card) {
+        let skillsParsed = [];
+        let permissionsParsed = [];
+        let ordersParsed = [];
+
+        try { skillsParsed = JSON.parse(card.dataset.skills || '[]'); } catch(e) { skillsParsed = []; }
+        try { permissionsParsed = JSON.parse(card.dataset.permissions || '[]'); } catch(e) { permissionsParsed = []; }
+        try { ordersParsed = JSON.parse(card.dataset.orders || '[]'); } catch(e) { ordersParsed = []; }
+
         currentUser = {
             id: parseInt(card.dataset.id),
-            name: card.dataset.name,
-            email: card.dataset.email,
-            roleId: card.dataset.roleId,
-            roleName: card.dataset.roleName,
-            initials: card.dataset.initials,
+            name: card.dataset.name || '',
+            email: card.dataset.email || '',
+            roleId: card.dataset.roleId || '',
+            roleName: card.dataset.roleName || 'Sin rol',
+            initials: card.dataset.initials || '',
             puesto: card.dataset.puesto || '',
             turno: card.dataset.turno || '',
             estacion: card.dataset.estacion || '',
             meta_diaria: card.dataset.metaDiaria || '',
-            active: card.dataset.active === '1',
+            active: card.dataset.active === '1' || card.dataset.active === 'true',
             notas: card.dataset.notas || '',
-            created: card.dataset.created,
-            skills: JSON.parse(card.dataset.skills || '[]'),
-            permissions: JSON.parse(card.dataset.permissions || '[]'),
-            orders: JSON.parse(card.dataset.orders || '[]'),
+            created: card.dataset.created || '',
+            skills: skillsParsed,
+            permissions: permissionsParsed,
+            orders: ordersParsed,
             currentOrder: card.dataset.currentOrder || 'Ninguna'
         };
 
@@ -77,27 +85,25 @@ let currentUser = null;
         document.getElementById('panelName').textContent = currentUser.name;
         document.getElementById('panelRole').textContent = currentUser.roleName;
         document.getElementById('panelEmail').textContent = currentUser.email;
-        document.getElementById('panelTurno').textContent = currentUser.turno;
-        document.getElementById('panelEstacion').textContent = currentUser.estacion;
+        document.getElementById('panelTurno').textContent = currentUser.turno || 'Sin asignar';
+        document.getElementById('panelEstacion').textContent = currentUser.estacion || 'Sin asignar';
         document.getElementById('panelAlta').textContent = currentUser.created;
 
         document.getElementById('panelOrdenes').textContent = currentUser.orders.length;
         document.getElementById('panelOrdenActual').textContent = currentUser.currentOrder;
 
-       // Estado (Activo/Inactivo)
+        // Estado (Activo/Inactivo)
         const statusBadge = document.getElementById('panelStatus');
-        const statusButtonText = document.getElementById('statusButtonText'); // <-- Referencia al texto del botón
+        const statusButtonText = document.getElementById('statusButtonText');
 
-        if(currentUser.active) {
+        if (currentUser.active) {
             statusBadge.textContent = 'Activo';
             statusBadge.className = 'px-3 py-1 text-xs font-semibold rounded-full border border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50';
-            
-            if(statusButtonText) statusButtonText.textContent = 'Dar de baja'; // <-- Si está activo, el botón ofrece darlo de baja
+            if (statusButtonText) statusButtonText.textContent = 'Dar de baja';
         } else {
             statusBadge.textContent = 'Inactivo';
             statusBadge.className = 'px-3 py-1 text-xs font-semibold rounded-full border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50';
-            
-            if(statusButtonText) statusButtonText.textContent = 'Dar de alta'; // <-- Si está inactivo, el botón ofrece darlo de alta
+            if (statusButtonText) statusButtonText.textContent = 'Dar de alta';
         }
 
         // Renderizar Habilidades
@@ -105,7 +111,7 @@ let currentUser = null;
         const noSkillsMsg = document.getElementById('panelNoSkills');
         skillsContainer.innerHTML = '';
 
-        if(currentUser.skills.length > 0) {
+        if (currentUser.skills.length > 0) {
             noSkillsMsg.style.display = 'none';
             currentUser.skills.forEach(skill => {
                 const skillName = typeof skill === 'object' ? (skill.skill || skill.name) : skill;
@@ -118,7 +124,7 @@ let currentUser = null;
             noSkillsMsg.style.display = 'block';
         }
 
-        // Lógica para mostrar u ocultar el formulario de eliminación del panel
+        // Formulario de eliminación
         const deleteForm = document.getElementById('deleteUserForm');
         if (deleteForm) {
             if (currentUser.id === 1 || currentUser.id === authUserId) {
@@ -145,7 +151,7 @@ let currentUser = null;
             estacion: currentUser.estacion,
             meta_diaria: currentUser.meta_diaria,
             notas: currentUser.notas,
-            roles: [{ id: currentUser.roleId }],
+            roles: currentUser.roleId ? [{ id: currentUser.roleId }] : [],
             skills: currentUser.skills.map(s => typeof s === 'object' ? s : { skill: s }),
             permissions: currentUser.permissions.map(id => typeof id === 'object' ? id : { id: parseInt(id) })
         };
@@ -153,37 +159,30 @@ let currentUser = null;
         openEditModal(formattedUser);
     }
 
-    function closePanel() {
-        document.getElementById('userPanel').style.display = 'none';
-        currentUser = null;
-    }
-
-    function openCreateModal() {
-        document.getElementById('createModal').style.display = 'block';
-    }
-
-    function closeCreateModal() {
-        document.getElementById('createModal').style.display = 'none';
-    }
-
     function openEditModal(user) {
+        if (!user) return;
+
         const form = document.getElementById('editForm');
-        form.action = `/admin/users/${user.id}`;
+        if (form && user.id) form.action = `/admin/users/${user.id}`;
 
-        document.getElementById('editName').value = user.name || '';
-        document.getElementById('editEmail').value = user.email || '';
-        document.getElementById('editActive').value = user.active ? 1 : 0;
-        document.getElementById('editPuesto').value = user.puesto || '';
-        document.getElementById('editTurno').value = user.turno || '';
-        document.getElementById('editEstacion').value = user.estacion || '';
-        document.getElementById('editMetaDiaria').value = user.meta_diaria || '';
-        document.getElementById('editNotas').value = user.notas || '';
-        document.getElementById('editPassword').value = '';
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = (val !== null && val !== undefined) ? val : '';
+        };
 
-        if (user.roles && user.roles.length > 0) {
-            document.getElementById('editRoleId').value = user.roles[0].id;
-        } else {
-            document.getElementById('editRoleId').value = '';
+        setVal('editName', user.name);
+        setVal('editEmail', user.email);
+        setVal('editActive', user.active ? 1 : 0);
+        setVal('editPuesto', user.puesto);
+        setVal('editTurno', user.turno);
+        setVal('editEstacion', user.estacion);
+        setVal('editMetaDiaria', user.meta_diaria);
+        setVal('editNotas', user.notas);
+        setVal('editPassword', '');
+
+        const roleSelect = document.getElementById('editRoleId');
+        if (roleSelect) {
+            roleSelect.value = (user.roles && user.roles.length > 0) ? (user.roles[0].id || user.roles[0]) : (user.roleId || '');
         }
 
         const userSkillsNames = user.skills ? user.skills.map(s => s.skill || s.name || s) : [];
@@ -196,16 +195,32 @@ let currentUser = null;
             cb.checked = userPermissionIds.includes(parseInt(cb.value));
         });
 
-        document.getElementById('editModal').style.display = 'block';
+        const editModal = document.getElementById('editModal');
+        if (editModal) editModal.style.display = 'block';
     }
 
     function closeEditModal() {
-        document.getElementById('editModal').style.display = 'none';
+        const editModal = document.getElementById('editModal');
+        if (editModal) editModal.style.display = 'none';
     }
 
-    // --- MODIFICACIÓN DINÁMICA PARA ALTA / BAJA ---
+    function closePanel() {
+        document.getElementById('userPanel').style.display = 'none';
+        currentUser = null;
+    }
+
+    function openCreateModal() {
+        const createModal = document.getElementById('createModal');
+        if (createModal) createModal.style.display = 'block';
+    }
+
+    function closeCreateModal() {
+        const createModal = document.getElementById('createModal');
+        if (createModal) createModal.style.display = 'none';
+    }
+
     function toggleStatusFromPanel() {
-        if(!currentUser) return;
+        if (!currentUser) return;
 
         const modalTitle = document.getElementById('deactivateModalTitle');
         const modalMessage = document.getElementById('deactivateModalMessage');
@@ -214,7 +229,6 @@ let currentUser = null;
         const modalConfirmBtn = document.getElementById('deactivateModalConfirmBtn');
 
         if (currentUser.active) {
-            // Estilos y textos para: DAR DE BAJA
             modalTitle.textContent = "Dar de baja";
             modalMessage.innerHTML = `¿Dar de baja a "<span class="text-slate-800 dark:text-stone-200 font-medium">${currentUser.name}</span>"? No podrá iniciar sesión ni recibir órdenes.`;
             
@@ -225,7 +239,6 @@ let currentUser = null;
             modalConfirmBtn.className = "w-full px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-lg shadow-red-600/20";
             modalConfirmBtn.textContent = "Dar de baja";
         } else {
-            // Estilos y textos para: DAR DE ALTA
             modalTitle.textContent = "Dar de alta";
             modalMessage.innerHTML = `¿Dar de alta a "<span class="text-slate-800 dark:text-stone-200 font-medium">${currentUser.name}</span>"? Podrá volver a ingresar al sistema.`;
             
@@ -245,7 +258,7 @@ let currentUser = null;
     }
 
     function confirmDeactivate() {
-        if(!currentUser) return;
+        if (!currentUser) return;
         const form = document.getElementById('statusFormPanel');
         if (form) {
             form.action = '/admin/users/' + currentUser.id;

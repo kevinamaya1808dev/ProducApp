@@ -125,13 +125,21 @@ Route::middleware(['auth', 'can:access-products'])->prefix('admin')->name('admin
 // ==========================================
 // MÓDULO: ALMACÉN (MATERIALES Y RECETAS DE PRODUCTOS)
 // ==========================================
-Route::middleware(['auth', 'can:view-almacen'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/almacen', [AlmacenController::class, 'index'])->name('almacen.index');
-    Route::post('/almacen/material', [AlmacenController::class, 'storeMaterial'])->name('almacen.material.store');
-    Route::put('/almacen/material/{material}', [AlmacenController::class, 'updateMaterial'])->name('almacen.material.update');
-    Route::delete('/almacen/material/{material}', [AlmacenController::class, 'destroyMaterial'])->name('almacen.material.destroy');
-    Route::post('/almacen/material/{material}/add-stock', [AlmacenController::class, 'addStock'])->name('almacen.material.add-stock');
-    Route::post('/almacen/recipe', [AlmacenController::class, 'storeRecipe'])->name('almacen.recipe.store');
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // Solo lectura: ver el almacén y su historial
+    Route::middleware(['can:view-almacen'])->group(function () {
+        Route::get('/almacen', [AlmacenController::class, 'index'])->name('almacen.index');
+        Route::get('/almacen/historial', [AlmacenController::class, 'historial'])->name('almacen.historial');
+    });
+
+    // Escritura: crear/editar/eliminar materiales, agregar stock y vincular recetas
+    Route::middleware(['can:manage-almacen'])->group(function () {
+        Route::post('/almacen/material', [AlmacenController::class, 'storeMaterial'])->name('almacen.material.store');
+        Route::put('/almacen/material/{material}', [AlmacenController::class, 'updateMaterial'])->name('almacen.material.update');
+        Route::delete('/almacen/material/{material}', [AlmacenController::class, 'destroyMaterial'])->name('almacen.material.destroy');
+        Route::post('/almacen/material/{material}/add-stock', [AlmacenController::class, 'addStock'])->name('almacen.material.add-stock');
+        Route::post('/almacen/recipe', [AlmacenController::class, 'storeRecipe'])->name('almacen.recipe.store');
+    });
 });
 
 // ==========================================

@@ -6,7 +6,7 @@
         $name = $order->component_name
                ?? ($order->name
                ?? ($order->title
-               ?? ($order->descripcion ?? ('Orden #' . $order->order_naumbrer))));
+               ?? ($order->descripcion ?? ('Orden #' . $order->order_number))));
 
         return [
             'id' => $order->order_number,
@@ -21,23 +21,26 @@
         ? ($activeOrder->component_name ?? ($activeOrder->name ?? ($activeOrder->title ?? ('Orden #' . $activeOrder->order_number))))
         : 'Ninguna';
 @endphp
+
 <div
     class="user-card bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-2xl p-5 shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 hover:shadow-md transition-all cursor-pointer relative overflow-hidden group"
     data-id="{{ $user->id }}"
-    data-name="{{ $user->name }}"
-    data-email="{{ $user->email }}"
+    data-name="{{ e($user->name) }}"
+    data-email="{{ e($user->email) }}"
     data-role-id="{{ $role?->id }}"
-    data-role-name="{{ $role?->name ?? 'Sin rol' }}"
+    data-role-name="{{ e($role?->name ?? 'Sin rol') }}"
     data-initials="{{ $initials }}"
-    data-turno="{{ $user->turno ?? 'Sin asignar' }}"
-    data-estacion="{{ $user->planta ?? 'N/A' }}"
-    data-active="{{ $user->active }}"
-    data-notas="{{ $user->notas ?? '' }}"
+    data-puesto="{{ e($user->puesto ?? '') }}"
+    data-turno="{{ e($user->turno ?? '') }}"
+    data-estacion="{{ e($user->estacion ?? '') }}"
+    data-meta-diaria="{{ $user->meta_diaria ?? '' }}"
+    data-active="{{ $user->active ? '1' : '0' }}"
+    data-notas="{{ e($user->notas ?? '') }}"
     data-created="{{ $user->created_at->translatedFormat('M Y') }}"
-    data-skills="{{ $user->skills->pluck('skill') }}"
-    data-permissions="{{ $user->permissions->pluck('id') }}"
-    data-orders="{{ json_encode($ordersData) }}"
-    data-current-order="{{ $currentOrderName }}"
+    data-skills='{{ json_encode($user->skills->pluck("skill")) }}'
+    data-permissions='{{ json_encode($user->permissions->pluck("id")) }}'
+    data-orders='{{ json_encode($ordersData) }}'
+    data-current-order="{{ e($currentOrderName) }}"
     onclick="selectUser(this)"
 >
     <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-600 dark:to-amber-600"></div>

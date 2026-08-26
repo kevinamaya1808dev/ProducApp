@@ -7,7 +7,9 @@
     openEditModal: false, 
     openDeleteModal: false, 
     openAddStockModal: false,
-    activeMaterial: {} 
+    openHistoryModal: false,
+    activeMaterial: {},
+    materialHistory: []
 }">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
         
@@ -17,18 +19,27 @@
                 {{ __('Control de Almacén e Insumos') }}
             </h2>
             <div class="flex items-center gap-3">
-                <button @click="openMaterialModal = true" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Registrar Material
-                </button>
-                <button @click="openRecipeModal = true" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 dark:bg-stone-700 dark:hover:bg-stone-600 text-white font-medium rounded-lg text-sm transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Vincular Receta
-                </button>
+                {{-- Historial: de solo lectura, cualquiera con view-almacen puede verlo --}}
+                <a href="{{ route('admin.almacen.historial') }}" class="px-4 py-2 bg-white dark:bg-stone-800 border border-slate-300 dark:border-stone-700 hover:bg-slate-50 dark:hover:bg-stone-700 text-slate-700 dark:text-stone-300 font-medium rounded-lg text-sm transition-colors shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Historial General
+                </a>
+
+                {{-- Registrar Material / Vincular Receta: acciones de escritura --}}
+                @can('manage-almacen')
+                    <button @click="openMaterialModal = true" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Registrar Material
+                    </button>
+                    <button @click="openRecipeModal = true" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 dark:bg-stone-700 dark:hover:bg-stone-600 text-white font-medium rounded-lg text-sm transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Vincular Receta
+                    </button>
+                @endcan
             </div>
         </div>
 
-        {{-- NUEVO: banner de alerta cuando hay materiales en stock bajo --}}
+        {{-- Banner de alerta cuando hay materiales en stock bajo --}}
         @if($lowStockMaterials->isNotEmpty())
             <div class="flex items-start gap-3 p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30">
                 <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,11 +62,16 @@
 
     </div>
 
-    <!-- Modales de Formularios -->
-    @include('admin.almacen.modals.material-modal')
-    @include('admin.almacen.modals.recipe-modal')
-    @include('admin.almacen.modals.edit-material-modal')
-    @include('admin.almacen.modals.delete-material-modal')
-    @include('admin.almacen.modals.add-stock-modal')
+    <!-- Modales de escritura: solo se cargan si el usuario puede gestionar el almacén -->
+    @can('manage-almacen')
+        @include('admin.almacen.modals.material-modal')
+        @include('admin.almacen.modals.recipe-modal')
+        @include('admin.almacen.modals.edit-material-modal')
+        @include('admin.almacen.modals.delete-material-modal')
+        @include('admin.almacen.modals.add-stock-modal')
+    @endcan
+
+    {{-- Historial: de solo lectura, no requiere manage-almacen --}}
+    @include('admin.almacen.modals.stock-history-modal')
 </div>
 @endsection

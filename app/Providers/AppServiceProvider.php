@@ -10,6 +10,13 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        // Bypass global: El administrador tiene acceso total a todos los Gates
+        Gate::before(function (User $user, string $ability) {
+            if ($user->hasRole('admin')) {
+                return true;
+            }
+        });
+
         // MÓDULO ADMINISTRATIVO
         Gate::define('view-admin-dashboard', fn (User $user) => $user->hasPermission('view-admin-dashboard'));
         
@@ -22,10 +29,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('view-categories', fn (User $user) => $user->hasPermission('view-categories'));
         Gate::define('manage-categories', fn (User $user) => $user->hasPermission('manage-categories'));
 
-        //almacén e insumos
-        Gate::define('view-almacen', function ($user) {
-        return $user->hasRole('admin'); // O ajusta según cómo identifiques al administrador
-    });
+        // Almacén e Insumos
+        Gate::define('view-almacen', fn (User $user) => $user->hasPermission('view-almacen'));
+        Gate::define('manage-almacen', fn (User $user) => $user->hasPermission('manage-almacen'));
 
         // Recetas
         Gate::define('view-recipes', fn (User $user) => $user->hasPermission('view-recipes'));

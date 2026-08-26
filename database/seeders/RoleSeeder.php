@@ -27,6 +27,7 @@ class RoleSeeder extends Seeder
             'view-products', 'access-products', 'manage-products',
             'view-recipes', 'manage-recipes',
             'view-orders', 'manage-orders',
+            'view-almacen', 'manage-almacen',
             'view-users', 'manage-users',
         ])->get();
 

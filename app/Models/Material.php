@@ -24,4 +24,10 @@ class Material extends Model
     {
         return $this->hasMany(ProductRecipe::class);
     }
+
+    // NUEVO: historial de entradas de stock, más reciente primero.
+    public function stockLogs()
+    {
+        return $this->hasMany(MaterialStockLog::class)->latest();
+    }
 }

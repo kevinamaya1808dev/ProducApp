@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -16,7 +17,7 @@ class User extends Authenticatable
         'password',
         'puesto',
         'turno',
-        'estacion', // <-- Reemplazado
+        'estacion',
         'active',
         'meta_diaria',
         'notas',
@@ -74,6 +75,16 @@ class User extends Authenticatable
         return $this->hasMany(UserCertification::class);
     }
 
+    public function subOrders(): HasMany
+    {
+        return $this->hasMany(ProductionSubOrder::class, 'user_id');
+    }
+
+    public function stockLogs(): HasMany
+    {
+        return $this->hasMany(MaterialStockLog::class);
+    }
+
     // ==========================================
     // MÉTODOS DE VALIDACIÓN (RBAC ROBUSTOS)
     // ==========================================
@@ -102,9 +113,4 @@ class User extends Authenticatable
                   ->orWhere('name', $permission);
         })->exists();
     }
-
-    public function subOrders(): HasMany
-{
-    return $this->hasMany(ProductionSubOrder::class, 'user_id');
-}
 }

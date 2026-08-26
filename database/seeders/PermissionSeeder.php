@@ -19,6 +19,7 @@ class PermissionSeeder extends Seeder
 
             // Productos
             ['name' => 'Ver Productos', 'slug' => 'view-products'],
+            ['name' => 'Acceso a Productos', 'slug' => 'access-products'],
             ['name' => 'Gestionar Productos', 'slug' => 'manage-products'],
 
             // Recetas
@@ -28,6 +29,10 @@ class PermissionSeeder extends Seeder
             // Órdenes
             ['name' => 'Ver Órdenes', 'slug' => 'view-orders'],
             ['name' => 'Gestionar Órdenes', 'slug' => 'manage-orders'],
+
+            // Almacén
+            ['name' => 'Ver Almacén', 'slug' => 'view-almacen'],
+            ['name' => 'Gestionar Almacén', 'slug' => 'manage-almacen'],
 
             // Usuarios
             ['name' => 'Ver Usuarios', 'slug' => 'view-users'],
