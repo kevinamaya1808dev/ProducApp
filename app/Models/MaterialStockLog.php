@@ -12,6 +12,8 @@ class MaterialStockLog extends Model
         'user_id',
         'quantity_added',
         'stock_resultante',
+        'proveedor_id',
+        'proveedor_manual',
     ];
 
     public function material(): BelongsTo
@@ -23,4 +25,16 @@ class MaterialStockLog extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function proveedor()
+{
+    return $this->belongsTo(Proveedor::class);
+}
+
+protected $appends = ['proveedor_nombre'];
+
+public function getProveedorNombreAttribute()
+{
+    return $this->proveedor?->nombre ?? $this->proveedor_manual ?? '—';
+}
 }

@@ -4,27 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Material;
+use App\Models\MaterialStockLog;
 use App\Models\Product;
 use App\Models\ProductRecipe;
+use App\Models\Proveedor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\MaterialStockLog;
 
 class AlmacenController extends Controller
 {
     public function index()
-    {
-        // NUEVO: se carga el historial de entradas (stockLogs) de una vez junto con
-        // el usuario que registró cada una, para evitar hacer una consulta extra
-        // por cada material al mostrar su historial en el modal.
-        $materials = Material::with('stockLogs.user')->latest()->get();
-        $products = Product::with('recipes.material')->get();
+{
+    $materials = Material::with('stockLogs.proveedor')->latest()->get();
+    $products = Product::with('recipes.material')->get();
+    $proveedores = Proveedor::orderBy('nombre')->get(); // para el <select> del switch
 
-        // Conteo de materiales en o por debajo de su stock mínimo, para el banner de alerta.
-        $lowStockMaterials = $materials->filter(fn ($mat) => $mat->stock_actual <= $mat->stock_minimo);
+    $lowStockMaterials = $materials->filter(fn ($mat) => $mat->stock_actual <= $mat->stock_minimo);
 
-        return view('admin.almacen.index', compact('materials', 'products', 'lowStockMaterials'));
-    }
+    return view('admin.almacen.index', compact('materials', 'products', 'lowStockMaterials', 'proveedores'));
+}
 
     public function storeMaterial(Request $request)
     {
@@ -97,25 +95,29 @@ class AlmacenController extends Controller
      * y deja registrado el ingreso en el historial (quién, cuánto y cuándo).
      */
     public function addStock(Request $request, Material $material)
-    {
-        $request->validate([
-            'quantity_added' => 'required|numeric|min:0.01',
-        ]);
+{
+    $request->validate([
+        'quantity_added'   => 'required|numeric|min:0.01',
+        'provider_source'  => 'required|in:registrado,manual',
+        'proveedor_id'     => 'required_if:provider_source,registrado|nullable|exists:proveedores,id',
+        'proveedor_manual' => 'required_if:provider_source,manual|nullable|string|max:255',
+    ]);
 
-        DB::transaction(function () use ($request, $material) {
-            $material->increment('stock_actual', $request->quantity_added);
+    $material->increment('stock_actual', $request->quantity_added);
 
-            // NUEVO: registro en el historial de entradas de stock.
-            $material->stockLogs()->create([
-                'user_id'           => auth()->id(),
-                'quantity_added'    => $request->quantity_added,
-                'stock_resultante'  => $material->fresh()->stock_actual,
-            ]);
-        });
+    MaterialStockLog::create([
+        'material_id'      => $material->id,
+        'user_id'          => auth()->id(),
+        'quantity_added'   => $request->quantity_added,
+        'stock_resultante' => $material->stock_actual,
+        'proveedor_id'     => $request->provider_source === 'registrado' ? $request->proveedor_id : null,
+        'proveedor_manual' => $request->provider_source === 'manual' ? $request->proveedor_manual : null,
+    ]);
 
-        return redirect()->route('admin.almacen.index')
-            ->with('success', "Se agregaron {$request->quantity_added} {$material->unit} de \"{$material->name}\" al stock.");
-    }
+    Cache::forget('sidebar.low_stock_materials');
+
+    return redirect()->route('admin.almacen.index')->with('success', '¡Stock actualizado correctamente!');
+}
 
     /**
      * Elimina un material del almacén.
@@ -130,7 +132,7 @@ class AlmacenController extends Controller
 
     public function historial(Request $request)
 {
-    $logs = MaterialStockLog::with(['material', 'user'])
+    $logs = MaterialStockLog::with(['material', 'user', 'proveedor'])
         ->when($request->filled('material_id'), fn ($query) => $query->where('material_id', $request->material_id))
         ->latest()
         ->paginate(20)

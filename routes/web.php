@@ -9,6 +9,7 @@ use App\Http\Controllers\IncidenceController;
 use App\Http\Controllers\OperarioController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AlmacenController;
+use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\ProductionOrderController;
 use App\Http\Controllers\RecipeComponentController;
 use App\Http\Controllers\RecipeController;
@@ -140,6 +141,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/almacen/material/{material}/add-stock', [AlmacenController::class, 'addStock'])->name('almacen.material.add-stock');
         Route::post('/almacen/recipe', [AlmacenController::class, 'storeRecipe'])->name('almacen.recipe.store');
     });
+});
+
+// ==========================================
+// MÓDULO: PROVEEDORES
+// ==========================================
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/proveedores', [ProveedorController::class, 'index'])->name('proveedores.index');
+    Route::post('/proveedores', [ProveedorController::class, 'store'])->name('proveedores.store');
+    Route::put('/proveedores/{proveedor}', [ProveedorController::class, 'update'])->name('proveedores.update');
+    Route::delete('/proveedores/{proveedor}', [ProveedorController::class, 'destroy'])->name('proveedores.destroy');
 });
 
 // ==========================================

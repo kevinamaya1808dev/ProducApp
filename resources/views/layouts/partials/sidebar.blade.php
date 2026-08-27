@@ -80,6 +80,14 @@
                     </a>
                 @endcan
 
+                {{-- Proveedores (Temporalmente solo visible para Admin) --}}
+                @if(Auth::user()->hasRole('admin'))
+                    <a href="{{ route('admin.proveedores.index') }}" class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.proveedores.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 dark:hover:text-stone-200 hover:bg-stone-800/60' }}" title="Proveedores">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m0 0h5m-5 0v-4a1 1 0 011-1h1a1 1 0 011 1v4m-6 0v-4a1 1 0 011-1h1a1 1 0 011 1v4"></path></svg>
+                        <span class="sidebar-label whitespace-nowrap overflow-hidden">Proveedores</span>
+                    </a>
+                @endif
+
                 {{-- Gestión de Incidencias --}}
                 @can('manage-orders')
                     <a href="{{ route('admin.incidences.index') }}" class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.incidences.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 dark:hover:text-stone-200 hover:bg-stone-800/60' }}" title="Gestión Incidencias">
