@@ -16,16 +16,80 @@
                         <input type="text" name="name" required value="{{ old('name') }}" placeholder="Ej: Camisa manga larga - Talla M" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none text-slate-700 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500">
                         @error('name') <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
-                    <div>
+
+                    @php
+                        $oldProductId = old('product_id');
+                        $selectedProduct = $products->firstWhere('id', $oldProductId) ?? $products->firstWhere('id', (int) $oldProductId);
+                        $initialProductName = $selectedProduct ? $selectedProduct->name : 'Selecciona un producto';
+                        $initialProductId = $selectedProduct ? (string) $selectedProduct->id : '';
+                    @endphp
+
+                    {{-- Dropdown Personalizado en Alpine.js con soporte de validación Blade --}}
+                    <div 
+                        class="relative" 
+                        x-data="{ 
+                            open: false, 
+                            selectedId: @js($initialProductId), 
+                            selectedName: @js($initialProductName) 
+                        }"
+                    >
                         <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-2">Producto asociado <span class="text-red-500">*</span></label>
-                        <select name="product_id" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none text-slate-700 dark:text-stone-100">
-                            <option value="" class="dark:bg-stone-800">Selecciona un producto</option>
+                        
+                        <input type="hidden" name="product_id" :value="selectedId" required>
+
+                        <button 
+                            type="button" 
+                            @click="open = !open" 
+                            @click.outside="open = false" 
+                            class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 cursor-pointer"
+                            :class="selectedId ? 'text-slate-700 dark:text-stone-100' : 'text-slate-400 dark:text-stone-500'"
+                        >
+                            <span x-text="selectedName" class="truncate"></span>
+                            <svg class="w-4 h-4 text-slate-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        <div 
+                            x-show="open" 
+                            x-cloak
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="transform opacity-0 scale-95"
+                            x-transition:enter-end="transform opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="transform opacity-100 scale-100"
+                            x-transition:leave-end="transform opacity-0 scale-95"
+                            class="absolute left-0 right-0 z-50 mt-1 max-h-48 overflow-auto bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-xl shadow-xl py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                            style="display: none;"
+                        >
+                            <button 
+                                type="button" 
+                                @click="selectedId = ''; selectedName = 'Selecciona un producto'; open = false;"
+                                class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                            >
+                                <span class="text-slate-400 dark:text-stone-500">Selecciona un producto</span>
+                                <svg x-show="selectedId === ''" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+
                             @foreach($products as $product)
-                                <option value="{{ $product->id }}" class="dark:bg-stone-800" @selected(old('product_id') == $product->id)>{{ $product->name }}</option>
+                                <button 
+                                    type="button" 
+                                    @click="selectedId = @js((string)$product->id); selectedName = @js($product->name); open = false;"
+                                    class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                >
+                                    <span class="truncate">{{ $product->name }}</span>
+                                    <svg x-show="selectedId == @js((string)$product->id)" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
                             @endforeach
-                        </select>
+                        </div>
+
                         @error('product_id') <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
+
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-2">Instrucciones / Procedimiento</label>
                         <textarea name="instructions" rows="4" placeholder="Describe el procedimiento..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none text-slate-700 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500 resize-none">{{ old('instructions') }}</textarea>

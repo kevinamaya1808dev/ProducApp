@@ -199,6 +199,7 @@
     }
     function closeCreateModal() {
         document.getElementById('createOrderModal').style.display = 'none';
+        window.dispatchEvent(new Event('closemodal'));
     }
 
     function openEditModalFromPanel() {
@@ -218,6 +219,7 @@
     }
     function closeEditModal() {
         document.getElementById('editOrderModal').style.display = 'none';
+        window.dispatchEvent(new Event('closemodal'));
     }
 
     function openDeleteModalFromPanel() {

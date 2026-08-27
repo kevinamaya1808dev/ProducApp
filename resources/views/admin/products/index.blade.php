@@ -85,13 +85,21 @@
 
         window.openEditModal = function(button) {
             const id = button.dataset.id;
+            const categoryId = button.dataset.category_id || '';
 
             document.getElementById('edit_name').value = button.dataset.name;
             document.getElementById('edit_code').value = button.dataset.code;
-            document.getElementById('edit_category_id').value = button.dataset.category_id;
             document.getElementById('edit_stock').value = button.dataset.stock;
             document.getElementById('edit_unit_cost').value = button.dataset.unit_cost;
             document.getElementById('edit_description').value = button.dataset.description;
+
+            // Sincronización con el Dropdown de Alpine.js
+            const categoryInput = document.getElementById('edit_category_id');
+            if (categoryInput) {
+                categoryInput.value = categoryId;
+                categoryInput.dispatchEvent(new Event('change'));
+            }
+            window.dispatchEvent(new CustomEvent('set-edit-category', { detail: categoryId }));
 
             // Carga y previsualización de la imagen actual del producto en el modal
             const imageUrl = button.dataset.image;
@@ -103,23 +111,29 @@
             if (fileInput) fileInput.value = ''; // Limpiar input file
 
             if (imageUrl && imageUrl.trim() !== '') {
-                previewImage.src = imageUrl;
-                previewImage.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-                removeBtn.classList.remove('hidden');
+                if (previewImage) {
+                    previewImage.src = imageUrl;
+                    previewImage.classList.remove('hidden');
+                }
+                if (placeholder) placeholder.classList.add('hidden');
+                if (removeBtn) removeBtn.classList.remove('hidden');
             } else {
                 window.clearEditImage();
             }
 
             const form = document.getElementById('edit_product_form');
-            form.action = `/admin/products/${id}`;
+            if (form) {
+                form.action = `/admin/products/${id}`;
+            }
 
             openModal('modal-edit');
         };
 
         window.openDeleteModal = function(productId) {
             const form = document.getElementById('delete_product_form');
-            form.action = `/admin/products/${productId}`;
+            if (form) {
+                form.action = `/admin/products/${productId}`;
+            }
             openModal('modal-delete');
         };
     });
@@ -135,10 +149,12 @@
 
         if (file) {
             reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                previewImage.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-                removeBtn.classList.remove('hidden');
+                if (previewImage) {
+                    previewImage.src = e.target.result;
+                    previewImage.classList.remove('hidden');
+                }
+                if (placeholder) placeholder.classList.add('hidden');
+                if (removeBtn) removeBtn.classList.remove('hidden');
             }
             reader.readAsDataURL(file);
         }

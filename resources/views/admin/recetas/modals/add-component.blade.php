@@ -16,25 +16,134 @@
                         <input type="text" name="name" required placeholder="Ej: Tela denim 12oz" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-slate-700 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
+                        @php
+                            $currentTypeId = old('component_type_id', '');
+                            $selectedType = $componentTypes->firstWhere('id', $currentTypeId) ?? $componentTypes->firstWhere('id', (int) $currentTypeId);
+                            $initialTypeName = $selectedType ? $selectedType->name : 'Sin tipo';
+                            $initialTypeId = $selectedType ? (string) $selectedType->id : '';
+                        @endphp
+
+                        {{-- Dropdown Personalizado: Tipo de Componente --}}
+                        <div 
+                            class="relative" 
+                            x-data="{ 
+                                open: false, 
+                                selectedId: @js($initialTypeId), 
+                                selectedName: @js($initialTypeName) 
+                            }"
+                        >
                             <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-2">Tipo</label>
-                            <select name="component_type_id" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-slate-700 dark:text-stone-100">
-                                <option value="" class="dark:bg-stone-800">Sin tipo</option>
+                            
+                            <input type="hidden" name="component_type_id" :value="selectedId">
+
+                            <button 
+                                type="button" 
+                                @click="open = !open" 
+                                @click.outside="open = false" 
+                                class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
+                                :class="selectedId ? 'text-slate-700 dark:text-stone-100' : 'text-slate-700 dark:text-stone-300'"
+                            >
+                                <span x-text="selectedName" class="truncate"></span>
+                                <svg class="w-4 h-4 text-slate-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+
+                            <div 
+                                x-show="open" 
+                                x-cloak
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="transform opacity-100 scale-100"
+                                x-transition:leave-end="transform opacity-0 scale-95"
+                                class="absolute left-0 right-0 z-50 mt-1 max-h-48 overflow-auto bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-xl shadow-xl py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                                style="display: none;"
+                            >
+                                <button 
+                                    type="button" 
+                                    @click="selectedId = ''; selectedName = 'Sin tipo'; open = false;"
+                                    class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-emerald-50 dark:hover:bg-stone-800 hover:text-emerald-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                >
+                                    <span class="text-slate-500 dark:text-stone-400">Sin tipo</span>
+                                    <svg x-show="selectedId === ''" class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+
                                 @foreach($componentTypes as $type)
-                                    <option value="{{ $type->id }}" class="dark:bg-stone-800">{{ $type->name }}</option>
+                                    <button 
+                                        type="button" 
+                                        @click="selectedId = @js((string)$type->id); selectedName = @js($type->name); open = false;"
+                                        class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-emerald-50 dark:hover:bg-stone-800 hover:text-emerald-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                    >
+                                        <span class="truncate">{{ $type->name }}</span>
+                                        <svg x-show="selectedId == @js((string)$type->id)" class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </button>
                                 @endforeach
-                            </select>
+                            </div>
+
                             <a href="{{ route('admin.component-types.index') }}" target="_blank" class="text-[11px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium mt-1.5 inline-block">
                                 + Gestionar tipos de componente
                             </a>
                         </div>
-                        <div>
+
+                        @php
+                            $currentUnit = old('base_unit', 'pzas');
+                        @endphp
+
+                        {{-- Dropdown Personalizado: Unidad --}}
+                        <div 
+                            class="relative" 
+                            x-data="{ 
+                                open: false, 
+                                selectedUnit: @js($currentUnit) 
+                            }"
+                        >
                             <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-2">Unidad</label>
-                            <select name="base_unit" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-slate-700 dark:text-stone-100">
+                            
+                            <input type="hidden" name="base_unit" :value="selectedUnit">
+
+                            <button 
+                                type="button" 
+                                @click="open = !open" 
+                                @click.outside="open = false" 
+                                class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-slate-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-slate-700 dark:text-stone-100 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
+                            >
+                                <span x-text="selectedUnit" class="truncate"></span>
+                                <svg class="w-4 h-4 text-slate-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+
+                            <div 
+                                x-show="open" 
+                                x-cloak
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="transform opacity-100 scale-100"
+                                x-transition:leave-end="transform opacity-0 scale-95"
+                                class="absolute left-0 right-0 z-50 mt-1 max-h-48 overflow-auto bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 rounded-xl shadow-xl py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                                style="display: none;"
+                            >
                                 @foreach(['pzas','m','m²','cm','kg','g','l','ml','par'] as $unit)
-                                    <option value="{{ $unit }}" class="dark:bg-stone-800">{{ $unit }}</option>
+                                    <button 
+                                        type="button" 
+                                        @click="selectedUnit = @js($unit); open = false;"
+                                        class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-emerald-50 dark:hover:bg-stone-800 hover:text-emerald-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                    >
+                                        <span class="truncate">{{ $unit }}</span>
+                                        <svg x-show="selectedUnit === @js($unit)" class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </button>
                                 @endforeach
-                            </select>
+                            </div>
                         </div>
                     </div>
                     <div>

@@ -149,7 +149,7 @@ $product->update($validated);
 
 
 
-return redirect()->route('products.index')->with('success', 'Producto actualizado correctamente.');
+return redirect()->route('admin.products.index')->with('success', 'Producto actualizado correctamente.');
 
 }
 
@@ -163,7 +163,7 @@ $product->delete();
 
 
 
-return redirect()->route('products.index')->with('success', 'Producto eliminado correctamente.');
+return redirect()->route('admin.products.index')->with('success', 'Producto eliminado correctamente.');
 
 }
 

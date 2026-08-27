@@ -113,29 +113,180 @@
     </div>
 
     <!-- Filtros de búsqueda -->
-    <div class="bg-white/80 dark:bg-stone-900/80 backdrop-blur-md p-4 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
-        <form method="GET" action="{{ route('admin.incidences.index') }}" class="flex flex-wrap gap-4 items-center">
-            <div class="w-full sm:w-auto">
-                <select name="status" onchange="this.form.submit()" class="w-full text-sm rounded-xl bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:border-orange-500 focus:ring-orange-500">
-                    <option value="">-- Todos los Estados --</option>
-                    <option value="pendiente" {{ request('status') == 'pendiente' ? 'selected' : '' }}>Pendiente</option>
-                    <option value="en_proceso" {{ request('status') == 'en_proceso' ? 'selected' : '' }}>En Proceso</option>
-                    <option value="resuelta" {{ request('status') == 'resuelta' ? 'selected' : '' }}>Resuelta</option>
-                </select>
-            </div>
-            <div class="w-full sm:w-auto">
-                <select name="importance" onchange="this.form.submit()" class="w-full text-sm rounded-xl bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:border-orange-500 focus:ring-orange-500">
-                    <option value="">-- Todas las Prioridades --</option>
-                    <option value="baja" {{ request('importance') == 'baja' ? 'selected' : '' }}>Prioridad Baja</option>
-                    <option value="media" {{ request('importance') == 'media' ? 'selected' : '' }}>Prioridad Media</option>
-                    <option value="alta" {{ request('importance') == 'alta' ? 'selected' : '' }}>Prioridad Alta</option>
-                </select>
-            </div>
-            @if(request('status') || request('importance'))
-                <a href="{{ route('admin.incidences.index') }}" class="text-xs text-orange-600 dark:text-orange-400 hover:underline">Limpiar Filtros</a>
-            @endif
-        </form>
-    </div>
+<div class="bg-white/80 dark:bg-stone-900/80 backdrop-blur-md p-4 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+    <form id="incidenceFiltersForm" method="GET" action="{{ route('admin.incidences.index') }}" class="flex flex-wrap gap-4 items-center">
+
+        {{-- Dropdown Personalizado: Estado
+             Mismo patrón x-teleport="body" que en los modales de incidencias/órdenes.
+             Al ser un filtro con auto-submit (antes onchange="this.form.submit()"), y
+             como el panel vive teletransportado fuera del <form> una vez abierto, el
+             submit se dispara por id ("incidenceFiltersForm") en vez de closest('form'). --}}
+        <div
+            class="relative w-full sm:w-auto sm:min-w-[190px]"
+            x-data="{
+                open: false,
+                selectedStatus: @js(request('status', '')),
+                selectedName: @js(['' => 'Todos los Estados', 'pendiente' => 'Pendiente', 'en_proceso' => 'En Proceso', 'resuelta' => 'Resuelta'][request('status', '')] ?? 'Todos los Estados'),
+                panelStyle: '',
+                options: {
+                    '': 'Todos los Estados',
+                    'pendiente': 'Pendiente',
+                    'en_proceso': 'En Proceso',
+                    'resuelta': 'Resuelta'
+                },
+                sync() {
+                    this.selectedStatus = this.$refs.hiddenInput.value || '';
+                    this.selectedName = this.options[this.selectedStatus] || 'Todos los Estados';
+                },
+                toggle() {
+                    this.open = !this.open;
+                    if (this.open) {
+                        this.$nextTick(() => {
+                            const rect = this.$refs.trigger.getBoundingClientRect();
+                            this.panelStyle = `top:${rect.bottom + 4}px; left:${rect.left}px; width:${rect.width}px;`;
+                        });
+                    }
+                }
+            }"
+            x-init="$refs.hiddenInput.value = selectedStatus;"
+            @scroll.window.capture="open = false"
+        >
+            <input type="hidden" name="status" x-ref="hiddenInput">
+
+            <button
+                type="button"
+                x-ref="trigger"
+                @click="toggle()"
+                @click.outside="open = false"
+                class="w-full flex items-center justify-between text-sm py-2.5 px-3.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+            >
+                <span x-text="selectedName" class="truncate"></span>
+                <svg class="w-4 h-4 text-stone-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <template x-teleport="body">
+                <div
+                    x-show="open"
+                    x-cloak
+                    :style="panelStyle"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="transform opacity-0 scale-95"
+                    x-transition:enter-end="transform opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="transform opacity-100 scale-100"
+                    x-transition:leave-end="transform opacity-0 scale-95"
+                    class="fixed z-[9999] max-h-64 overflow-auto bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                    style="display: none;"
+                >
+                    @foreach([
+                        '' => 'Todos los Estados',
+                        'pendiente' => 'Pendiente',
+                        'en_proceso' => 'En Proceso',
+                        'resuelta' => 'Resuelta'
+                    ] as $val => $label)
+                        <button
+                            type="button"
+                            @click="selectedStatus = @js($val); $refs.hiddenInput.value = selectedStatus; sync(); open = false; document.getElementById('incidenceFiltersForm').submit();"
+                            class="w-full text-left px-3.5 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                        >
+                            <span class="truncate">{{ $label }}</span>
+                            <svg x-show="selectedStatus === @js($val)" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </button>
+                    @endforeach
+                </div>
+            </template>
+        </div>
+
+        {{-- Dropdown Personalizado: Prioridad --}}
+        <div
+            class="relative w-full sm:w-auto sm:min-w-[190px]"
+            x-data="{
+                open: false,
+                selectedImportance: @js(request('importance', '')),
+                selectedName: @js(['' => 'Todas las Prioridades', 'baja' => 'Prioridad Baja', 'media' => 'Prioridad Media', 'alta' => 'Prioridad Alta'][request('importance', '')] ?? 'Todas las Prioridades'),
+                panelStyle: '',
+                options: {
+                    '': 'Todas las Prioridades',
+                    'baja': 'Prioridad Baja',
+                    'media': 'Prioridad Media',
+                    'alta': 'Prioridad Alta'
+                },
+                sync() {
+                    this.selectedImportance = this.$refs.hiddenInput.value || '';
+                    this.selectedName = this.options[this.selectedImportance] || 'Todas las Prioridades';
+                },
+                toggle() {
+                    this.open = !this.open;
+                    if (this.open) {
+                        this.$nextTick(() => {
+                            const rect = this.$refs.trigger.getBoundingClientRect();
+                            this.panelStyle = `top:${rect.bottom + 4}px; left:${rect.left}px; width:${rect.width}px;`;
+                        });
+                    }
+                }
+            }"
+            x-init="$refs.hiddenInput.value = selectedImportance;"
+            @scroll.window.capture="open = false"
+        >
+            <input type="hidden" name="importance" x-ref="hiddenInput">
+
+            <button
+                type="button"
+                x-ref="trigger"
+                @click="toggle()"
+                @click.outside="open = false"
+                class="w-full flex items-center justify-between text-sm py-2.5 px-3.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+            >
+                <span x-text="selectedName" class="truncate"></span>
+                <svg class="w-4 h-4 text-stone-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <template x-teleport="body">
+                <div
+                    x-show="open"
+                    x-cloak
+                    :style="panelStyle"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="transform opacity-0 scale-95"
+                    x-transition:enter-end="transform opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="transform opacity-100 scale-100"
+                    x-transition:leave-end="transform opacity-0 scale-95"
+                    class="fixed z-[9999] max-h-64 overflow-auto bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                    style="display: none;"
+                >
+                    @foreach([
+                        '' => 'Todas las Prioridades',
+                        'baja' => 'Prioridad Baja',
+                        'media' => 'Prioridad Media',
+                        'alta' => 'Prioridad Alta'
+                    ] as $val => $label)
+                        <button
+                            type="button"
+                            @click="selectedImportance = @js($val); $refs.hiddenInput.value = selectedImportance; sync(); open = false; document.getElementById('incidenceFiltersForm').submit();"
+                            class="w-full text-left px-3.5 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                        >
+                            <span class="truncate">{{ $label }}</span>
+                            <svg x-show="selectedImportance === @js($val)" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </button>
+                    @endforeach
+                </div>
+            </template>
+        </div>
+
+        @if(request('status') || request('importance'))
+            <a href="{{ route('admin.incidences.index') }}" class="text-xs text-orange-600 dark:text-orange-400 hover:underline">Limpiar Filtros</a>
+        @endif
+    </form>
+</div>
 
     <!-- Tabla de Incidencias -->
     <div class="bg-white/80 dark:bg-stone-900/80 backdrop-blur-md rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden">

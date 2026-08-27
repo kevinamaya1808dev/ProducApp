@@ -21,14 +21,103 @@
         <form action="{{ route('admin.incidences.store') }}" method="POST" class="px-6 py-5 space-y-5">
             @csrf
 
-            <div>
+            {{-- Dropdown Personalizado: Orden de Producción
+                 Mismo patrón que en los modales de órdenes: hidden input + botón trigger +
+                 panel teletransportado a <body> con position:fixed calculado en base al
+                 botón (getBoundingClientRect), para que no lo recorte ningún overflow del
+                 modal. Se cierra con click afuera, con scroll y al cerrarse el modal. --}}
+            <div
+                class="relative"
+                x-data="{
+                    open: false,
+                    selectedId: '',
+                    selectedName: 'Selecciona una Orden',
+                    panelStyle: '',
+                    options: {
+                        '': 'Selecciona una Orden',
+                        @foreach($productionOrders as $order)
+                            @js((string)$order->id): @js('#OP-'.$order->id.' - '.($order->product_name ?? 'Orden de producción')),
+                        @endforeach
+                    },
+                    sync() {
+                        this.selectedId = this.$refs.hiddenInput.value || '';
+                        this.selectedName = this.options[this.selectedId] || 'Selecciona una Orden';
+                    },
+                    toggle() {
+                        this.open = !this.open;
+                        if (this.open) {
+                            this.$nextTick(() => {
+                                const rect = this.$refs.trigger.getBoundingClientRect();
+                                this.panelStyle = `top:${rect.bottom + 4}px; left:${rect.left}px; width:${rect.width}px;`;
+                            });
+                        }
+                    }
+                }"
+                x-init="
+                    $refs.hiddenInput.value = selectedId;
+                    $refs.hiddenInput.addEventListener('change', () => sync());
+                    $refs.hiddenInput.addEventListener('input', () => sync());
+                "
+                @scroll.window.capture="open = false"
+                @closemodal.window="open = false"
+            >
                 <label class="block text-xs font-semibold text-stone-600 dark:text-stone-400 mb-1.5">Orden de Producción</label>
-                <select name="production_order_id" required class="w-full text-sm py-3 px-3.5 rounded-xl bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:border-orange-500 focus:ring-orange-500 focus:bg-white dark:focus:bg-stone-800 transition-colors">
-                    <option value="">Selecciona una Orden</option>
-                    @foreach($productionOrders as $order)
-                        <option value="{{ $order->id }}">#OP-{{ $order->id }} - {{ $order->product_name ?? 'Orden de producción' }}</option>
-                    @endforeach
-                </select>
+
+                <input type="hidden" name="production_order_id" x-ref="hiddenInput" required>
+
+                <button
+                    type="button"
+                    x-ref="trigger"
+                    @click="toggle()"
+                    @click.outside="open = false"
+                    class="w-full flex items-center justify-between text-sm py-3 px-3.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+                    :class="selectedId ? 'text-stone-800 dark:text-stone-100' : 'text-stone-400 dark:text-stone-500'"
+                >
+                    <span x-text="selectedName" class="truncate"></span>
+                    <svg class="w-4 h-4 text-stone-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+
+                <template x-teleport="body">
+                    <div
+                        x-show="open"
+                        x-cloak
+                        :style="panelStyle"
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="transform opacity-100 scale-100"
+                        x-transition:leave-end="transform opacity-0 scale-95"
+                        class="fixed z-[9999] max-h-64 overflow-auto bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                        style="display: none;"
+                    >
+                        <button
+                            type="button"
+                            @click="selectedId = ''; $refs.hiddenInput.value = ''; sync(); open = false;"
+                            class="w-full text-left px-3.5 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                        >
+                            <span class="text-stone-400 dark:text-stone-500">Selecciona una Orden</span>
+                            <svg x-show="selectedId === ''" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </button>
+
+                        @foreach($productionOrders as $order)
+                            <button
+                                type="button"
+                                @click="selectedId = @js((string)$order->id); $refs.hiddenInput.value = selectedId; sync(); open = false;"
+                                class="w-full text-left px-3.5 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                            >
+                                <span class="truncate">#OP-{{ $order->id }} - {{ $order->product_name ?? 'Orden de producción' }}</span>
+                                <svg x-show="selectedId == @js((string)$order->id)" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                        @endforeach
+                    </div>
+                </template>
             </div>
 
             <div>
@@ -36,13 +125,90 @@
                 <input type="text" name="title" required placeholder="Ej. Falla en ensamble, falta de material..." class="w-full text-sm py-3 px-3.5 rounded-xl bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:border-orange-500 focus:ring-orange-500 focus:bg-white dark:focus:bg-stone-800 transition-colors">
             </div>
 
-            <div>
+            {{-- Dropdown Personalizado: Prioridad / Importancia --}}
+            <div
+                class="relative"
+                x-data="{
+                    open: false,
+                    selectedImportance: 'baja',
+                    selectedName: 'Baja',
+                    panelStyle: '',
+                    options: {
+                        'baja': 'Baja',
+                        'media': 'Media',
+                        'alta': 'Alta'
+                    },
+                    sync() {
+                        this.selectedImportance = this.$refs.hiddenInput.value || 'baja';
+                        this.selectedName = this.options[this.selectedImportance] || 'Baja';
+                    },
+                    toggle() {
+                        this.open = !this.open;
+                        if (this.open) {
+                            this.$nextTick(() => {
+                                const rect = this.$refs.trigger.getBoundingClientRect();
+                                this.panelStyle = `top:${rect.bottom + 4}px; left:${rect.left}px; width:${rect.width}px;`;
+                            });
+                        }
+                    }
+                }"
+                x-init="
+                    $refs.hiddenInput.value = selectedImportance;
+                    $refs.hiddenInput.addEventListener('change', () => sync());
+                    $refs.hiddenInput.addEventListener('input', () => sync());
+                "
+                @scroll.window.capture="open = false"
+                @closemodal.window="open = false"
+            >
                 <label class="block text-xs font-semibold text-stone-600 dark:text-stone-400 mb-1.5">Prioridad / Importancia</label>
-                <select name="importance" required class="w-full text-sm py-3 px-3.5 rounded-xl bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:border-orange-500 focus:ring-orange-500 focus:bg-white dark:focus:bg-stone-800 transition-colors">
-                    <option value="baja">Baja</option>
-                    <option value="media">Media</option>
-                    <option value="alta">Alta</option>
-                </select>
+
+                <input type="hidden" name="importance" x-ref="hiddenInput" required>
+
+                <button
+                    type="button"
+                    x-ref="trigger"
+                    @click="toggle()"
+                    @click.outside="open = false"
+                    class="w-full flex items-center justify-between text-sm py-3 px-3.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+                >
+                    <span x-text="selectedName" class="truncate"></span>
+                    <svg class="w-4 h-4 text-stone-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+
+                <template x-teleport="body">
+                    <div
+                        x-show="open"
+                        x-cloak
+                        :style="panelStyle"
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="transform opacity-0 scale-95"
+                        x-transition:enter-end="transform opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="transform opacity-100 scale-100"
+                        x-transition:leave-end="transform opacity-0 scale-95"
+                        class="fixed z-[9999] max-h-64 overflow-auto bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-2xl py-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                        style="display: none;"
+                    >
+                        @foreach([
+                            'baja' => 'Baja',
+                            'media' => 'Media',
+                            'alta' => 'Alta'
+                        ] as $val => $label)
+                            <button
+                                type="button"
+                                @click="selectedImportance = @js($val); $refs.hiddenInput.value = selectedImportance; sync(); open = false;"
+                                class="w-full text-left px-3.5 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                            >
+                                <span class="truncate">{{ $label }}</span>
+                                <svg x-show="selectedImportance === @js($val)" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </button>
+                        @endforeach
+                    </div>
+                </template>
             </div>
 
             <div>
