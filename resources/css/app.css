@@ -1,3 +1,140 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+/* =========================================================
+   Scrollbar de modales
+   Reemplaza las variantes arbitrarias de Tailwind
+   ([&::-webkit-scrollbar]:...) por selectores CSS normales.
+   Nota: se deja SIN transition en ::-webkit-scrollbar-thumb a
+   propósito — animar esa pseudo-clase es una causa conocida de
+   glitches de composición en Chrome/Windows dentro de
+   contenedores position:fixed + overflow-y-auto.
+   ========================================================= */
+.modal-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #e2e8f0 transparent; /* slate-200 */
+}
+.dark .modal-scroll {
+    scrollbar-color: #44403c transparent; /* stone-700 */
+}
+.modal-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.modal-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.modal-scroll::-webkit-scrollbar-thumb {
+    background-color: #e2e8f0; /* slate-200 */
+    border-radius: 9999px;
+}
+.dark .modal-scroll::-webkit-scrollbar-thumb {
+    background-color: #44403c; /* stone-700 */
+}
+
+/* =========================================================
+   Checkbox personalizado (Habilidades / Permisos)
+   Estructura esperada en el Blade:
+
+   <label class="modal-checkbox-card">
+       <input type="checkbox" name="..." value="..." class="modal-checkbox-input">
+       <span class="modal-checkbox-box">
+           <svg class="modal-checkbox-icon" ...>...</svg>
+       </span>
+       <span class="modal-checkbox-text">Texto</span>
+   </label>
+   ========================================================= */
+.modal-checkbox-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem;
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(226, 232, 240, 0.8); /* slate-200/80 */
+    cursor: pointer;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+.dark .modal-checkbox-card {
+    background-color: #292524; /* stone-800 */
+    border-color: #44403c; /* stone-700 */
+}
+.modal-checkbox-card:hover {
+    border-color: #fdba74; /* orange-300 */
+}
+.dark .modal-checkbox-card:hover {
+    border-color: #57534e; /* stone-600 */
+}
+
+/* Card completa resaltada al marcar (requiere :has(), soportado en
+   Chrome/Edge/Safari/Firefox actuales) */
+.modal-checkbox-card:has(.modal-checkbox-input:checked) {
+    border-color: #fb923c; /* orange-400 */
+    background-color: #fff7ed; /* orange-50 */
+}
+.dark .modal-checkbox-card:has(.modal-checkbox-input:checked) {
+    border-color: #f97316; /* orange-500 */
+    background-color: rgba(124, 45, 18, 0.3); /* orange-950/30 */
+}
+
+/* Input nativo: accesible pero visualmente oculto */
+.modal-checkbox-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Caja dibujada a mano */
+.modal-checkbox-box {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+    border-radius: 0.375rem;
+    border: 2px solid #cbd5e1; /* slate-300 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 150ms ease, border-color 150ms ease;
+}
+.dark .modal-checkbox-box {
+    border-color: #57534e; /* stone-600 */
+}
+.modal-checkbox-input:checked + .modal-checkbox-box {
+    background-color: #ea580c; /* orange-600 */
+    border-color: #ea580c;
+}
+.modal-checkbox-input:focus-visible + .modal-checkbox-box {
+    outline: 2px solid rgba(249, 115, 22, 0.5); /* orange-500/50 */
+    outline-offset: 1px;
+}
+
+.modal-checkbox-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    color: #ffffff;
+    opacity: 0;
+    transform: scale(0.75);
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+.modal-checkbox-input:checked + .modal-checkbox-box .modal-checkbox-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.modal-checkbox-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #334155; /* slate-700 */
+    transition: color 150ms ease;
+}
+.dark .modal-checkbox-text {
+    color: #e7e5e4; /* stone-200 */
+}
+.modal-checkbox-card:hover .modal-checkbox-text {
+    color: #0f172a; /* slate-900 */
+}
+.dark .modal-checkbox-card:hover .modal-checkbox-text {
+    color: #ffffff;
+}

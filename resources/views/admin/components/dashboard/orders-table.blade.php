@@ -35,7 +35,10 @@
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-stone-800 text-xs text-slate-700 dark:text-stone-300">
                 @forelse($orders ?? [] as $order)
-                @php $progress = $order->porcentaje_avance ?? $order->progress ?? 0; @endphp
+                @php 
+                    $rawProgress = $order->porcentaje_avance ?? $order->progress ?? 0; 
+                    $progress = round($rawProgress); 
+                @endphp
                 <tr class="hover:bg-slate-50/50 dark:hover:bg-stone-800/50 transition-colors">
                     <td class="py-3.5 pr-4 font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
                         {{ $order->order_number ?? $order->order_code ?? 'ORD-'.$order->id }}
