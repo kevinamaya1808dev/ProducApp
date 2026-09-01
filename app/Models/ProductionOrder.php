@@ -79,7 +79,23 @@ class ProductionOrder extends Model
         if ($this->quantity <= 0) {
             return 0;
         }
-        return min(($this->piezas_registradas / $this->quantity) * 100, 100);
+
+        // El avance de la orden se mide exclusivamente por la suborden de
+        // ensamblaje (es_ensamblaje = true), ya que es la fase que produce el
+        // producto terminado. Las demás fases (corte, soldadura, pintura,
+        // etc.) son trabajo intermedio y no cuentan como avance de la orden.
+        $subOrdersList = $this->relationLoaded('subOrders')
+            ? $this->subOrders
+            : $this->subOrders()->get();
+
+        $ensamblaje = $subOrdersList->firstWhere('es_ensamblaje', true);
+
+        // Sin fase de ensamblaje todavía: no hay avance real de la orden.
+        if (! $ensamblaje) {
+            return 0;
+        }
+
+        return min(($ensamblaje->completed_pieces / $this->quantity) * 100, 100);
     }
 
     public function getStatusLabelAttribute(): string

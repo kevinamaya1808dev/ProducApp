@@ -20,8 +20,9 @@ class AdminController extends Controller
         $statusFilter = $request->input('status');
         $dateFilter = $request->input('date');
 
-        // 1. Consulta base de órdenes con Eager Loading (incluyendo la categoría del producto para la vista)
-        $query = ProductionOrder::with(['product.category', 'user', 'registros']);
+        // 1. Consulta base de órdenes con Eager Loading (incluyendo la categoría del producto,
+        //    las subórdenes (fases) y los operarios asignados a cada una para la vista)
+        $query = ProductionOrder::with(['product.category', 'user', 'registros', 'subOrders.assignedUsers']);
 
         // 2. Filtros provenientes del Modal
         if ($statusFilter) {
