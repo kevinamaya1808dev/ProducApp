@@ -94,7 +94,17 @@
                     Tu proceso: {{ $subOrdenActiva->proceso }}
                 </span>
                 @if($alertaCercana)
-                    <span class="text-[10px] font-bold uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full animate-pulse">
+                    {{-- Rediseñado: antes era todo el badge parpadeando con animate-pulse
+                         (cambia de opacidad completa, se siente intermitente/molesto).
+                         Ahora el badge queda sólido y legible, y solo un puntito interno
+                         "hace ping" — mismo patrón que un indicador de notificación — para
+                         que se note sin parpadear toda la etiqueta. Con soporte
+                         motion-reduce para quien tenga desactivadas las animaciones. --}}
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wide bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300/80 dark:border-amber-600/40 px-2.5 py-1 rounded-full shadow-sm shadow-amber-500/20">
+                        <span class="relative flex h-2 w-2 shrink-0">
+                            <span class="motion-reduce:hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                        </span>
                         ¡Quedan {{ $piezasRestantes }}!
                     </span>
                 @endif

@@ -58,8 +58,12 @@ class OperarioController extends Controller
         $subOrdenActiva = null;
 
         if ($ordenActiva) {
+            // Antes filtraba también por user_id, así que "Avance de Hoy" solo
+            // sumaba lo que había registrado el operario en sesión y no lo que
+            // aportaban sus compañeros en la misma orden. Se quita ese filtro
+            // para que refleje el avance real de la orden, hecho por todos los
+            // operarios involucrados.
             $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-                ->where('user_id', $userId)
                 ->sum('cantidad');
 
             $subOrdenActiva = $this->buscarSubOrdenDelUsuario($ordenActiva, $userId);
@@ -111,8 +115,9 @@ class OperarioController extends Controller
         $piezasOrdenActiva = 0;
         $subOrdenActiva = null;
         if ($ordenActiva) {
+            // Mismo ajuste que en inicio(): el avance de la orden debe sumar a
+            // todos los operarios involucrados, no solo al que tiene la sesión.
             $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-                ->where('user_id', $userId)
                 ->sum('cantidad');
 
             $subOrdenActiva = $this->buscarSubOrdenDelUsuario($ordenActiva, $userId);
@@ -432,33 +437,34 @@ class OperarioController extends Controller
     }
 
     public function tareas(Request $request)
-{
-    $userId = Auth::id();
+    {
+        $userId = Auth::id();
 
-    $ordenes = ProductionOrder::with(['product', 'subOrders.assignedUsers'])
-        ->where(function ($query) use ($userId) {
-            $query->where('user_id', $userId)
-                  ->orWhereHas('subOrders.assignedUsers', function ($q) use ($userId) {
-                      $q->where('users.id', $userId);
-                  });
-        })
-        ->latest()
-        ->get();
+        $ordenes = ProductionOrder::with(['product', 'subOrders.assignedUsers'])
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->orWhereHas('subOrders.assignedUsers', function ($q) use ($userId) {
+                          $q->where('users.id', $userId);
+                      });
+            })
+            ->latest()
+            ->get();
 
-    // Le asignamos a cada orden la suborden específica de este operario (si la tiene),
-    // para que la vista muestre su avance real y no el de toda la orden.
-    $ordenes->each(function ($orden) use ($userId) {
-        $orden->miSubOrden = $orden->subOrders->first(
-            fn ($subOrden) => $subOrden->assignedUsers->contains('id', $userId)
-        );
-    });
+        // Le asignamos a cada orden la suborden específica de este operario (si la tiene),
+        // para que la vista muestre su avance real y no el de toda la orden.
+        $ordenes->each(function ($orden) use ($userId) {
+            $orden->miSubOrden = $orden->subOrders->first(
+                fn ($subOrden) => $subOrden->assignedUsers->contains('id', $userId)
+            );
+        });
 
-    $ordenSeleccionada = $request->filled('orden')
-        ? $ordenes->firstWhere('id', (int) $request->query('orden'))
-        : $ordenes->first();
+        $ordenSeleccionada = $request->filled('orden')
+            ? $ordenes->firstWhere('id', (int) $request->query('orden'))
+            : $ordenes->first();
 
-    return view('operario.tareas', compact('ordenes', 'ordenSeleccionada'));
-}
+        return view('operario.tareas', compact('ordenes', 'ordenSeleccionada'));
+    }
+
     public function iniciarTarea(ProductionOrder $productionOrder)
     {
         $productionOrder->update(['status' => 'in_progress']);
