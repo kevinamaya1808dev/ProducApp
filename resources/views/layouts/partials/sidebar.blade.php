@@ -16,7 +16,7 @@
         <nav class="space-y-1.5 px-3 pb-6">
             
             {{-- SECCIÓN DE VISTAS / MÓDULOS ADMINISTRATIVOS --}}
-            @canany(['view-admin-dashboard', 'view-products', 'view-recipes', 'view-categories', 'view-orders', 'view-almacen', 'manage-orders', 'view-users'])
+            @canany(['view-admin-dashboard', 'view-products', 'view-recipes', 'view-categories', 'view-orders', 'view-almacen', 'view-proveedores', 'manage-orders', 'view-users'])
                 
                 <div class="sidebar-label px-3 pt-2 pb-2 text-[11px] font-bold text-stone-500 uppercase tracking-widest whitespace-nowrap overflow-hidden">
                     {{ Auth::user()->hasRole('admin') ? 'Principal / Admin' : 'Módulos Autorizados' }}
@@ -68,8 +68,8 @@
                         $lowStockCount = \App\Models\Material::whereColumn('stock_actual', '<=', 'stock_minimo')->count();
                     @endphp
                     <a href="{{ route('admin.almacen.index') }}" class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.almacen.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 dark:hover:text-stone-200 hover:bg-stone-800/60' }}" title="Almacén e Insumos">
-                        <span class="relative shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                        <span class="relative">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-9-4-9 4m18 0l-9 4m9-4v10l-9 4m0-10L2 7m9 4v10M2 7v10l9 4"></path></svg>
                             @if($lowStockCount > 0)
                                 <span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold leading-none bg-amber-500 text-stone-900 ring-2 ring-stone-900" title="{{ $lowStockCount }} material(es) en stock bajo">
                                     {{ $lowStockCount > 9 ? '9+' : $lowStockCount }}
@@ -80,13 +80,13 @@
                     </a>
                 @endcan
 
-                {{-- Proveedores (Temporalmente solo visible para Admin) --}}
-                @if(Auth::user()->hasRole('admin'))
+                {{-- Proveedores --}}
+                @can('view-proveedores')
                     <a href="{{ route('admin.proveedores.index') }}" class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.proveedores.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-stone-400 hover:text-stone-200 dark:hover:text-stone-200 hover:bg-stone-800/60' }}" title="Proveedores">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m0 0h5m-5 0v-4a1 1 0 011-1h1a1 1 0 011 1v4m-6 0v-4a1 1 0 011-1h1a1 1 0 011 1v4"></path></svg>
                         <span class="sidebar-label whitespace-nowrap overflow-hidden">Proveedores</span>
                     </a>
-                @endif
+                @endcan
 
                 {{-- Gestión de Incidencias --}}
                 @can('manage-orders')

@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductRecipe;
 use App\Models\Proveedor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class AlmacenController extends Controller

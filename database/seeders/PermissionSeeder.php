@@ -34,6 +34,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'Ver Almacén', 'slug' => 'view-almacen'],
             ['name' => 'Gestionar Almacén', 'slug' => 'manage-almacen'],
 
+            // Proveedores
+            ['name' => 'Ver Proveedores', 'slug' => 'view-proveedores'],
+            ['name' => 'Gestionar Proveedores', 'slug' => 'manage-proveedores'],
+
             // Usuarios
             ['name' => 'Ver Usuarios', 'slug' => 'view-users'],
             ['name' => 'Gestionar Usuarios', 'slug' => 'manage-users'],

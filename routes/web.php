@@ -147,10 +147,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 // MÓDULO: PROVEEDORES
 // ==========================================
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/proveedores', [ProveedorController::class, 'index'])->name('proveedores.index');
-    Route::post('/proveedores', [ProveedorController::class, 'store'])->name('proveedores.store');
-    Route::put('/proveedores/{proveedor}', [ProveedorController::class, 'update'])->name('proveedores.update');
-    Route::delete('/proveedores/{proveedor}', [ProveedorController::class, 'destroy'])->name('proveedores.destroy');
+    // Solo lectura: ver el directorio de proveedores
+    Route::middleware(['can:view-proveedores'])->group(function () {
+        Route::get('/proveedores', [ProveedorController::class, 'index'])->name('proveedores.index');
+    });
+
+    // Escritura: crear/editar/eliminar proveedores
+    Route::middleware(['can:manage-proveedores'])->group(function () {
+        Route::post('/proveedores', [ProveedorController::class, 'store'])->name('proveedores.store');
+        Route::put('/proveedores/{proveedor}', [ProveedorController::class, 'update'])->name('proveedores.update');
+        Route::delete('/proveedores/{proveedor}', [ProveedorController::class, 'destroy'])->name('proveedores.destroy');
+    });
 });
 
 // ==========================================
