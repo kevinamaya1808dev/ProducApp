@@ -47,19 +47,19 @@
             viewGrid.classList.add('grid');
             viewTable.classList.add('hidden');
 
-            btnGrid.classList.add('bg-slate-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
-            btnGrid.classList.remove('text-slate-500', 'dark:text-stone-400', 'hover:text-slate-900', 'dark:hover:text-stone-200');
-            btnTable.classList.remove('bg-slate-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
-            btnTable.classList.add('text-slate-500', 'dark:text-stone-400', 'hover:text-slate-900', 'dark:hover:text-stone-200');
+            btnGrid.classList.add('bg-stone-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
+            btnGrid.classList.remove('text-stone-500', 'dark:text-stone-400', 'hover:text-stone-900', 'dark:hover:text-stone-200');
+            btnTable.classList.remove('bg-stone-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
+            btnTable.classList.add('text-stone-500', 'dark:text-stone-400', 'hover:text-stone-900', 'dark:hover:text-stone-200');
         } else {
             viewTable.classList.remove('hidden');
             viewGrid.classList.add('hidden');
             viewGrid.classList.remove('grid');
 
-            btnTable.classList.add('bg-slate-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
-            btnTable.classList.remove('text-slate-500', 'dark:text-stone-400', 'hover:text-slate-900', 'dark:hover:text-stone-200');
-            btnGrid.classList.remove('bg-slate-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
-            btnGrid.classList.add('text-slate-500', 'dark:text-stone-400', 'hover:text-slate-900', 'dark:hover:text-stone-200');
+            btnTable.classList.add('bg-stone-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
+            btnTable.classList.remove('text-stone-500', 'dark:text-stone-400', 'hover:text-stone-900', 'dark:hover:text-stone-200');
+            btnGrid.classList.remove('bg-stone-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
+            btnGrid.classList.add('text-stone-500', 'dark:text-stone-400', 'hover:text-stone-900', 'dark:hover:text-stone-200');
         }
     };
 
@@ -161,7 +161,7 @@
     };
 
     window.clearEditImage = function(event) {
-        if (event) event.stopPropagation(); // Evita que se abra el explorador de archivos al dar click en la X
+        if (event) event.stopPropagation();
 
         const input = document.getElementById('edit_image_input');
         const previewImage = document.getElementById('edit_image_preview');

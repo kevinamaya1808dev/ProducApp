@@ -16,16 +16,16 @@
     $path = $iconPaths[$icon] ?? $iconPaths['boxes'];
 @endphp
 
-<div class="bg-white dark:bg-stone-900 p-5 rounded-xl border border-slate-200/80 dark:border-stone-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+<div class="bg-stone-50 dark:bg-stone-900 p-5 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
     <div class="flex items-center justify-between mb-3">
-        <span class="text-[11px] font-bold text-slate-400 dark:text-stone-400 tracking-wider uppercase">{{ $title }}</span>
+        <span class="text-[11px] font-bold text-stone-400 dark:text-stone-400 tracking-wider uppercase">{{ $title }}</span>
         <div class="w-9 h-9 rounded-xl {{ $c['bg'] }} flex items-center justify-center {{ $c['text'] }}">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $path }}"></path>
             </svg>
         </div>
     </div>
-    <div class="text-3xl font-extrabold text-slate-900 dark:text-stone-100 mb-3">{{ $value }}</div>
+    <div class="text-3xl font-extrabold text-stone-900 dark:text-stone-100 mb-3">{{ $value }}</div>
     <span class="inline-flex items-center gap-1 text-xs font-semibold {{ $c['badgeText'] }} {{ $c['badgeBg'] }} px-2 py-0.5 rounded-full">
         {{ $badge }}
     </span>

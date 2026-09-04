@@ -237,6 +237,15 @@
         if (!currentOrder) return;
         document.getElementById('createSubOrderOrderId').value = currentOrder.id;
         document.getElementById('createSubOrderForm').reset();
+
+        // El form.reset() desmarca los checkboxes de operarios, pero no todos los
+        // navegadores disparan "change" al hacerlo — forzamos el evento para que el
+        // contador "N seleccionados" (Alpine) vuelva a 0 en vez de quedar desfasado.
+        const createOperariosContainer = document.getElementById('createSubOrderOperariosContainer');
+        if (createOperariosContainer) {
+            createOperariosContainer.dispatchEvent(new Event('change'));
+        }
+
         document.getElementById('createSubOrderModal').style.display = 'block';
     }
     function closeCreateSubOrderModal() {
@@ -252,18 +261,30 @@
         document.getElementById('editSubOrderProceso').value = subOrder.proceso || '';
         document.getElementById('editSubOrderQuantity').value = subOrder.quantity || '';
         document.getElementById('editSubOrderCompleted').value = subOrder.completed_pieces || subOrder.completed_quantity || 0;
-        
+
         const statusSelect = document.getElementById('editSubOrderStatus');
         if (statusSelect) statusSelect.value = subOrder.status || 'pending';
 
         const checkboxEnsamblaje = document.getElementById('editSubOrderEsEnsamblaje');
         if (checkboxEnsamblaje) checkboxEnsamblaje.checked = !!subOrder.es_ensamblaje;
 
-        const select = document.getElementById('editSubOrderOperarios');
-        if (select) {
-            Array.from(select.options).forEach(opt => {
-                opt.selected = (subOrder.operarios || []).some(op => (op.id || op) == opt.value);
+        // Antes: el modal usaba un <select multiple id="editSubOrderOperarios">, y aquí
+        // se marcaban sus <option> como selected. El modal ahora usa chips (checkboxes)
+        // con IDs "editSubOrderOperario-{id}" dentro de #editSubOrderOperariosContainer.
+        const operariosContainer = document.getElementById('editSubOrderOperariosContainer');
+        if (operariosContainer) {
+            // Desmarcar todos primero: el modal se reutiliza entre subórdenes distintas
+            operariosContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+            (subOrder.operarios || []).forEach(op => {
+                const operarioId = op.id || op;
+                const checkbox = document.getElementById('editSubOrderOperario-' + operarioId);
+                if (checkbox) checkbox.checked = true;
             });
+
+            // Alpine no detecta por sí solo que los checkboxes cambiaron por JS: disparamos
+            // "change" para que el contador "N seleccionados" del modal se actualice.
+            operariosContainer.dispatchEvent(new Event('change'));
         }
 
         document.getElementById('editSubOrderModal').style.display = 'block';

@@ -1,8 +1,8 @@
-<div class="xl:col-span-3 bg-white dark:bg-stone-900 border border-slate-200/80 dark:border-stone-800 rounded-xl shadow-sm p-6">
+<div class="xl:col-span-3 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-sm p-6">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-            <h2 class="text-base font-bold text-slate-900 dark:text-stone-100">Órdenes de Producción</h2>
-            <p class="text-xs text-slate-500 dark:text-stone-400">{{ isset($orders) ? $orders->total() : 0 }} órdenes registradas</p>
+            <h2 class="text-base font-bold text-stone-900 dark:text-stone-100">Órdenes de Producción</h2>
+            <p class="text-xs text-stone-500 dark:text-stone-400">{{ isset($orders) ? $orders->total() : 0 }} órdenes registradas</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -13,10 +13,10 @@
                 @if(request('date'))
                     <input type="hidden" name="date" value="{{ request('date') }}">
                 @endif
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-stone-500">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 dark:text-stone-500">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por número, producto..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-xs text-slate-800 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por número, producto..." class="w-full pl-9 pr-3 py-1.5 bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-xs text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
             </form>
         </div>
     </div>
@@ -24,7 +24,7 @@
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="border-b border-slate-100 dark:border-stone-800 text-[11px] font-bold text-slate-400 dark:text-stone-400 uppercase tracking-wider">
+                <tr class="border-b border-stone-200 dark:border-stone-800 text-[11px] font-bold text-stone-400 dark:text-stone-400 uppercase tracking-wider">
                     <th class="pb-3 pr-2 w-8"></th>
                     <th class="pb-3 pr-4">ID de Orden</th>
                     <th class="pb-3 px-4">Producto</th>
@@ -42,16 +42,16 @@
             @endphp
             <tbody
                 x-data="{ open: false }"
-                class="divide-y divide-slate-100 dark:divide-stone-800 text-xs text-slate-700 dark:text-stone-300"
+                class="divide-y divide-stone-200 dark:divide-stone-800 text-xs text-stone-700 dark:text-stone-300"
             >
-                <tr class="hover:bg-slate-50/50 dark:hover:bg-stone-800/50 transition-colors">
+                <tr class="hover:bg-stone-100/60 dark:hover:bg-stone-800/50 transition-colors">
                     <td class="py-3.5 pr-2 align-middle">
                         @if($subOrdersList->count() > 0)
                             <button
                                 type="button"
                                 @click="open = !open"
                                 aria-label="Ver subórdenes"
-                                class="w-6 h-6 flex items-center justify-center rounded-md text-slate-400 dark:text-stone-500 hover:bg-slate-100 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+                                class="w-6 h-6 flex items-center justify-center rounded-md text-stone-400 dark:text-stone-500 hover:bg-stone-200 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
                             >
                                 <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -63,22 +63,22 @@
                         {{ $order->order_number ?? $order->order_code ?? 'ORD-'.$order->id }}
                     </td>
                     <td class="py-3.5 px-4">
-                        <p class="font-bold text-slate-800 dark:text-stone-200">{{ $order->product->name ?? 'Producto N/D' }}</p>
-                        <p class="text-[11px] text-slate-400 dark:text-stone-500">{{ $order->product->category->name ?? 'General' }}</p>
+                        <p class="font-bold text-stone-800 dark:text-stone-200">{{ $order->product->name ?? 'Producto N/D' }}</p>
+                        <p class="text-[11px] text-stone-400 dark:text-stone-500">{{ $order->product->category->name ?? 'General' }}</p>
                     </td>
                     <td class="py-3.5 px-4 w-40">
                         <div class="flex items-center gap-2">
-                            <div class="flex-1 bg-slate-100 dark:bg-stone-800 rounded-full h-2 overflow-hidden">
+                            <div class="flex-1 bg-stone-200 dark:bg-stone-800 rounded-full h-2 overflow-hidden">
                                 <div class="bg-orange-500 h-2 rounded-full transition-all duration-300" style="width: {{ $progress }}%"></div>
                             </div>
-                            <span class="text-[11px] font-semibold text-slate-500 dark:text-stone-400 w-8 text-right">{{ $progress }}%</span>
+                            <span class="text-[11px] font-semibold text-stone-500 dark:text-stone-400 w-8 text-right">{{ $progress }}%</span>
                         </div>
                     </td>
-                    <td class="py-3.5 px-4 font-medium text-slate-600 dark:text-stone-400 whitespace-nowrap">
+                    <td class="py-3.5 px-4 font-medium text-stone-600 dark:text-stone-400 whitespace-nowrap">
                         @if($order->end_date)
                             {{ $order->end_date->format('d/m/Y') }}
                         @else
-                            <span class="text-slate-400 dark:text-stone-500 italic text-[11px]">Sin fecha</span>
+                            <span class="text-stone-400 dark:text-stone-500 italic text-[11px]">Sin fecha</span>
                         @endif
                     </td>
                     <td class="py-3.5 px-4 whitespace-nowrap">
@@ -86,7 +86,7 @@
                             <span class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 font-bold text-[10px] flex items-center justify-center">
                                 {{ strtoupper(substr($order->user->name ?? 'U', 0, 2)) }}
                             </span>
-                            <span class="font-medium text-slate-700 dark:text-stone-300">{{ $order->user->name ?? 'Sin asignar' }}</span>
+                            <span class="font-medium text-stone-700 dark:text-stone-300">{{ $order->user->name ?? 'Sin asignar' }}</span>
                         </div>
                     </td>
                     <td class="py-3.5 pl-4 text-right whitespace-nowrap">
@@ -105,9 +105,9 @@
                     x-transition:leave-start="opacity-100 translate-y-0"
                     x-transition:leave-end="opacity-0 -translate-y-1"
                 >
-                    <td colspan="7" class="bg-gradient-to-b from-slate-50/80 to-transparent dark:from-stone-800/20 dark:to-transparent px-4 py-4">
+                    <td colspan="7" class="bg-gradient-to-b from-stone-100/80 to-transparent dark:from-stone-800/20 dark:to-transparent px-4 py-4">
                         <div class="pl-6 pr-2">
-                            <div class="relative space-y-3 before:absolute before:top-2 before:bottom-2 before:left-[15px] before:w-0.5 before:bg-gradient-to-b before:from-orange-300 before:via-slate-200 before:to-transparent dark:before:from-orange-800 dark:before:via-stone-700 dark:before:to-transparent">
+                            <div class="relative space-y-3 before:absolute before:top-2 before:bottom-2 before:left-[15px] before:w-0.5 before:bg-gradient-to-b before:from-orange-300 before:via-stone-300 before:to-transparent dark:before:from-orange-800 dark:before:via-stone-700 dark:before:to-transparent">
                                 @foreach($subOrdersList as $subOrder)
                                     @php
                                         $subProgress = round($subOrder->porcentaje_avance ?? 0);
@@ -115,7 +115,7 @@
                                         $nodeClasses = match($subOrder->status) {
                                             'completed'   => 'bg-emerald-500 ring-emerald-100 dark:ring-emerald-950/60',
                                             'in_progress' => 'bg-orange-500 ring-orange-100 dark:ring-orange-950/60',
-                                            default       => 'bg-slate-300 dark:bg-stone-600 ring-slate-100 dark:ring-stone-800',
+                                            default       => 'bg-stone-300 dark:bg-stone-600 ring-stone-100 dark:ring-stone-800',
                                         };
                                     @endphp
                                     <div class="relative pl-10 group">
@@ -131,22 +131,22 @@
                                         </span>
 
                                         {{-- Tarjeta de la fase --}}
-                                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-white dark:bg-stone-900 border border-slate-100 dark:border-stone-800 rounded-xl px-4 py-3 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-y-0 transition-all duration-200">
+                                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl px-4 py-3 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-y-0 transition-all duration-200">
                                             <div class="sm:w-40 shrink-0">
-                                                <p class="text-xs font-bold text-slate-800 dark:text-stone-200">
+                                                <p class="text-xs font-bold text-stone-800 dark:text-stone-200">
                                                     {{ $subOrder->proceso }}
                                                     @if($subOrder->es_ensamblaje)
                                                         <span class="ml-1 inline-block text-[9px] font-semibold text-orange-600 dark:text-orange-400 align-middle bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 rounded">Fase final</span>
                                                     @endif
                                                 </p>
-                                                <p class="text-[11px] text-slate-400 dark:text-stone-500">{{ $subOrder->completed_pieces }}/{{ $subOrder->quantity }} pzas</p>
+                                                <p class="text-[11px] text-stone-400 dark:text-stone-500">{{ $subOrder->completed_pieces }}/{{ $subOrder->quantity }} pzas</p>
                                             </div>
 
                                             <div class="flex-1 flex items-center gap-2 sm:max-w-xs">
-                                                <div class="flex-1 bg-slate-100 dark:bg-stone-800 rounded-full h-1.5 overflow-hidden">
+                                                <div class="flex-1 bg-stone-200 dark:bg-stone-800 rounded-full h-1.5 overflow-hidden">
                                                     <div class="bg-gradient-to-r from-orange-400 to-orange-500 h-1.5 rounded-full transition-all duration-300" style="width: {{ $subProgress }}%"></div>
                                                 </div>
-                                                <span class="text-[10px] font-semibold text-slate-500 dark:text-stone-400 w-7 text-right">{{ $subProgress }}%</span>
+                                                <span class="text-[10px] font-semibold text-stone-500 dark:text-stone-400 w-7 text-right">{{ $subProgress }}%</span>
                                             </div>
 
                                             <div class="shrink-0">
@@ -157,12 +157,12 @@
                                                 @forelse($assigned as $person)
                                                     <span
                                                         title="{{ $person->name }}{{ $person->pivot->estacion ? ' · '.$person->pivot->estacion : '' }}"
-                                                        class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 font-bold text-[10px] flex items-center justify-center border-2 border-white dark:border-stone-900 hover:z-10 hover:scale-110 motion-reduce:hover:scale-100 transition-transform"
+                                                        class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 font-bold text-[10px] flex items-center justify-center border-2 border-stone-50 dark:border-stone-900 hover:z-10 hover:scale-110 motion-reduce:hover:scale-100 transition-transform"
                                                     >
                                                         {{ strtoupper(substr($person->name ?? 'U', 0, 2)) }}
                                                     </span>
                                                 @empty
-                                                    <span class="text-[11px] text-slate-400 dark:text-stone-500 italic">Sin operarios asignados</span>
+                                                    <span class="text-[11px] text-stone-400 dark:text-stone-500 italic">Sin operarios asignados</span>
                                                 @endforelse
                                             </div>
                                         </div>
@@ -177,7 +177,7 @@
             @empty
             <tbody>
                 <tr>
-                    <td colspan="7" class="py-8 text-center text-slate-400 dark:text-stone-500 text-xs">
+                    <td colspan="7" class="py-8 text-center text-stone-400 dark:text-stone-500 text-xs">
                         No se encontraron órdenes de producción registradas con los criterios seleccionados.
                     </td>
                 </tr>
@@ -187,7 +187,7 @@
     </div>
 
     @if(isset($orders) && method_exists($orders, 'hasPages') && $orders->hasPages())
-        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-stone-800">
+        <div class="mt-4 pt-4 border-t border-stone-200 dark:border-stone-800">
             {{ $orders->links() }}
         </div>
     @endif

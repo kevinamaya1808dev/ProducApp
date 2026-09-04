@@ -1,7 +1,7 @@
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-stone-100">Productos</h1>
-        <p class="text-sm text-slate-500 dark:text-stone-400 mt-1">
+        <h1 class="text-2xl font-bold text-stone-900 dark:text-stone-100">Productos</h1>
+        <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
             Catálogo de productos manufacturados &middot; {{ $products->total() ?? 0 }} registros
         </p>
     </div>

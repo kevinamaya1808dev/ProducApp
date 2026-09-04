@@ -5,7 +5,7 @@
         'pending'     => ['label' => 'Pendiente',    'classes' => 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-900/50',     'dot' => 'bg-amber-600 dark:bg-amber-400'],
         'cancelled'   => ['label' => 'Cancelado',    'classes' => 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-100 dark:border-rose-900/50',         'dot' => 'bg-rose-600 dark:bg-rose-400'],
     ];
-    $s = $map[$status] ?? ['label' => ucfirst($status ?? 'Desconocido'), 'classes' => 'bg-slate-50 dark:bg-stone-800 text-slate-700 dark:text-stone-300 border-slate-100 dark:border-stone-700', 'dot' => 'bg-slate-600 dark:bg-stone-400'];
+    $s = $map[$status] ?? ['label' => ucfirst($status ?? 'Desconocido'), 'classes' => 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700', 'dot' => 'bg-stone-600 dark:bg-stone-400'];
 @endphp
 
 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border {{ $s['classes'] }}">
