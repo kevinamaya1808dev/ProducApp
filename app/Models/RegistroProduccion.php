@@ -15,8 +15,9 @@ class RegistroProduccion extends Model
     protected $fillable = [
         'user_id',
         'production_order_id',
+        'sub_order_id', // CORREGIDO: faltaba aquí, así que Eloquent lo descartaba en silencio al hacer create()
         'cantidad',
-        'nota', // <-- Agregado
+        'nota',
         'fecha_registro',
     ];
 
@@ -28,5 +29,12 @@ class RegistroProduccion extends Model
     public function productionOrder(): BelongsTo
     {
         return $this->belongsTo(ProductionOrder::class);
+    }
+
+    // NUEVO: antes no existía ninguna relación hacia la suborden, porque la
+    // columna ni siquiera existía en la tabla.
+    public function subOrder(): BelongsTo
+    {
+        return $this->belongsTo(ProductionSubOrder::class, 'sub_order_id');
     }
 }

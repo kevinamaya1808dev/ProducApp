@@ -19,8 +19,6 @@ class SubOrderController extends Controller
             'production_order_id' => 'required|exists:production_orders,id',
             'proceso'             => 'required|string|max:100',
             'quantity'            => 'required|integer|min:1',
-            // CORRECCIÓN: antes faltaban estas dos reglas, así que el formulario
-            // los enviaba pero el controlador los descartaba silenciosamente.
             'es_ensamblaje'       => 'nullable|boolean',
             'operarios'           => 'nullable|array',
             'operarios.*'         => 'exists:users,id',
@@ -50,6 +48,17 @@ class SubOrderController extends Controller
                 ])->toArray();
 
                 $subOrder->assignedUsers()->sync($syncData);
+            }
+
+            // NUEVO: solo puede existir UNA fase de ensamblaje por orden. Si
+            // esta suborden quedó marcada como tal, se desmarca cualquier
+            // otra de la misma orden para no duplicar el avance del padre
+            // (mismo bug de doble conteo que corregimos antes, pero ahora
+            // a prueba de que se marquen dos subórdenes en momentos distintos).
+            if ($subOrder->es_ensamblaje) {
+                ProductionSubOrder::where('production_order_id', $subOrder->production_order_id)
+                    ->where('id', '!=', $subOrder->id)
+                    ->update(['es_ensamblaje' => false]);
             }
         });
 
@@ -98,6 +107,15 @@ class SubOrderController extends Controller
 
                 $subOrder->assignedUsers()->sync($syncData);
             }
+
+            // NUEVO: misma regla que en store() — al editar, si esta suborden
+            // queda marcada como ensamblaje, se desmarca cualquier otra de la
+            // misma orden.
+            if ($subOrder->es_ensamblaje) {
+                ProductionSubOrder::where('production_order_id', $subOrder->production_order_id)
+                    ->where('id', '!=', $subOrder->id)
+                    ->update(['es_ensamblaje' => false]);
+            }
         });
 
         return redirect()->back()->with('success', 'Suborden actualizada correctamente.');
@@ -120,6 +138,7 @@ class SubOrderController extends Controller
 
         DB::transaction(function () use ($subOrder, $user, $piecesProduced) {
 
+            // 1) Aportación individual del operario (tabla pivote)
             $pivotData = $subOrder->assignedUsers()->where('user_id', $user->id)->first();
 
             if ($pivotData) {
@@ -134,50 +153,89 @@ class SubOrderController extends Controller
                 ]);
             }
 
-            $product = $subOrder->productionOrder->product ?? null;
+            // CORRECCIÓN: este método nunca actualizaba las piezas propias de
+            // la suborden ni su estado — solo la tabla pivote. Una suborden
+            // podía quedarse en "pending"/"in_progress" para siempre aunque
+            // ya se hubiera producido toda su cantidad.
+            $subOrder->increment('completed_pieces', $piecesProduced);
 
-            if ($product && $product->recipes) {
-                foreach ($product->recipes as $recipe) {
-                    $material = $recipe->material;
-                    if ($material) {
-                        $totalQuantityNeeded = $recipe->quantity_required * $piecesProduced;
-                        $newStock = max(0, $material->stock_actual - $totalQuantityNeeded);
+            if ($subOrder->completed_pieces >= $subOrder->quantity) {
+                $subOrder->update(['status' => 'completed']);
+            } elseif ($subOrder->status === 'pending') {
+                $subOrder->update(['status' => 'in_progress']);
+            }
 
-                        $material->update([
-                            'stock_actual' => $newStock
-                        ]);
+            $orden = $subOrder->productionOrder;
 
-                        // NUEVO: incidencia automática de stock bajo.
-                        // production_order_id es obligatorio en la tabla incidences,
-                        // así que se toma de la orden a la que pertenece esta suborden.
-                        if ($newStock <= $material->stock_minimo) {
-                            $tituloIncidencia = "Stock bajo: {$material->name} ({$material->sku})";
+            // CORRECCIÓN: antes se descontaban materiales por CADA fase sin
+            // distinción, y este método nunca tocaba la orden padre. Ahora la
+            // orden padre (avance, estado, descuento de materiales, stock del
+            // producto) solo se mueve cuando esta suborden es la fase final
+            // de ensamblaje, o si es la única suborden de la orden — igual
+            // que en OperarioController::guardarRegistro().
+            $esFaseQueAvanzaLaOrden = $orden && ($subOrder->es_ensamblaje || $orden->subOrders()->count() <= 1);
 
-                            // Evita crear una incidencia duplicada si ya existe una
-                            // abierta para el mismo material.
-                            $yaExisteAbierta = Incidence::where('title', $tituloIncidencia)
-                                ->whereIn('status', ['pendiente', 'en_proceso'])
-                                ->exists();
+            if ($esFaseQueAvanzaLaOrden) {
+                $product = $orden->product;
 
-                            if (!$yaExisteAbierta) {
-                                Incidence::create([
-                                    'production_order_id' => $subOrder->production_order_id,
-                                    'user_id'              => $user->id,
-                                    'title'                 => $tituloIncidencia,
-                                    'description'           => "El material \"{$material->name}\" quedó en {$newStock} {$material->unit} "
-                                        . "(mínimo requerido: {$material->stock_minimo} {$material->unit}) "
-                                        . "tras registrar avance en la suborden \"{$subOrder->proceso}\".",
-                                    'status'                => 'pendiente',
-                                    'importance'            => $newStock <= 0 ? 'alta' : 'media',
-                                ]);
+                if ($product && $product->recipes) {
+                    foreach ($product->recipes as $recipe) {
+                        $material = $recipe->material;
+                        if ($material) {
+                            $totalQuantityNeeded = $recipe->quantity_required * $piecesProduced;
+                            $newStock = max(0, $material->stock_actual - $totalQuantityNeeded);
+
+                            $material->update([
+                                'stock_actual' => $newStock
+                            ]);
+
+                            // Incidencia automática de stock bajo. production_order_id
+                            // es obligatorio en la tabla incidences, así que se toma
+                            // de la orden a la que pertenece esta suborden.
+                            if ($newStock <= $material->stock_minimo) {
+                                $tituloIncidencia = "Stock bajo: {$material->name} ({$material->sku})";
+
+                                // Evita crear una incidencia duplicada si ya existe una
+                                // abierta para el mismo material.
+                                $yaExisteAbierta = Incidence::where('title', $tituloIncidencia)
+                                    ->whereIn('status', ['pendiente', 'en_proceso'])
+                                    ->exists();
+
+                                if (!$yaExisteAbierta) {
+                                    Incidence::create([
+                                        'production_order_id' => $subOrder->production_order_id,
+                                        'user_id'              => $user->id,
+                                        'title'                 => $tituloIncidencia,
+                                        'description'           => "El material \"{$material->name}\" quedó en {$newStock} {$material->unit} "
+                                            . "(mínimo requerido: {$material->stock_minimo} {$material->unit}) "
+                                            . "tras registrar avance en la suborden \"{$subOrder->proceso}\".",
+                                        'status'                => 'pendiente',
+                                        'importance'            => $newStock <= 0 ? 'alta' : 'media',
+                                    ]);
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            if ($subOrder->status === 'pending') {
-                $subOrder->update(['status' => 'in_progress']);
+                if ($subOrder->es_ensamblaje) {
+                    $orden->product()->increment('stock', $piecesProduced);
+                }
+
+                $orden->increment('completed_pieces', $piecesProduced);
+
+                if ($orden->completed_pieces >= $orden->quantity) {
+                    $orden->status = 'completed';
+                } elseif (strtolower($orden->status) === 'pending') {
+                    $orden->status = 'in_progress';
+                }
+
+                $orden->save();
+            } elseif ($orden && strtolower($orden->status) === 'pending') {
+                // Avanzó una fase intermedia: al menos reflejamos que ya hay
+                // trabajo en curso, sin tocar completed_pieces ni materiales.
+                $orden->status = 'in_progress';
+                $orden->save();
             }
         });
 

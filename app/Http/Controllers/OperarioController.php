@@ -40,6 +40,44 @@ class OperarioController extends Controller
             ->first();
     }
 
+    // NUEVO: helper único para saber si un usuario está realmente involucrado
+    // en una orden (como dueño directo o como asignado a alguna de sus subórdenes).
+    // Se usa para autorizar acciones (estación, iniciar, completar) de forma
+    // consistente con el criterio que ya usa buscarOrdenActiva().
+    private function usuarioInvolucradoEnOrden(ProductionOrder $orden, int $userId): bool
+    {
+        if ($orden->user_id === $userId) {
+            return true;
+        }
+
+        return $orden->subOrders()
+            ->whereHas('assignedUsers', function ($q) use ($userId) {
+                $q->where('users.id', $userId);
+            })
+            ->exists();
+    }
+
+    // NUEVO: calcula las "piezas actuales" de una orden usando la MISMA regla
+    // que el accessor porcentaje_avance del modelo (solo cuenta la fase de
+    // ensamblaje). Antes, tanto inicio() como registro() hacían
+    // RegistroProduccion::where('production_order_id', ...)->sum('cantidad'),
+    // lo que sumaba los registros de TODAS las fases de la orden — en una
+    // orden con 2+ fases esto duplicaba el conteo (ej. corte 30 + ensamblaje
+    // 30 = 60, cuando en realidad solo hay 30 piezas terminadas). Centralizar
+    // este cálculo aquí evita que se repita el mismo bug en un tercer lugar.
+    private function piezasRealesDeOrden(ProductionOrder $orden): int
+    {
+        $subOrdenEnsamblaje = $orden->subOrders->firstWhere('es_ensamblaje', true);
+
+        if ($subOrdenEnsamblaje) {
+            return $subOrdenEnsamblaje->completed_pieces;
+        }
+
+        return RegistroProduccion::where('production_order_id', $orden->id)
+            ->whereNull('sub_order_id')
+            ->sum('cantidad');
+    }
+
     public function inicio()
     {
         $userId = Auth::id();
@@ -58,13 +96,11 @@ class OperarioController extends Controller
         $subOrdenActiva = null;
 
         if ($ordenActiva) {
-            // Antes filtraba también por user_id, así que "Avance de Hoy" solo
-            // sumaba lo que había registrado el operario en sesión y no lo que
-            // aportaban sus compañeros en la misma orden. Se quita ese filtro
-            // para que refleje el avance real de la orden, hecho por todos los
-            // operarios involucrados.
-            $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-                ->sum('cantidad');
+            // CORREGIDO: antes sumaba RegistroProduccion de TODAS las fases
+            // de la orden (duplicaba el conteo en órdenes multi-fase). Ahora
+            // usa el mismo criterio "solo ensamblaje" que ya aplicamos en
+            // completed_pieces/status y en el accessor porcentaje_avance.
+            $piezasOrdenActiva = $this->piezasRealesDeOrden($ordenActiva);
 
             $subOrdenActiva = $this->buscarSubOrdenDelUsuario($ordenActiva, $userId);
 
@@ -115,10 +151,10 @@ class OperarioController extends Controller
         $piezasOrdenActiva = 0;
         $subOrdenActiva = null;
         if ($ordenActiva) {
-            // Mismo ajuste que en inicio(): el avance de la orden debe sumar a
-            // todos los operarios involucrados, no solo al que tiene la sesión.
-            $piezasOrdenActiva = RegistroProduccion::where('production_order_id', $ordenActiva->id)
-                ->sum('cantidad');
+            // CORREGIDO: mismo ajuste que en inicio() — antes sumaba
+            // RegistroProduccion de todas las fases (doble conteo). Ahora
+            // usa la regla "solo ensamblaje".
+            $piezasOrdenActiva = $this->piezasRealesDeOrden($ordenActiva);
 
             $subOrdenActiva = $this->buscarSubOrdenDelUsuario($ordenActiva, $userId);
         }
@@ -197,6 +233,8 @@ class OperarioController extends Controller
 
             $orden = ProductionOrder::with('product.recipes.material')->findOrFail($request->production_order_id);
 
+            $subOrder = null;
+
             if ($request->filled('sub_order_id')) {
                 $subOrder = ProductionSubOrder::findOrFail($request->sub_order_id);
                 $subOrder->increment('completed_pieces', $cantidad);
@@ -232,7 +270,14 @@ class OperarioController extends Controller
                 }
             }
 
-            if ($cantidad > 0) {
+            // El avance/estado/consumo de materiales de la ORDEN solo se
+            // actualiza cuando: (a) no hay subórdenes (orden de un solo
+            // paso), o (b) la suborden que reportó es la fase final de
+            // ensamblaje (es_ensamblaje) — que es la que realmente produce
+            // unidades terminadas del producto.
+            $avanzaOrdenPrincipal = !$subOrder || $subOrder->es_ensamblaje;
+
+            if ($cantidad > 0 && $avanzaOrdenPrincipal) {
                 $orden->increment('completed_pieces', $cantidad);
 
                 if ($orden->completed_pieces >= $orden->quantity) {
@@ -255,6 +300,13 @@ class OperarioController extends Controller
                         }
                     }
                 }
+            } elseif ($cantidad > 0 && $orden->status !== 'in_progress' && strtolower($orden->status) === 'pending') {
+                // Si avanzó una fase intermedia (no la de ensamblaje) pero la
+                // orden seguía "pending", igual la pasamos a "in_progress"
+                // para reflejar que ya hay trabajo en curso, sin tocar
+                // completed_pieces ni los materiales todavía.
+                $orden->status = 'in_progress';
+                $orden->save();
             }
         });
 
@@ -423,7 +475,7 @@ class OperarioController extends Controller
 
     public function actualizarEstacion(Request $request, ProductionOrder $productionOrder)
     {
-        if ($productionOrder->user_id !== Auth::id()) {
+        if (!$this->usuarioInvolucradoEnOrden($productionOrder, Auth::id())) {
             abort(403);
         }
 
@@ -467,6 +519,10 @@ class OperarioController extends Controller
 
     public function iniciarTarea(ProductionOrder $productionOrder)
     {
+        if (!$this->usuarioInvolucradoEnOrden($productionOrder, Auth::id())) {
+            abort(403);
+        }
+
         $productionOrder->update(['status' => 'in_progress']);
 
         return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
@@ -475,6 +531,10 @@ class OperarioController extends Controller
 
     public function completarTarea(ProductionOrder $productionOrder)
     {
+        if (!$this->usuarioInvolucradoEnOrden($productionOrder, Auth::id())) {
+            abort(403);
+        }
+
         $productionOrder->update(['status' => 'completed']);
 
         return redirect()->route('operario.tareas', ['orden' => $productionOrder->id])
