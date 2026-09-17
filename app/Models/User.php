@@ -65,11 +65,6 @@ class User extends Authenticatable
         return $this->hasMany(RegistroProduccion::class);
     }
 
-    public function skills()
-    {
-        return $this->hasMany(UserSkill::class);
-    }
-
     public function certifications()
     {
         return $this->hasMany(UserCertification::class);

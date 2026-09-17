@@ -332,7 +332,7 @@ class OperarioController extends Controller
 
     public function perfil()
     {
-        $user = \App\Models\User::with(['skills', 'permissions'])->find(Auth::id());
+        $user = \App\Models\User::with(['permissions'])->find(Auth::id());
 
         $ultimaOrden = ProductionOrder::where('user_id', $user->id)
             ->whereNotNull('estacion')
@@ -351,8 +351,6 @@ class OperarioController extends Controller
             'turno' => $user->turno ?? 'Sin definir',
             'alta_desde' => optional($user->created_at)->translatedFormat('M Y') ?? '—',
         ];
-
-        $habilidades = $user->skills->pluck('skill')->toArray();
 
         $permisos = $user->permissions->map(fn($perm) => [
             'nombre' => $perm->name,
@@ -416,7 +414,6 @@ class OperarioController extends Controller
 
         return view('operario.perfil', [
             'usuario' => $usuario,
-            'habilidades' => $habilidades,
             'permisos' => $permisos,
             'eficiencia' => $eficiencia,
             'ordenesCompletas' => $ordenesCompletas,

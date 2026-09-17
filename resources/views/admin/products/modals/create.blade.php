@@ -87,11 +87,6 @@
                         <label class="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">Stock Inicial *</label>
                         <input type="number" name="stock" value="0" min="0" required class="w-full px-3 py-2 bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-sm text-stone-700 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
                     </div>
-
-                    <div class="col-span-2">
-                        <label class="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-1">Descripción</label>
-                        <textarea name="description" rows="3" class="w-full px-3 py-2 bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg text-sm text-stone-700 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"></textarea>
-                    </div>
                 </div>
             </div>
 

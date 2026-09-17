@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('estacion')->nullable(); // Añadido para evitar errores de columna faltante
             $table->boolean('active')->default(true);
             $table->unsignedInteger('meta_diaria')->nullable();
-            $table->text('notas')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

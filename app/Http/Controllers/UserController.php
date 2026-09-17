@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\UserSkill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -16,13 +15,12 @@ class UserController extends Controller
     {
         $totalUsers = User::count();
 
-        // Se obtienen todos los usuarios sin omitir al usuario autenticado
-        $users = User::with(['roles', 'permissions', 'productionOrders', 'skills'])->get();
+        $users = User::with(['roles', 'permissions', 'productionOrders'])->get();
 
         $roles = Role::all();
         $permissions = Permission::all();
 
-        return view('admin.users.index', compact('users', 'roles', 'permissions', 'totalUsers')); 
+        return view('admin.users.index', compact('users', 'roles', 'permissions', 'totalUsers'));
     }
 
     public function store(Request $request)
@@ -37,10 +35,8 @@ class UserController extends Controller
             'turno'         => 'nullable|string|max:50',
             'estacion'      => 'nullable|string|max:100',
             'meta_diaria'   => 'nullable|integer|min:0',
-            'notas'         => 'nullable|string',
             'permissions'   => 'nullable|array',
             'permissions.*' => 'exists:permissions,id',
-            'skills'        => 'nullable|array',
         ]);
 
         $user = User::create([
@@ -52,22 +48,12 @@ class UserController extends Controller
             'estacion'    => $validated['estacion'] ?? null,
             'active'      => $validated['active'],
             'meta_diaria' => $validated['meta_diaria'] ?? null,
-            'notas'       => $validated['notas'] ?? null,
         ]);
 
         $user->roles()->sync([$validated['role_id']]);
 
         if (!empty($validated['permissions'])) {
             $user->permissions()->sync($validated['permissions']);
-        }
-
-        if (!empty($validated['skills'])) {
-            foreach ($validated['skills'] as $skillName) {
-                UserSkill::create([
-                    'user_id' => $user->id,
-                    'skill'   => $skillName,
-                ]);
-            }
         }
 
         return redirect()->route('admin.users.index')->with('success', "Operario '{$user->name}' creado exitosamente.");
@@ -85,10 +71,8 @@ class UserController extends Controller
             'turno'         => 'nullable|string|max:50',
             'estacion'      => 'nullable|string|max:100',
             'meta_diaria'   => 'nullable|integer|min:0',
-            'notas'         => 'nullable|string',
             'permissions'   => 'nullable|array',
             'permissions.*' => 'exists:permissions,id',
-            'skills'        => 'nullable|array',
         ]);
 
         $user->name        = $validated['name'];
@@ -98,7 +82,6 @@ class UserController extends Controller
         $user->estacion    = $validated['estacion'] ?? null;
         $user->active      = $validated['active'];
         $user->meta_diaria = $validated['meta_diaria'] ?? null;
-        $user->notas       = $validated['notas'] ?? null;
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
@@ -109,27 +92,15 @@ class UserController extends Controller
         $user->roles()->sync([$validated['role_id']]);
         $user->permissions()->sync($validated['permissions'] ?? []);
 
-        $user->skills()->delete();
-        if (!empty($validated['skills'])) {
-            foreach ($validated['skills'] as $skillName) {
-                UserSkill::create([
-                    'user_id' => $user->id,
-                    'skill'   => $skillName,
-                ]);
-            }
-        }
-
         return back()->with('success', "Usuario '{$user->name}' actualizado correctamente.");
     }
 
     public function destroy(User $user)
     {
-        // Protege al administrador raíz (ID 1) de ser eliminado
         if ($user->id === 1) {
             return back()->with('error', 'El administrador principal (ID 1) no se puede eliminar.');
         }
 
-        // Protege al usuario actual de auto-eliminarse
         if ($user->id === auth()->id()) {
             return back()->with('error', 'No puedes eliminar tu propia cuenta en uso.');
         }
@@ -137,7 +108,6 @@ class UserController extends Controller
         $name = $user->name;
         $user->roles()->detach();
         $user->permissions()->detach();
-        $user->skills()->delete();
         $user->delete();
 
         return back()->with('success', "Usuario '{$name}' eliminado correctamente.");

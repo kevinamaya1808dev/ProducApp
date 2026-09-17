@@ -13,10 +13,9 @@ class CategoryController extends Controller
     public function index(Request $request): View
     {
         $query = Category::query();
-        
+
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%' . $request->search . '%');
         }
 
         $categories = $query->latest()->paginate(10);
@@ -26,7 +25,7 @@ class CategoryController extends Controller
         if ($request->filled('category')) {
             $activeCategory = Category::find($request->category);
         }
-        
+
         // 2. Si no hay una seleccionada pero existen categorías, seleccionamos la primera por defecto
         if (!$activeCategory && $categories->isNotEmpty()) {
             $activeCategory = $categories->first();
@@ -39,14 +38,12 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
-            'description' => 'nullable|string',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
 
         $category = Category::create($validated);
 
-        // Redirigir seleccionando automáticamente la categoría recién creada
         return redirect()->route('admin.categories.index', ['category' => $category->id])
                          ->with('success', 'Categoría creada correctamente.');
     }
@@ -55,14 +52,12 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'description' => 'nullable|string',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
 
         $category->update($validated);
 
-        // Redirigir manteniendo seleccionada la categoría actualizada
         return redirect()->route('admin.categories.index', ['category' => $category->id])
                          ->with('success', 'Categoría actualizada correctamente.');
     }

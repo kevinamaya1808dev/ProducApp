@@ -52,11 +52,9 @@
     }
 
     function selectUser(card) {
-        let skillsParsed = [];
         let permissionsParsed = [];
         let ordersParsed = [];
 
-        try { skillsParsed = JSON.parse(card.dataset.skills || '[]'); } catch(e) { skillsParsed = []; }
         try { permissionsParsed = JSON.parse(card.dataset.permissions || '[]'); } catch(e) { permissionsParsed = []; }
         try { ordersParsed = JSON.parse(card.dataset.orders || '[]'); } catch(e) { ordersParsed = []; }
 
@@ -74,7 +72,6 @@
             active: card.dataset.active === '1' || card.dataset.active === 'true',
             notas: card.dataset.notas || '',
             created: card.dataset.created || '',
-            skills: skillsParsed,
             permissions: permissionsParsed,
             orders: ordersParsed,
             currentOrder: card.dataset.currentOrder || 'Ninguna'
@@ -106,24 +103,6 @@
             if (statusButtonText) statusButtonText.textContent = 'Dar de alta';
         }
 
-        // Renderizar Habilidades
-        const skillsContainer = document.getElementById('panelSkillsContainer');
-        const noSkillsMsg = document.getElementById('panelNoSkills');
-        skillsContainer.innerHTML = '';
-
-        if (currentUser.skills.length > 0) {
-            noSkillsMsg.style.display = 'none';
-            currentUser.skills.forEach(skill => {
-                const skillName = typeof skill === 'object' ? (skill.skill || skill.name) : skill;
-                const span = document.createElement('span');
-                span.className = 'inline-block px-3 py-1 text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-900/50 rounded-full';
-                span.textContent = skillName;
-                skillsContainer.appendChild(span);
-            });
-        } else {
-            noSkillsMsg.style.display = 'block';
-        }
-
         // Formulario de eliminación
         const deleteForm = document.getElementById('deleteUserForm');
         if (deleteForm) {
@@ -152,7 +131,6 @@
             meta_diaria: currentUser.meta_diaria,
             notas: currentUser.notas,
             roles: currentUser.roleId ? [{ id: currentUser.roleId }] : [],
-            skills: currentUser.skills.map(s => typeof s === 'object' ? s : { skill: s }),
             permissions: currentUser.permissions.map(id => typeof id === 'object' ? id : { id: parseInt(id) })
         };
 
@@ -180,15 +158,19 @@
         setVal('editNotas', user.notas);
         setVal('editPassword', '');
 
-        const roleSelect = document.getElementById('editRoleId');
-        if (roleSelect) {
-            roleSelect.value = (user.roles && user.roles.length > 0) ? (user.roles[0].id || user.roles[0]) : (user.roleId || '');
-        }
+        // Rol: actualiza el estado de Alpine directamente (el dropdown de Rol
+        // usa x-data/x-model, así que escribir el <input type="hidden"> con
+        // JS vanilla no se reflejaba ni en Alpine ni en el submit real).
+        const roleDropdown = document.getElementById('editRoleDropdown');
+        if (roleDropdown && window.Alpine) {
+            const data = Alpine.$data(roleDropdown);
+            const roleId = (user.roles && user.roles.length > 0)
+                ? String(user.roles[0].id || user.roles[0])
+                : (user.roleId ? String(user.roleId) : '');
 
-        const userSkillsNames = user.skills ? user.skills.map(s => s.skill || s.name || s) : [];
-        document.querySelectorAll('.edit-skill-checkbox').forEach(cb => {
-            cb.checked = userSkillsNames.includes(cb.value);
-        });
+            data.selectedId = roleId;
+            data.selectedName = data.options[roleId] || 'Selecciona un rol';
+        }
 
         const userPermissionIds = user.permissions ? user.permissions.map(p => typeof p === 'object' ? p.id : parseInt(p)) : [];
         document.querySelectorAll('.permission-checkbox').forEach(cb => {
@@ -231,21 +213,21 @@
         if (currentUser.active) {
             modalTitle.textContent = "Dar de baja";
             modalMessage.innerHTML = `¿Dar de baja a "<span class="text-slate-800 dark:text-stone-200 font-medium">${currentUser.name}</span>"? No podrá iniciar sesión ni recibir órdenes.`;
-            
+
             modalIconContainer.className = "flex items-center justify-center w-12 h-12 mb-4 bg-red-100 dark:bg-red-950/50 rounded-full";
             modalIcon.className = "w-6 h-6 text-red-500 dark:text-red-400";
             modalIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>`;
-            
+
             modalConfirmBtn.className = "w-full px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-lg shadow-red-600/20";
             modalConfirmBtn.textContent = "Dar de baja";
         } else {
             modalTitle.textContent = "Dar de alta";
             modalMessage.innerHTML = `¿Dar de alta a "<span class="text-slate-800 dark:text-stone-200 font-medium">${currentUser.name}</span>"? Podrá volver a ingresar al sistema.`;
-            
+
             modalIconContainer.className = "flex items-center justify-center w-12 h-12 mb-4 bg-emerald-100 dark:bg-emerald-950/50 rounded-full";
             modalIcon.className = "w-6 h-6 text-emerald-500 dark:text-emerald-400";
             modalIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>`;
-            
+
             modalConfirmBtn.className = "w-full px-4 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-lg shadow-emerald-600/20";
             modalConfirmBtn.textContent = "Dar de alta";
         }

@@ -28,8 +28,6 @@ $table->string('code')->unique();
 
 $table->string('name');
 
-$table->text('description')->nullable();
-
 $table->integer('stock')->default(0);
 
 $table->decimal('unit_cost', 10, 2)->default(0.00);

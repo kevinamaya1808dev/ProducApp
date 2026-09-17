@@ -12,9 +12,6 @@
             {{ $category->slug }}
         </span>
     </div>
-    <p class="text-xs text-slate-500 dark:text-stone-400 mt-1.5 line-clamp-2">
-        {{ $category->description ?? 'Sin descripción registrada.' }}
-    </p>
     <div class="flex items-center justify-between text-[11px] text-slate-400 dark:text-stone-500 mt-3 pt-3 border-t border-slate-100 dark:border-stone-800">
         <span>Última modificación</span>
         <span>{{ $category->updated_at->format('d M Y') }}</span>

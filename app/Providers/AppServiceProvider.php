@@ -10,11 +10,23 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        // Bypass global: El administrador tiene acceso total a todos los Gates
-        Gate::before(function (User $user, string $ability) {
-            if ($user->hasRole('admin')) {
+        // Abilities del módulo Operario: quedan FUERA del bypass de admin,
+        // se evalúan siempre por permiso real (aunque el usuario sea admin)
+        $operarioAbilities = [
+            'access-operario',
+            'view-assigned-orders',
+            'update-progress',
+            'create-incidences',
+        ];
+
+        // Bypass global: el administrador tiene acceso total a todos los Gates,
+        // EXCEPTO a las abilities del módulo Operario
+        Gate::before(function (User $user, string $ability) use ($operarioAbilities) {
+            if ($user->hasRole('admin') && !in_array($ability, $operarioAbilities)) {
                 return true;
             }
+
+            return null; // deja que Gate::define evalúe normalmente
         });
 
         // MÓDULO ADMINISTRATIVO

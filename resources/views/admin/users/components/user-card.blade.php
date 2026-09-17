@@ -37,7 +37,6 @@
     data-active="{{ $user->active ? '1' : '0' }}"
     data-notas="{{ e($user->notas ?? '') }}"
     data-created="{{ $user->created_at->translatedFormat('M Y') }}"
-    data-skills='{{ json_encode($user->skills->pluck("skill")) }}'
     data-permissions='{{ json_encode($user->permissions->pluck("id")) }}'
     data-orders='{{ json_encode($ordersData) }}'
     data-current-order="{{ e($currentOrderName) }}"
