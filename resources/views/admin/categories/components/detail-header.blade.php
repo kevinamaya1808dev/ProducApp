@@ -9,14 +9,18 @@
         <p class="text-xs text-slate-500 dark:text-stone-400 mt-1.5">Creada el {{ $category->created_at->format('d M Y') }} &middot; Última actualización: {{ $category->updated_at->format('d M Y') }}</p>
     </div>
 
-    @can('manage-categories')
+    @canany(['categories.edit', 'categories.delete'])
     <div class="flex items-center gap-2">
+        @can('categories.edit')
         <button type="button" onclick="openModal('editCategoryModal-{{ $category->id }}')" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium text-sm rounded-xl transition-all shadow-md shadow-orange-600/25">
             Editar Categoría
         </button>
+        @endcan
+        @can('categories.delete')
         <button type="button" onclick="openModal('deleteCategoryModal-{{ $category->id }}')" class="px-4 py-2 bg-white dark:bg-stone-900 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/50 text-red-600 dark:text-red-400 font-medium text-sm rounded-xl transition-all shadow-sm">
             Eliminar
         </button>
+        @endcan
     </div>
-    @endcan
+    @endcanany
 </div>

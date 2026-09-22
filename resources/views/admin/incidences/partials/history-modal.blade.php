@@ -18,19 +18,21 @@
             </button>
         </div>
 
-        <div class="px-6 pt-4 pb-2 shrink-0">
-            <!-- Agregar Nota rápida -->
-            <form id="addNoteForm" method="POST">
-                @csrf
-                <div class="flex gap-2">
-                    <input type="text" name="comment" required placeholder="Escribe una nota o avance..." class="flex-1 text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:border-orange-500 focus:ring-orange-500 focus:bg-white dark:focus:bg-stone-800 transition-colors">
-                    <button type="submit" class="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-stone-800 hover:bg-stone-900 dark:bg-stone-700 dark:hover:bg-stone-600 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                        Guardar
-                    </button>
-                </div>
-            </form>
-        </div>
+        @can('incidences.edit')
+    <div class="px-6 pt-4 pb-2 shrink-0">
+        <!-- Agregar Nota rápida -->
+        <form id="addNoteForm" method="POST">
+            @csrf
+            <div class="flex gap-2">
+                <input type="text" name="comment" required placeholder="Escribe una nota o avance..." class="flex-1 text-sm rounded-xl bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:border-orange-500 focus:ring-orange-500 focus:bg-white dark:focus:bg-stone-800 transition-colors">
+                <button type="submit" class="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-stone-800 hover:bg-stone-900 dark:bg-stone-700 dark:hover:bg-stone-600 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+@endcan
 
         <!-- Contenedor del Historial -->
         <div class="flex-1 overflow-y-auto px-6 pb-6 pt-2 space-y-3" id="historyLogsContainer">

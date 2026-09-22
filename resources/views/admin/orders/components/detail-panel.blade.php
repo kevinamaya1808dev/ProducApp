@@ -53,7 +53,7 @@
         <div>
             <div class="flex justify-between items-center mb-3">
                 <h4 class="font-bold text-slate-800 dark:text-stone-200">Desglose de Procesos (<span id="panelSubOrdersCount">0</span>)</h4>
-                @can('manage-orders')
+                @can('orders.manage')
                 <button type="button" onclick="openCreateSubOrderModalFromPanel()" class="text-xs text-orange-600 dark:text-orange-400 font-bold hover:underline">+ Proceso</button>
                 @endcan
             </div>
@@ -62,10 +62,14 @@
         </div>
     </div>
 
-    @can('manage-orders')
+    @canany(['orders.edit', 'orders.delete'])
     <div class="px-6 py-4 bg-slate-50 dark:bg-stone-800/50 border-t border-slate-100 dark:border-stone-800 flex justify-end gap-3">
-        <button type="button" onclick="openDeleteModalFromPanel()" class="px-4 py-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors">Eliminar</button>
-        <button type="button" onclick="openEditModalFromPanel()" class="px-4 py-2 bg-orange-600 text-white rounded-xl text-sm font-medium hover:bg-orange-700 shadow-sm shadow-orange-600/30 transition-colors">Editar Orden</button>
+        @can('orders.delete')
+            <button type="button" onclick="openDeleteModalFromPanel()" class="px-4 py-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors">Eliminar</button>
+        @endcan
+        @can('orders.edit')
+            <button type="button" onclick="openEditModalFromPanel()" class="px-4 py-2 bg-orange-600 text-white rounded-xl text-sm font-medium hover:bg-orange-700 shadow-sm shadow-orange-600/30 transition-colors">Editar Orden</button>
+        @endcan
     </div>
-    @endcan
+    @endcanany
 </div>

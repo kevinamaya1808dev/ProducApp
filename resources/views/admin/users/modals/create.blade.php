@@ -141,31 +141,17 @@
                         </div>
                     </div>
 
-                    <!-- Permisos individuales (mismo checkbox rediseñado) -->
-                    <div class="border-t border-slate-100 dark:border-stone-800 pt-5">
-                        <h4 class="text-xs font-bold text-slate-400 dark:text-stone-400 uppercase tracking-wider mb-2">Permisos Individuales</h4>
-                        <p class="text-xs text-slate-500 dark:text-stone-400 mb-4">
-                            Estos permisos se suman a los que el usuario ya tiene por su rol. Úsalos para dar acceso puntual a una función sin cambiarle el rol.
-                        </p>
-
-                        <input type="hidden" name="permissions" value="">
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-stone-800/50 p-4 rounded-xl border border-slate-100 dark:border-stone-800">
-                            @forelse($permissions as $permission)
-                                <label class="modal-checkbox-card">
-                                    <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" class="modal-checkbox-input">
-                                    <span class="modal-checkbox-box">
-                                        <svg class="modal-checkbox-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                    </span>
-                                    <span class="modal-checkbox-text">{{ $permission->name }}</span>
-                                </label>
-                            @empty
-                                <p class="text-xs text-slate-400 dark:text-stone-500 col-span-full py-2 text-center">No hay permisos registrados en el sistema todavía.</p>
-                            @endforelse
-                        </div>
-                    </div>
+                    @<!-- Permisos: vista aparte -->
+<div class="border-t border-slate-100 dark:border-stone-800 pt-5">
+    <h4 class="text-xs font-bold text-slate-400 dark:text-stone-400 uppercase tracking-wider mb-2">Permisos</h4>
+    <p class="text-xs text-slate-500 dark:text-stone-400 mb-3">
+        Los permisos se gestionan en una pantalla dedicada, con la matriz completa por módulo.
+    </p>
+    <a id="editPermissionsBtn" href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-stone-800 border border-slate-200 dark:border-stone-700 text-slate-700 dark:text-stone-300 text-sm font-medium rounded-xl hover:bg-slate-200 dark:hover:bg-stone-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        Gestionar Permisos
+    </a>
+</div>
                 </div>
 
                 <div class="px-6 py-4 bg-slate-50/75 dark:bg-stone-800/50 border-t border-slate-100 dark:border-stone-800 flex justify-end gap-3">

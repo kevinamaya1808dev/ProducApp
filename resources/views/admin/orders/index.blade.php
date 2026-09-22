@@ -25,15 +25,22 @@
         {{ $orders->links() }}
     </div>
 
+ 
     {{-- Modales (Solo para usuarios con permisos) --}}
-    @can('manage-orders')
-        @include('admin.orders.modals.create')
-        @include('admin.orders.modals.create-sub-order')
-        @include('admin.orders.modals.edit-sub-order')
-        @include('admin.orders.modals.delete-sub-order')
-        @include('admin.orders.modals.edit')
-        @include('admin.orders.modals.delete')
-    @endcan
+@can('orders.create')
+    @include('admin.orders.modals.create')
+@endcan
+@can('orders.manage')
+    @include('admin.orders.modals.create-sub-order')
+    @include('admin.orders.modals.edit-sub-order')
+    @include('admin.orders.modals.delete-sub-order')
+@endcan
+@can('orders.edit')
+    @include('admin.orders.modals.edit')
+@endcan
+@can('orders.delete')
+    @include('admin.orders.modals.delete')
+@endcan
 
 </div>
 @endsection

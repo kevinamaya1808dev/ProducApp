@@ -28,11 +28,12 @@
                 </div>
             </div>
 
-            <!-- Botón Nueva Incidencia -->
-            <button onclick="openModal('createModal')" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-medium text-sm rounded-xl transition-all shadow-sm shadow-orange-600/30">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Reportar Incidencia
-            </button>
+            @can('incidences.create')
+<button onclick="openModal('createModal')" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-medium text-sm rounded-xl transition-all shadow-sm shadow-orange-600/30">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+    Reportar Incidencia
+</button>
+@endcan
         </div>
     </div>
 
@@ -341,15 +342,17 @@
                                 {{ $incidence->created_at->format('d/m/Y H:i') }}
                             </td>
                             <td class="py-3.5 px-4 text-right space-x-1">
-                                <button onclick='openStatusModal(@json($incidence))' class="px-2.5 py-1.5 text-xs bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-lg transition-colors font-medium">Estado</button>
-                                <button onclick='openHistoryModal(@json($incidence))' class="px-2.5 py-1.5 text-xs bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/50 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-lg transition-colors font-medium">Historial ({{ $incidence->logs->count() }})</button>
-                                
-                                @if(Auth::user()->role !== 'operario')
-                                    <button onclick='openDeleteModal(@json($incidence))' title="Eliminar" class="px-2.5 py-1.5 text-xs bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded-lg transition-colors font-medium">
-                                        Eliminar
-                                    </button>
-                                @endif
-                            </td>
+    @can('incidences.edit')
+        <button onclick='openStatusModal(@json($incidence))' class="px-2.5 py-1.5 text-xs bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-lg transition-colors font-medium">Estado</button>
+    @endcan
+    <button onclick='openHistoryModal(@json($incidence))' class="px-2.5 py-1.5 text-xs bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/50 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-lg transition-colors font-medium">Historial ({{ $incidence->logs->count() }})</button>
+
+    @can('incidences.delete')
+        <button onclick='openDeleteModal(@json($incidence))' title="Eliminar" class="px-2.5 py-1.5 text-xs bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded-lg transition-colors font-medium">
+            Eliminar
+        </button>
+    @endcan
+</td>
                         </tr>
                     @empty
                         <tr>
@@ -365,11 +368,16 @@
     </div>
 </div>
 
-<!-- Importación de Modales -->
-@include('admin.incidences.partials.create-modal')
-@include('admin.incidences.partials.status-modal')
+@can('incidences.create')
+    @include('admin.incidences.partials.create-modal')
+@endcan
+@can('incidences.edit')
+    @include('admin.incidences.partials.status-modal')
+@endcan
 @include('admin.incidences.partials.history-modal')
-@include('admin.incidences.partials.delete-modal')
+@can('incidences.delete')
+    @include('admin.incidences.partials.delete-modal')
+@endcan
 
 @push('scripts')
 <!-- CDN de Chart.js y AlpineJS (si no están incluidos en la plantilla principal) -->

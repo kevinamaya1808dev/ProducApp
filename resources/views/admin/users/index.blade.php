@@ -16,12 +16,16 @@
         @include('admin.users.components.detail-panel')
     </div>
 
-    @can('manage-users')
-        @include('admin.users.modals.create')
-        @include('admin.users.modals.edit')
-        @include('admin.users.modals.delete')
-        @include('admin.users.modals.deactivate')
-    @endcan
+   @can('users.create')
+    @include('admin.users.modals.create')
+@endcan
+        @can('users.edit')
+    @include('admin.users.modals.edit')
+    @include('admin.users.modals.deactivate')
+@endcan
+        @can('users.delete')
+    @include('admin.users.modals.delete')
+@endcan
 
 </div>
 
@@ -138,29 +142,30 @@
     }
 
     function openEditModal(user) {
-        if (!user) return;
+    if (!user) return;
 
-        const form = document.getElementById('editForm');
-        if (form && user.id) form.action = `/admin/users/${user.id}`;
+    const form = document.getElementById('editForm');
+    if (form && user.id) form.action = `/admin/users/${user.id}`;
 
-        const setVal = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.value = (val !== null && val !== undefined) ? val : '';
-        };
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = (val !== null && val !== undefined) ? val : '';
+    };
 
-        setVal('editName', user.name);
-        setVal('editEmail', user.email);
-        setVal('editActive', user.active ? 1 : 0);
-        setVal('editPuesto', user.puesto);
-        setVal('editTurno', user.turno);
-        setVal('editEstacion', user.estacion);
-        setVal('editMetaDiaria', user.meta_diaria);
-        setVal('editNotas', user.notas);
-        setVal('editPassword', '');
+    setVal('editName', user.name);
+    setVal('editEmail', user.email);
+    setVal('editActive', user.active ? 1 : 0);
+    setVal('editPuesto', user.puesto);
+    setVal('editTurno', user.turno);
+    setVal('editEstacion', user.estacion);
+    setVal('editMetaDiaria', user.meta_diaria);
+    setVal('editNotas', user.notas);
+    setVal('editPassword', '');
 
-        // Rol: actualiza el estado de Alpine directamente (el dropdown de Rol
-        // usa x-data/x-model, así que escribir el <input type="hidden"> con
-        // JS vanilla no se reflejaba ni en Alpine ni en el submit real).
+    // Rol: actualiza el estado de Alpine directamente. Envuelto en try/catch
+    // para que un fallo aquí (ej. Alpine aún no inicializó el componente)
+    // no bloquee el resto de la función, como el botón de Permisos de abajo.
+    try {
         const roleDropdown = document.getElementById('editRoleDropdown');
         if (roleDropdown && window.Alpine) {
             const data = Alpine.$data(roleDropdown);
@@ -171,15 +176,16 @@
             data.selectedId = roleId;
             data.selectedName = data.options[roleId] || 'Selecciona un rol';
         }
-
-        const userPermissionIds = user.permissions ? user.permissions.map(p => typeof p === 'object' ? p.id : parseInt(p)) : [];
-        document.querySelectorAll('.permission-checkbox').forEach(cb => {
-            cb.checked = userPermissionIds.includes(parseInt(cb.value));
-        });
-
-        const editModal = document.getElementById('editModal');
-        if (editModal) editModal.style.display = 'block';
+    } catch (e) {
+        console.error('No se pudo actualizar el dropdown de Rol vía Alpine:', e);
     }
+
+    const permBtn = document.getElementById('editPermissionsBtn');
+    if (permBtn && user.id) permBtn.href = `/admin/users/${user.id}/permissions`;
+
+    const editModal = document.getElementById('editModal');
+    if (editModal) editModal.style.display = 'block';
+}
 
     function closeEditModal() {
         const editModal = document.getElementById('editModal');

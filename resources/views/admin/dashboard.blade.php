@@ -30,7 +30,7 @@
         ])
         
         <!-- Protegemos la tarjeta de incidencias con el slug exacto de la BD -->
-        @can('create-incidences')
+        @can('incidences.view')
         @include('admin.components.dashboard.kpi-card', [
             'title' => 'Incidencias / Alertas',
             'value' => $activeIncidentsCount ?? 0,
@@ -44,7 +44,7 @@
     <!-- Tabla + Actividad -->
     <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <!-- Protegemos la tabla de órdenes con el slug exacto de la BD -->
-        @can('view-orders')
+        @can('orders.view')
             @include('admin.components.dashboard.orders-table', ['orders' => $orders ?? null])
         @endcan
         
@@ -52,7 +52,7 @@
     </div>
 </div>
 
-@can('view-admin-dashboard')
+@can('dashboard.manage')
 @include('admin.modals.export')
 @endcan
 @include('admin.modals.filter')

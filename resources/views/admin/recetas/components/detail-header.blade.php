@@ -9,21 +9,26 @@
 </div>
 
 <div class="px-6 pt-5 flex flex-wrap items-center gap-2">
-    @can('manage-recipes')
+    @can('recipes.manage')
         <button type="button" onclick="openModal('addComponentModal')" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 font-semibold text-sm rounded-xl border border-emerald-200 dark:border-emerald-900/50 transition-all">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Componente
         </button>
-        
+    @endcan
+
+    @can('recipes.edit')
         <button type="button" onclick="openModal('editRecipeModal-{{ $recipe->id }}')" class="px-4 py-2 bg-white dark:bg-stone-900 border border-orange-200 dark:border-orange-900/50 hover:bg-orange-50 dark:hover:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-semibold text-sm rounded-xl transition-all">
             Editar receta
         </button>
+    @endcan
 
-        <!-- Botón actualizado para abrir el modal de duplicar -->
+    @can('recipes.manage')
         <button type="button" onclick="openModal('duplicateRecipeModal-{{ $recipe->id }}')" class="px-4 py-2 bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-800 hover:bg-slate-50 dark:hover:bg-stone-800 text-slate-600 dark:text-stone-300 font-semibold text-sm rounded-xl transition-all">
             Duplicar
         </button>
+    @endcan
 
+    @can('recipes.delete')
         <button type="button" onclick="openModal('deleteRecipeModal-{{ $recipe->id }}')" class="px-4 py-2 bg-white dark:bg-stone-900 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 font-semibold text-sm rounded-xl transition-all">
             Eliminar
         </button>

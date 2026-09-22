@@ -19,22 +19,25 @@
                 {{ __('Control de Almacén e Insumos') }}
             </h2>
             <div class="flex items-center gap-3">
-                <a href="{{ route('admin.almacen.historial') }}" class="px-4 py-2.5 bg-white dark:bg-stone-900 border border-slate-300 dark:border-stone-700 hover:bg-slate-50 dark:hover:bg-stone-800 text-slate-700 dark:text-stone-200 font-bold rounded-xl text-sm transition-colors shadow-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Historial General
-                </a>
+    <a href="{{ route('admin.almacen.historial') }}" class="px-4 py-2.5 bg-white dark:bg-stone-900 border border-slate-300 dark:border-stone-700 hover:bg-slate-50 dark:hover:bg-stone-800 text-slate-700 dark:text-stone-200 font-bold rounded-xl text-sm transition-colors shadow-sm flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Historial General
+    </a>
 
-                @can('manage-almacen')
-                    <button @click="openMaterialModal = true" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-orange-950/20 flex items-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Registrar Material
-                    </button>
-                    <button @click="openRecipeModal = true" class="px-4 py-2.5 bg-white dark:bg-stone-900 border border-slate-300 dark:border-stone-700 hover:bg-slate-50 dark:hover:bg-stone-800 text-slate-700 dark:text-stone-200 font-bold rounded-xl text-sm transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Vincular Receta
-                    </button>
-                @endcan
-            </div>
+    @can('almacen.create')
+        <button @click="openMaterialModal = true" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-orange-950/20 flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Registrar Material
+        </button>
+    @endcan
+
+    @can('almacen.manage')
+        <button @click="openRecipeModal = true" class="px-4 py-2.5 bg-white dark:bg-stone-900 border border-slate-300 dark:border-stone-700 hover:bg-slate-50 dark:hover:bg-stone-800 text-slate-700 dark:text-stone-200 font-bold rounded-xl text-sm transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Vincular Receta
+        </button>
+    @endcan
+</div>
         </div>
 
         {{-- Banner de alerta cuando hay materiales en stock bajo --}}
@@ -60,14 +63,20 @@
 
     </div>
 
-    @can('manage-almacen')
-        @include('admin.almacen.modals.material-modal')
-        @include('admin.almacen.modals.recipe-modal')
-        @include('admin.almacen.modals.edit-material-modal')
-        @include('admin.almacen.modals.delete-material-modal')
-        @include('admin.almacen.modals.add-stock-modal')
-    @endcan
+   @can('almacen.create')
+    @include('admin.almacen.modals.material-modal')
+@endcan
+@can('almacen.manage')
+    @include('admin.almacen.modals.recipe-modal')
+    @include('admin.almacen.modals.add-stock-modal')
+@endcan
+@can('almacen.edit')
+    @include('admin.almacen.modals.edit-material-modal')
+@endcan
+@can('almacen.delete')
+    @include('admin.almacen.modals.delete-material-modal')
+@endcan
 
-    @include('admin.almacen.modals.stock-history-modal')
+@include('admin.almacen.modals.stock-history-modal')
 </div>
 @endsection

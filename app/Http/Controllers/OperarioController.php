@@ -9,6 +9,7 @@ use App\Models\RegistroProduccion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class OperarioController extends Controller
 {
@@ -40,10 +41,11 @@ class OperarioController extends Controller
             ->first();
     }
 
-    // NUEVO: helper único para saber si un usuario está realmente involucrado
+    // Helper único para saber si un usuario está realmente involucrado
     // en una orden (como dueño directo o como asignado a alguna de sus subórdenes).
-    // Se usa para autorizar acciones (estación, iniciar, completar) de forma
-    // consistente con el criterio que ya usa buscarOrdenActiva().
+    // Se usa para autorizar acciones (estación, iniciar, completar, registrar
+    // avance, reportar incidencia) de forma consistente con el criterio que
+    // ya usa buscarOrdenActiva().
     private function usuarioInvolucradoEnOrden(ProductionOrder $orden, int $userId): bool
     {
         if ($orden->user_id === $userId) {
@@ -55,6 +57,28 @@ class OperarioController extends Controller
                 $q->where('users.id', $userId);
             })
             ->exists();
+    }
+
+    // NUEVO: análogo a usuarioInvolucradoEnOrden() pero a nivel de suborden.
+    // Una orden puede tener varias subórdenes con distintos operarios
+    // asignados; estar involucrado en la orden no significa estar asignado
+    // a ESTA suborden en particular. Se usa en guardarRegistro() y
+    // estadoSuborden() para cerrar el hueco de autorización que tenían
+    // (cualquier operario podía operar sobre una suborden ajena solo
+    // cambiando el ID).
+    private function usuarioPuedeOperarSuborden(ProductionSubOrder $subOrder, $user): bool
+    {
+        if ($subOrder->assignedUsers()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        $orden = $subOrder->productionOrder;
+
+        if ($orden && $orden->user_id === $user->id) {
+            return true;
+        }
+
+        return $user->hasPermission('manage-orders');
     }
 
     // NUEVO: calcula las "piezas actuales" de una orden usando la MISMA regla
@@ -219,24 +243,87 @@ class OperarioController extends Controller
         ]);
 
         $userId = Auth::id();
+        $user = Auth::user();
         $cantidad = $request->cantidad ?? 0;
 
-        DB::transaction(function () use ($request, $userId, $cantidad) {
+        // CORRECCIÓN DE SEGURIDAD: antes solo se validaba que
+        // production_order_id/sub_order_id existieran en la BD
+        // (exists:...), sin comprobar que le pertenecieran al usuario. Esta
+        // era la única acción mutable del módulo operario que NO pasaba por
+        // el gate "update-progress" ni por ningún chequeo de pertenencia:
+        // cualquier operario autenticado podía enviar el ID de una orden/
+        // suborden ajena y registrar producción (y descontar almacén) sobre
+        // ella. Ahora se verifica pertenencia antes de tocar nada.
+        $orden = ProductionOrder::findOrFail($request->production_order_id);
+
+        if (!$this->usuarioInvolucradoEnOrden($orden, $userId)) {
+            abort(403, 'No estás asignado a esta orden.');
+        }
+
+        $subOrderId = $request->input('sub_order_id');
+
+        if ($subOrderId) {
+            // CORRECCIÓN: se valida que la suborden pertenezca realmente a
+            // la orden indicada (antes se aceptaba cualquier combinación de
+            // IDs) y que el usuario esté asignado a ELLA — no basta con
+            // estar involucrado en la orden, porque una orden puede tener
+            // varias subórdenes con distintos operarios.
+            $subOrdenCandidata = ProductionSubOrder::where('id', $subOrderId)
+                ->where('production_order_id', $orden->id)
+                ->first();
+
+            if (!$subOrdenCandidata) {
+                abort(404, 'La suborden no pertenece a esta orden.');
+            }
+
+            if (!$this->usuarioPuedeOperarSuborden($subOrdenCandidata, $user)) {
+                abort(403, 'No estás asignado a esta suborden.');
+            }
+        }
+
+        DB::transaction(function () use ($userId, $cantidad, $request, $orden, $subOrderId) {
+
+            // CORRECCIÓN DE CONCURRENCIA: se vuelve a leer la orden (y la
+            // suborden, si aplica) con lockForUpdate() dentro de la
+            // transacción, para que dos registros simultáneos sobre la
+            // misma orden/suborden no lean valores obsoletos de
+            // completed_pieces/quantity antes de compararlos.
+            $orden = ProductionOrder::with('product.recipes.material')
+                ->whereKey($orden->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $subOrder = null;
+
+            if ($subOrderId) {
+                $subOrder = ProductionSubOrder::whereKey($subOrderId)->lockForUpdate()->firstOrFail();
+
+                // CORRECCIÓN: se limita cantidad a lo que realmente falta en
+                // esta fase. Antes no existía ningún tope: un operario podía
+                // reportar más piezas de las que tenía pendientes la
+                // suborden, dejando completed_pieces por encima de quantity
+                // y descontando del almacén material que no se usó.
+                $restantes = max(0, $subOrder->quantity - $subOrder->completed_pieces);
+
+                if ($cantidad > $restantes) {
+                    throw ValidationException::withMessages([
+                        'cantidad' => $restantes > 0
+                            ? "Solo faltan {$restantes} piezas para esta fase; no puedes registrar {$cantidad}."
+                            : 'Esta fase ya está completa; no se puede registrar más avance.',
+                    ]);
+                }
+            }
+
             RegistroProduccion::create([
                 'user_id'             => $userId,
-                'production_order_id' => $request->production_order_id,
-                'sub_order_id'        => $request->sub_order_id,
+                'production_order_id' => $orden->id,
+                'sub_order_id'        => $subOrder?->id,
                 'cantidad'            => $cantidad,
                 'nota'                => $request->nota,
                 'fecha_registro'      => now(),
             ]);
 
-            $orden = ProductionOrder::with('product.recipes.material')->findOrFail($request->production_order_id);
-
-            $subOrder = null;
-
-            if ($request->filled('sub_order_id')) {
-                $subOrder = ProductionSubOrder::findOrFail($request->sub_order_id);
+            if ($subOrder) {
                 $subOrder->increment('completed_pieces', $cantidad);
 
                 if ($subOrder->completed_pieces >= $subOrder->quantity) {
@@ -292,7 +379,12 @@ class OperarioController extends Controller
                 if ($orden->product && $orden->product->recipes) {
                     foreach ($orden->product->recipes as $recipe) {
                         $cantidadDescontar = $recipe->quantity_required * $cantidad;
-                        $material = $recipe->material;
+
+                        // CORRECCIÓN DE CONCURRENCIA: se bloquea la fila del
+                        // material antes de leer/restar su stock, para que
+                        // dos registros simultáneos que consumen el mismo
+                        // material no partan del mismo stock_actual.
+                        $material = $recipe->material()->lockForUpdate()->first();
 
                         if ($material) {
                             $material->stock_actual = max(0, $material->stock_actual - $cantidadDescontar);
@@ -315,6 +407,15 @@ class OperarioController extends Controller
 
     public function estadoSuborden(ProductionSubOrder $subOrder)
     {
+        // CORRECCIÓN DE SEGURIDAD: antes cualquier operario autenticado
+        // podía consultar el estado de CUALQUIER suborden solo cambiando el
+        // ID en la URL (IDOR) — incluyendo quién más trabaja en ella y
+        // cuántas piezas aportó cada colega. Ahora se exige pertenencia
+        // real, con el mismo criterio que ya usa guardarRegistro().
+        if (!$this->usuarioPuedeOperarSuborden($subOrder, Auth::user())) {
+            abort(403);
+        }
+
         $subOrder->load('assignedUsers');
 
         return response()->json([
@@ -347,7 +448,12 @@ class OperarioController extends Controller
             'puesto' => $user->puesto ?? 'Operario',
             'estado' => $user->active ? 'Activo' : 'Inactivo',
             'id_operario' => 'OP-' . str_pad($user->id, 3, '0', STR_PAD_LEFT),
-            'estacion' => $user->planta ?? $ultimaOrden->estacion ?? 'Sin asignar',
+            // CORREGIDO: $ultimaOrden puede ser null (operario sin ninguna
+            // orden con "estacion" registrada todavía). Antes
+            // "$ultimaOrden->estacion" disparaba un warning de PHP
+            // ("Attempt to read property on null") cada vez que esto pasaba;
+            // con "?->" simplemente resuelve a null y cae en 'Sin asignar'.
+            'estacion' => $user->planta ?? $ultimaOrden?->estacion ?? 'Sin asignar',
             'turno' => $user->turno ?? 'Sin definir',
             'alta_desde' => optional($user->created_at)->translatedFormat('M Y') ?? '—',
         ];
@@ -458,8 +564,18 @@ class OperarioController extends Controller
             'importance' => 'required|in:baja,media,alta',
         ]);
 
+        // CORRECCIÓN DE SEGURIDAD: "exists:production_orders,id" solo prueba
+        // que la orden existe, no que le pertenece al operario. Sin este
+        // chequeo, cualquier operario podía reportar una incidencia contra
+        // una orden ajena solo enviando su ID.
+        $orden = ProductionOrder::findOrFail($request->production_order_id);
+
+        if (!$this->usuarioInvolucradoEnOrden($orden, Auth::id())) {
+            abort(403, 'No estás asignado a esta orden.');
+        }
+
         $incidencia = Incidence::create([
-            'production_order_id' => $request->production_order_id,
+            'production_order_id' => $orden->id,
             'user_id' => Auth::id(),
             'title' => $request->title,
             'description' => $request->description,
@@ -538,3 +654,4 @@ class OperarioController extends Controller
             ->with('success', 'Tarea marcada como completada.');
     }
 }
+//optimizado

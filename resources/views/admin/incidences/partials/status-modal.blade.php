@@ -42,30 +42,30 @@
                 </div>
             </form>
 
-            @if(Auth::user()->role !== 'operario')
-                <div class="my-5 flex items-center gap-3">
-                    <div class="flex-1 h-px bg-stone-200 dark:bg-stone-800"></div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600">Solo Admin/Supervisor</span>
-                    <div class="flex-1 h-px bg-stone-200 dark:bg-stone-800"></div>
-                </div>
+            @can('incidences.edit')
+    <div class="my-5 flex items-center gap-3">
+        <div class="flex-1 h-px bg-stone-200 dark:bg-stone-800"></div>
+        <span class="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600">Solo Admin/Supervisor</span>
+        <div class="flex-1 h-px bg-stone-200 dark:bg-stone-800"></div>
+    </div>
 
-                <form id="importanceForm" method="POST" class="space-y-5">
-                    @csrf
-                    @method('PATCH')
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-600 dark:text-stone-400 mb-1.5">Cambiar Prioridad</label>
-                        <select id="modalImportanceSelect" name="importance" class="w-full text-sm py-3 px-3.5 rounded-xl bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:border-orange-500 focus:ring-orange-500 focus:bg-white dark:focus:bg-stone-800 transition-colors">
-                            <option value="baja">Baja</option>
-                            <option value="media">Media</option>
-                            <option value="alta">Alta</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="w-full flex items-center justify-center gap-1.5 py-3 bg-stone-800 hover:bg-stone-900 dark:bg-stone-700 dark:hover:bg-stone-600 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Cambiar Prioridad
-                    </button>
-                </form>
-            @endif
+    <form id="importanceForm" method="POST" class="space-y-5">
+        @csrf
+        @method('PATCH')
+        <div>
+            <label class="block text-xs font-semibold text-stone-600 dark:text-stone-400 mb-1.5">Cambiar Prioridad</label>
+            <select id="modalImportanceSelect" name="importance" class="w-full text-sm py-3 px-3.5 rounded-xl bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:border-orange-500 focus:ring-orange-500 focus:bg-white dark:focus:bg-stone-800 transition-colors">
+                <option value="baja">Baja</option>
+                <option value="media">Media</option>
+                <option value="alta">Alta</option>
+            </select>
+        </div>
+        <button type="submit" class="w-full flex items-center justify-center gap-1.5 py-3 bg-stone-800 hover:bg-stone-900 dark:bg-stone-700 dark:hover:bg-stone-600 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Cambiar Prioridad
+        </button>
+    </form>
+@endcan
         </div>
     </div>
 </div>

@@ -28,10 +28,12 @@
                 <p class="text-sm text-slate-500 dark:text-stone-400 mt-1">Directorio independiente de proveedores e insumos.</p>
             </div>
 
-            <button @click="openCreateModal = true" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-orange-950/20 flex items-center gap-2 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Registrar Proveedor
-            </button>
+            @can('proveedores.create')
+                <button @click="openCreateModal = true" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-orange-950/20 flex items-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Registrar Proveedor
+                </button>
+            @endcan
         </div>
 
         <!-- Tarjeta de resumen -->
@@ -62,8 +64,14 @@
     </div>
 
     <!-- Modales -->
-    @include('admin.proveedores.modals.create-proveedor-modal')
-    @include('admin.proveedores.modals.edit-proveedor-modal')
-    @include('admin.proveedores.modals.delete-proveedor-modal')
+    @can('proveedores.create')
+        @include('admin.proveedores.modals.create-proveedor-modal')
+    @endcan
+    @can('proveedores.edit')
+        @include('admin.proveedores.modals.edit-proveedor-modal')
+    @endcan
+    @can('proveedores.delete')
+        @include('admin.proveedores.modals.delete-proveedor-modal')
+    @endcan
 </div>
 @endsection

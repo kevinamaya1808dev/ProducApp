@@ -122,6 +122,32 @@ class SubOrderController extends Controller
     }
 
     /**
+     * Comprueba si el usuario autenticado tiene derecho a registrar avance
+     * sobre esta suborden: porque está asignado a ella, porque es dueño de
+     * la orden padre, o porque tiene permiso de gestión (módulo híbrido).
+     *
+     * CORRECCIÓN DE SEGURIDAD: antes cualquier usuario con el permiso
+     * genérico "update-progress" podía llamar a registerProgress() sobre
+     * CUALQUIER {subOrder} solo cambiando el ID en la URL, sin estar
+     * asignado a esa suborden (IDOR). La ruta ya exige el permiso, pero
+     * el permiso por sí solo no prueba pertenencia; ahora se valida aquí.
+     */
+    private function usuarioPuedeRegistrarEnSuborden(ProductionSubOrder $subOrder, $user): bool
+    {
+        if ($subOrder->assignedUsers()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        $orden = $subOrder->productionOrder;
+
+        if ($orden && $orden->user_id === $user->id) {
+            return true;
+        }
+
+        return $user->hasPermission('manage-orders');
+    }
+
+    /**
      * Registra el avance de producción del operario, actualiza las piezas aportadas
      * en la tabla pivote y descuenta automáticamente los materiales del almacén.
      * Si algún material queda en o por debajo de su stock mínimo, genera una
@@ -134,9 +160,42 @@ class SubOrderController extends Controller
         ]);
 
         $user = auth()->user();
+
+        // CORRECCIÓN DE SEGURIDAD: cortamos aquí, antes de abrir la
+        // transacción, si el usuario no tiene ninguna relación real con
+        // esta suborden.
+        if (!$this->usuarioPuedeRegistrarEnSuborden($subOrder, $user)) {
+            abort(403, 'No estás asignado a esta suborden.');
+        }
+
         $piecesProduced = $request->input('quantity_produced');
 
         DB::transaction(function () use ($subOrder, $user, $piecesProduced) {
+
+            // CORRECCIÓN DE CONCURRENCIA: volvemos a leer la suborden con
+            // lockForUpdate() dentro de la transacción. Antes se trabajaba
+            // con la instancia resuelta por el route-model-binding (fuera de
+            // cualquier bloqueo); si dos operarios registraban avance sobre
+            // la misma suborden casi al mismo tiempo, ambas peticiones podían
+            // leer "quantity"/"completed_pieces" desde memoria antes de que
+            // la otra terminara de escribir, produciendo lecturas obsoletas
+            // para las comparaciones de estado/tope que siguen abajo.
+            $subOrder = ProductionSubOrder::whereKey($subOrder->id)->lockForUpdate()->firstOrFail();
+
+            // CORRECCIÓN: se limita quantity_produced a lo que realmente
+            // falta en esta fase. Antes no existía ningún tope: un operario
+            // podía reportar más piezas de las que tenía pendientes la
+            // suborden, dejando completed_pieces por encima de quantity y
+            // descontando del almacén material que en realidad no se usó.
+            $restantes = max(0, $subOrder->quantity - $subOrder->completed_pieces);
+
+            if ($piecesProduced > $restantes) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'quantity_produced' => $restantes > 0
+                        ? "Solo faltan {$restantes} piezas para esta fase; no puedes registrar {$piecesProduced}."
+                        : 'Esta fase ya está completa; no se puede registrar más avance.',
+                ]);
+            }
 
             // 1) Aportación individual del operario (tabla pivote)
             $pivotData = $subOrder->assignedUsers()->where('user_id', $user->id)->first();
@@ -165,7 +224,10 @@ class SubOrderController extends Controller
                 $subOrder->update(['status' => 'in_progress']);
             }
 
-            $orden = $subOrder->productionOrder;
+            // CORRECCIÓN DE CONCURRENCIA: la orden padre también se bloquea
+            // antes de leer/incrementar sus totales, por la misma razón que
+            // la suborden arriba.
+            $orden = $subOrder->productionOrder()->lockForUpdate()->first();
 
             // CORRECCIÓN: antes se descontaban materiales por CADA fase sin
             // distinción, y este método nunca tocaba la orden padre. Ahora la
@@ -180,7 +242,12 @@ class SubOrderController extends Controller
 
                 if ($product && $product->recipes) {
                     foreach ($product->recipes as $recipe) {
-                        $material = $recipe->material;
+                        // CORRECCIÓN DE CONCURRENCIA: se bloquea la fila del
+                        // material antes de leer/restar su stock, para que
+                        // dos registros simultáneos que consumen el mismo
+                        // material no lean el mismo stock_actual de partida.
+                        $material = $recipe->material()->lockForUpdate()->first();
+
                         if ($material) {
                             $totalQuantityNeeded = $recipe->quantity_required * $piecesProduced;
                             $newStock = max(0, $material->stock_actual - $totalQuantityNeeded);
@@ -255,3 +322,4 @@ class SubOrderController extends Controller
         return redirect()->back()->with('success', 'Suborden eliminada correctamente.');
     }
 }
+//optimizado

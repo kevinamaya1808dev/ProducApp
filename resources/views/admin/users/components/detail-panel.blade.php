@@ -51,44 +51,42 @@
                 <span id="panelAlta" class="text-slate-800 dark:text-stone-200 font-bold"></span>
             </li>
         </ul>
-
-        <div class="mt-2">
-            <h4 class="text-xs font-bold text-slate-400 dark:text-stone-500 uppercase tracking-wider mb-2">Habilidades</h4>
-            <div id="panelSkillsContainer" class="flex flex-wrap gap-2"></div>
-            <p id="panelNoSkills" class="text-xs text-slate-400 dark:text-stone-500" style="display: none;">Aún no se han registrado habilidades.</p>
-        </div>
     </div>
 
     <div class="p-5 border-t border-slate-100 dark:border-stone-800 flex flex-col gap-3">
-        @can('manage-users')
-        <button type="button"
-                onclick="triggerEditModal()"
-                class="w-full bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
-            Editar Registro
-        </button>
-        <form id="statusFormPanel" method="POST" class="w-full">
-    @csrf
-    @method('PUT')
-    <input type="hidden" name="name" id="statusFormName">
-    <input type="hidden" name="email" id="statusFormEmail">
-    <input type="hidden" name="role_id" id="statusFormRole">
-    <input type="hidden" name="active" id="statusFormActive">
-    
-    <!-- Añadimos el id en el botón o dentro de un span -->
-    <button type="button" onclick="toggleStatusFromPanel()" class="w-full bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
-        <span id="statusButtonText">Dar de baja / Alta</span>
-    </button>
-</form>
-      <button type="button"
-        id="deleteUserBtn"
-        onclick="openDeleteModal()"
-        class="w-full bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
-    Eliminar Registro
-</button>
+        @canany(['users.edit', 'users.delete'])
+            @can('users.edit')
+                <button type="button"
+                        onclick="triggerEditModal()"
+                        class="w-full bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+                    Editar Registro
+                </button>
+                <form id="statusFormPanel" method="POST" class="w-full">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="name" id="statusFormName">
+                    <input type="hidden" name="email" id="statusFormEmail">
+                    <input type="hidden" name="role_id" id="statusFormRole">
+                    <input type="hidden" name="active" id="statusFormActive">
+
+                    <button type="button" onclick="toggleStatusFromPanel()" class="w-full bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/50 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+                        <span id="statusButtonText">Dar de baja / Alta</span>
+                    </button>
+                </form>
+            @endcan
+
+            @can('users.delete')
+                <button type="button"
+                        id="deleteUserBtn"
+                        onclick="openDeleteModal()"
+                        class="w-full bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+                    Eliminar Registro
+                </button>
+            @endcan
         @else
-        <div class="text-center text-xs text-slate-400 dark:text-stone-500 py-1 w-full">
-            Modo visualización (Sin privilegios)
-        </div>
-        @endcan
+            <div class="text-center text-xs text-slate-400 dark:text-stone-500 py-1 w-full">
+                Modo visualización (Sin privilegios)
+            </div>
+        @endcanany
     </div>
 </div>

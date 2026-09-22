@@ -21,20 +21,27 @@
     </div>
 </div>
 
-{{-- Modales protegidos por la directiva de permisos con el slug exacto: manage-recipes --}}
-@can('manage-recipes')
+{{-- Modales protegidos por el permiso granular exacto que hace cada uno --}}
+@can('recipes.create')
     @include('admin.recetas.modals.create')
-    @if(isset($activeRecipe))
+@endcan
+
+@if(isset($activeRecipe))
+    @can('recipes.edit')
         @include('admin.recetas.modals.edit', ['recipe' => $activeRecipe])
-        @include('admin.recetas.modals.duplicate', ['recipe' => $activeRecipe])
+    @endcan
+    @can('recipes.delete')
         @include('admin.recetas.modals.delete', ['recipe' => $activeRecipe])
+    @endcan
+    @can('recipes.manage')
+        @include('admin.recetas.modals.duplicate', ['recipe' => $activeRecipe])
         @include('admin.recetas.modals.add-component', ['recipe' => $activeRecipe])
         @foreach($activeRecipe->components as $component)
             @include('admin.recetas.modals.edit-component', ['recipe' => $activeRecipe, 'component' => $component])
             @include('admin.recetas.modals.delete-component', ['recipe' => $activeRecipe, 'component' => $component])
         @endforeach
-    @endif
-@endcan
+    @endcan
+@endif
 
 @endsection
 
@@ -48,7 +55,6 @@
         document.getElementById(modalId)?.classList.add('hidden'); 
     }
 
-    // Cierre de modales con la tecla Escape
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             document.querySelectorAll('[id$="Modal"], [id^="modal"]').forEach(modal => {

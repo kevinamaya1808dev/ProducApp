@@ -2,57 +2,65 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Permission;
+use Illuminate\Database\Seeder;
 
 class PermissionSeeder extends Seeder
 {
+    private const MODULES = [
+        'dashboard'   => 'Dashboard',
+        'categories'  => 'Categorías',
+        'recipes'     => 'Recetas',
+        'orders'      => 'Órdenes',
+        'products'    => 'Productos',
+        'almacen'     => 'Almacén',
+        'proveedores' => 'Proveedores',
+        'incidences'  => 'Incidencias',
+        'users'       => 'Usuarios',
+    ];
+
+    private const ACTIONS = [
+        'view'   => 'Ver',
+        'create' => 'Crear',
+        'edit'   => 'Editar',
+        'delete' => 'Borrar',
+        'manage' => 'Gestionar',
+    ];
+
+    // Permisos especiales del módulo Operario: no son CRUD, quedan fuera
+    // de la matriz y se gestionan aparte (ver AppServiceProvider).
+    private const SPECIAL = [
+        ['name' => 'Acceso Módulo Operario', 'slug' => 'access-operario'],
+        ['name' => 'Ver Órdenes Asignadas',   'slug' => 'view-assigned-orders'],
+        ['name' => 'Actualizar Progreso',     'slug' => 'update-progress'],
+        ['name' => 'Reportar Incidencias',    'slug' => 'create-incidences'],
+    ];
+
     public function run(): void
     {
-        $permissions = [
-            // Dashboard
-            ['name' => 'Ver Dashboard Admin', 'slug' => 'view-admin-dashboard'],
+        foreach (self::MODULES as $moduleSlug => $moduleName) {
+            foreach (self::ACTIONS as $actionSlug => $actionName) {
+                Permission::updateOrCreate(
+                    ['slug' => "{$moduleSlug}.{$actionSlug}"],
+                    [
+                        'name'       => "{$actionName} {$moduleName}",
+                        'module'     => $moduleSlug,
+                        'action'     => $actionSlug,
+                        'is_special' => false,
+                    ]
+                );
+            }
+        }
 
-            // Categorías
-            ['name' => 'Ver Categorías', 'slug' => 'view-categories'],
-            ['name' => 'Gestionar Categorías', 'slug' => 'manage-categories'],
-
-            // Productos
-            ['name' => 'Ver Productos', 'slug' => 'view-products'],
-            ['name' => 'Acceso a Productos', 'slug' => 'access-products'],
-            ['name' => 'Gestionar Productos', 'slug' => 'manage-products'],
-
-            // Recetas
-            ['name' => 'Ver Recetas', 'slug' => 'view-recipes'],
-            ['name' => 'Gestionar Recetas', 'slug' => 'manage-recipes'],
-
-            // Órdenes
-            ['name' => 'Ver Órdenes', 'slug' => 'view-orders'],
-            ['name' => 'Gestionar Órdenes', 'slug' => 'manage-orders'],
-
-            // Almacén
-            ['name' => 'Ver Almacén', 'slug' => 'view-almacen'],
-            ['name' => 'Gestionar Almacén', 'slug' => 'manage-almacen'],
-
-            // Proveedores
-            ['name' => 'Ver Proveedores', 'slug' => 'view-proveedores'],
-            ['name' => 'Gestionar Proveedores', 'slug' => 'manage-proveedores'],
-
-            // Usuarios
-            ['name' => 'Ver Usuarios', 'slug' => 'view-users'],
-            ['name' => 'Gestionar Usuarios', 'slug' => 'manage-users'],
-
-            // Módulo Operario
-            ['name' => 'Acceso Módulo Operario', 'slug' => 'access-operario'],
-            ['name' => 'Ver Órdenes Asignadas', 'slug' => 'view-assigned-orders'],
-            ['name' => 'Actualizar Progreso', 'slug' => 'update-progress'],
-            ['name' => 'Reportar Incidencias', 'slug' => 'create-incidences'],
-        ];
-
-        foreach ($permissions as $permission) {
+        foreach (self::SPECIAL as $permission) {
             Permission::updateOrCreate(
                 ['slug' => $permission['slug']],
-                ['name' => $permission['name']]
+                [
+                    'name'       => $permission['name'],
+                    'module'     => null,
+                    'action'     => null,
+                    'is_special' => true,
+                ]
             );
         }
     }

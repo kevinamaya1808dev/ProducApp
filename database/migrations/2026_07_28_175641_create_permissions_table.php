@@ -13,8 +13,11 @@ return new class extends Migration
 {
     Schema::create('permissions', function (Blueprint $table) {
         $table->id();
-        $table->string('name'); // Ej: Crear Órdenes
-        $table->string('slug')->unique(); // Ej: create-orders
+        $table->string('name');
+        $table->string('slug')->unique();
+        $table->string('module')->nullable();   // null para los especiales de Operario
+        $table->string('action')->nullable();   // null para los especiales de Operario
+        $table->boolean('is_special')->default(false);
         $table->timestamps();
     });
 }
