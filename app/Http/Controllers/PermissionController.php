@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permission;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class PermissionController extends Controller
 {
@@ -18,16 +18,39 @@ class PermissionController extends Controller
         'manage' => 'Gestionar',
     ];
 
+    private function buildAndValidate(Request $request, ?Permission $existing = null): array
+    {
+        $special = $request->boolean('is_special');
+
+        $input = $request->validate([
+            'name'   => 'required|string|max:255',
+            'module' => $special ? 'nullable|string|max:100' : 'required|string|max:100',
+            'action' => $special ? 'nullable|string|max:50'  : ['required', 'in:' . implode(',', array_keys(self::ACTIONS))],
+            'slug'   => $special ? 'required|string|max:150' : 'nullable|string|max:150',
+        ]);
+
+        $slug = $special ? $input['slug'] : "{$input['module']}.{$input['action']}";
+
+        if (Permission::where('slug', $slug)->when($existing, fn ($q) => $q->where('id', '!=', $existing->id))->exists()) {
+            throw ValidationException::withMessages(['slug' => "Ya existe un permiso con el slug '{$slug}'."]);
+        }
+
+        return [
+            'name'       => $input['name'],
+            'slug'       => $slug,
+            'module'     => $special ? null : $input['module'],
+            'action'     => $special ? null : $input['action'],
+            'is_special' => $special,
+        ];
+    }
+
     public function index(): View
     {
         $permissions = Permission::orderBy('module')->orderBy('action')->get();
 
-        $modules = $permissions->where('is_special', false)->groupBy('module');
-        $special = $permissions->where('is_special', true);
-
         return view('admin.permissions.index', [
-            'modules' => $modules,
-            'special' => $special,
+            'modules' => $permissions->where('is_special', false)->groupBy('module'),
+            'special' => $permissions->where('is_special', true),
             'actions' => self::ACTIONS,
         ]);
     }
@@ -39,9 +62,7 @@ class PermissionController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->buildAndValidate($request);
-
-        Permission::create($data);
+        Permission::create($this->buildAndValidate($request));
 
         return redirect()->route('admin.permissions.index')->with('success', 'Permiso creado correctamente.');
     }
@@ -53,9 +74,7 @@ class PermissionController extends Controller
 
     public function update(Request $request, Permission $permission): RedirectResponse
     {
-        $data = $this->buildAndValidate($request, $permission);
-
-        $permission->update($data);
+        $permission->update($this->buildAndValidate($request, $permission));
 
         return redirect()->route('admin.permissions.index')->with('success', 'Permiso actualizado correctamente.');
     }
@@ -65,37 +84,5 @@ class PermissionController extends Controller
         $permission->delete();
 
         return redirect()->route('admin.permissions.index')->with('success', 'Permiso eliminado correctamente.');
-    }
-
-    private function buildAndValidate(Request $request, ?Permission $permission = null): array
-    {
-        $isSpecial = $request->boolean('is_special');
-
-        $input = $request->validate([
-            'name'   => 'required|string|max:255',
-            'module' => $isSpecial ? 'nullable|string|max:100' : 'required|string|max:100',
-            'action' => $isSpecial ? 'nullable|string|max:50' : ['required', 'in:' . implode(',', array_keys(self::ACTIONS))],
-            'slug'   => $isSpecial ? 'required|string|max:150' : 'nullable|string|max:150',
-        ]);
-
-        $slug = $isSpecial ? $input['slug'] : "{$input['module']}.{$input['action']}";
-
-        $slugTaken = Permission::where('slug', $slug)
-            ->when($permission, fn ($q) => $q->where('id', '!=', $permission->id))
-            ->exists();
-
-        if ($slugTaken) {
-            throw ValidationException::withMessages([
-                'slug' => "Ya existe un permiso con el slug '{$slug}'.",
-            ]);
-        }
-
-        return [
-            'name'       => $input['name'],
-            'slug'       => $slug,
-            'module'     => $isSpecial ? null : $input['module'],
-            'action'     => $isSpecial ? null : $input['action'],
-            'is_special' => $isSpecial,
-        ];
     }
 }

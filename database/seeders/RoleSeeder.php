@@ -20,16 +20,10 @@ class RoleSeeder extends Seeder
             ['name' => 'Operario']
         );
 
-        // Permisos completos del Administrador
-        $adminPermissions = Permission::whereIn('slug', [
-            'view-admin-dashboard',
-            'view-categories', 'manage-categories',
-            'view-products', 'access-products', 'manage-products',
-            'view-recipes', 'manage-recipes',
-            'view-orders', 'manage-orders',
-            'view-almacen', 'manage-almacen',
-            'view-users', 'manage-users',
-        ])->get();
+        // Permisos completos del Administrador: todos los permisos "normales"
+        // (no especiales) generados por PermissionSeeder para cada módulo/acción.
+        // Los especiales del Operario quedan fuera a propósito.
+        $adminPermissions = Permission::where('is_special', false)->get();
 
         $adminRole->permissions()->sync($adminPermissions);
 

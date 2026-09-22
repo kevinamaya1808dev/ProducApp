@@ -3,70 +3,54 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
+    private function withSlug(array $data): array
+    {
+        return $data + ['slug' => Str::slug($data['name'])];
+    }
+
     public function index(Request $request): View
     {
-        $query = Category::query();
+        $categories = Category::query()
+            ->when($request->search, fn ($q, $v) => $q->where('name', 'like', "%{$v}%"))
+            ->latest()->paginate(10);
 
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
-
-        $categories = $query->latest()->paginate(10);
-
-        // 1. Capturar la categoría activa seleccionada por el usuario
-        $activeCategory = null;
-        if ($request->filled('category')) {
-            $activeCategory = Category::find($request->category);
-        }
-
-        // 2. Si no hay una seleccionada pero existen categorías, seleccionamos la primera por defecto
-        if (!$activeCategory && $categories->isNotEmpty()) {
-            $activeCategory = $categories->first();
-        }
+        $activeCategory = ($request->filled('category') ? Category::find($request->category) : null)
+            ?? $categories->first();
 
         return view('admin.categories.index', compact('categories', 'activeCategory'));
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
-        ]);
-
-        $validated['slug'] = Str::slug($validated['name']);
-
-        $category = Category::create($validated);
+        $category = Category::create($this->withSlug(
+            $request->validate(['name' => 'required|string|max:255|unique:categories,name'])
+        ));
 
         return redirect()->route('admin.categories.index', ['category' => $category->id])
-                         ->with('success', 'Categoría creada correctamente.');
+            ->with('success', 'Categoría creada correctamente.');
     }
 
     public function update(Request $request, Category $category): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-        ]);
-
-        $validated['slug'] = Str::slug($validated['name']);
-
-        $category->update($validated);
+        $category->update($this->withSlug(
+            $request->validate(['name' => "required|string|max:255|unique:categories,name,{$category->id}"])
+        ));
 
         return redirect()->route('admin.categories.index', ['category' => $category->id])
-                         ->with('success', 'Categoría actualizada correctamente.');
+            ->with('success', 'Categoría actualizada correctamente.');
     }
 
     public function destroy(Category $category): RedirectResponse
     {
         $category->delete();
 
-        return redirect()->route('admin.categories.index')
-                         ->with('success', 'Categoría eliminada correctamente.');
+        return redirect()->route('admin.categories.index')->with('success', 'Categoría eliminada correctamente.');
     }
 }

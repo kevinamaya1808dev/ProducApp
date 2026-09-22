@@ -10,129 +10,103 @@ use Illuminate\Support\Facades\Auth;
 
 class IncidenceController extends Controller
 {
+    private function log(Incidence $incidence, string $type, string $comment): void
+    {
+        IncidenceLog::create([
+            'incidence_id' => $incidence->id,
+            'user_id'      => Auth::id(),
+            'type'         => $type,
+            'comment'      => $comment,
+        ]);
+    }
+
+    // CORRECCIÓN: ->role no existe como columna en users; usar hasRole()
+    // que consulta la relación real roles() del modelo User.
+    private function esOperario(): bool
+    {
+        return Auth::user()->hasRole('operario');
+    }
+
     public function index(Request $request)
     {
-        $query = Incidence::with(['order', 'operario', 'logs.user']);
+        $incidences = Incidence::with(['order', 'operario', 'logs.user'])
+            ->when($this->esOperario(),  fn ($q) => $q->where('user_id', Auth::id()))
+            ->when($request->status,     fn ($q, $v) => $q->where('status', $v))
+            ->when($request->importance, fn ($q, $v) => $q->where('importance', $v))
+            ->latest()->paginate(10);
 
-        // Si el usuario logueado es Operario, solo ve las incidencias asignadas o creadas por él
-        if (Auth::user()->role === 'operario') {
-            $query->where('user_id', Auth::id());
-        }
-
-        // Filtros opcionales
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->filled('importance')) {
-            $query->where('importance', $request->importance);
-        }
-
-        $incidences = $query->latest()->paginate(10);
-        $productionOrders = ProductionOrder::all();
-
-        return view('admin.incidences.index', compact('incidences', 'productionOrders'));
+        return view('admin.incidences.index', [
+            'incidences'       => $incidences,
+            'productionOrders' => ProductionOrder::all(),
+        ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'production_order_id' => 'required|exists:production_orders,id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'importance' => 'required|in:baja,media,alta',
+            'title'               => 'required|string|max:255',
+            'description'         => 'required|string',
+            'importance'          => 'required|in:baja,media,alta',
         ]);
 
-        $incidence = Incidence::create([
-            'production_order_id' => $request->production_order_id,
-            'user_id' => Auth::id(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'status' => 'pendiente',
-            'importance' => $request->importance,
-        ]);
+        $incidence = Incidence::create($data + ['user_id' => Auth::id(), 'status' => 'pendiente']);
 
-        // Registrar Log de creación
-        IncidenceLog::create([
-            'incidence_id' => $incidence->id,
-            'user_id' => Auth::id(),
-            'type' => 'creacion',
-            'comment' => 'Incidencia creada en estado pendiente con prioridad ' . strtoupper($request->importance),
-        ]);
+        $this->log($incidence, 'creacion', 'Incidencia creada en estado pendiente con prioridad ' . strtoupper($data['importance']));
 
-        return redirect()->back()->with('success', 'Incidencia reportada correctamente.');
+        return back()->with('success', 'Incidencia reportada correctamente.');
     }
 
     public function updateStatus(Request $request, Incidence $incidence)
     {
-        $request->validate([
-            'status' => 'required|in:pendiente,en_proceso,resuelta',
-            'comment' => 'nullable|string'
+        $data = $request->validate([
+            'status'  => 'required|in:pendiente,en_proceso,resuelta',
+            'comment' => 'nullable|string',
         ]);
 
-        $prevStatus = $incidence->status;
-        $incidence->update(['status' => $request->status]);
+        $prev = $incidence->status;
+        $incidence->update(['status' => $data['status']]);
 
-        $text = "Estado cambiado de '{$prevStatus}' a '{$request->status}'";
-        if ($request->comment) {
-            $text .= ". Nota: " . $request->comment;
-        }
+        $comment = "Estado cambiado de '{$prev}' a '{$data['status']}'";
+        if ($data['comment']) $comment .= '. Nota: ' . $data['comment'];
 
-        IncidenceLog::create([
-            'incidence_id' => $incidence->id,
-            'user_id' => Auth::id(),
-            'type' => 'cambio_estado',
-            'comment' => $text,
-        ]);
+        $this->log($incidence, 'cambio_estado', $comment);
 
-        return redirect()->back()->with('success', 'Estado de incidencia actualizado.');
+        return back()->with('success', 'Estado de incidencia actualizado.');
     }
 
     public function updateImportance(Request $request, Incidence $incidence)
     {
-        if (Auth::user()->role === 'operario') {
-            return redirect()->back()->with('error', 'No tienes permisos para modificar la prioridad.');
+        if ($this->esOperario()) {
+            return back()->with('error', 'No tienes permisos para modificar la prioridad.');
         }
 
-        $request->validate([
-            'importance' => 'required|in:baja,media,alta',
-        ]);
+        $data = $request->validate(['importance' => 'required|in:baja,media,alta']);
+        $prev = $incidence->importance;
+        $incidence->update($data);
 
-        $prevImportance = $incidence->importance;
-        $incidence->update(['importance' => $request->importance]);
+        $this->log($incidence, 'cambio_prioridad', "Prioridad modificada de '{$prev}' a '{$data['importance']}'");
 
-        IncidenceLog::create([
-            'incidence_id' => $incidence->id,
-            'user_id' => Auth::id(),
-            'type' => 'cambio_prioridad',
-            'comment' => "Prioridad modificada de '{$prevImportance}' a '{$request->importance}'",
-        ]);
-
-        return redirect()->back()->with('success', 'Prioridad actualizada.');
+        return back()->with('success', 'Prioridad actualizada.');
     }
 
     public function addNote(Request $request, Incidence $incidence)
     {
-        $request->validate([
-            'comment' => 'required|string',
-        ]);
+        $data = $request->validate(['comment' => 'required|string']);
 
-        IncidenceLog::create([
-            'incidence_id' => $incidence->id,
-            'user_id' => Auth::id(),
-            'type' => 'nota',
-            'comment' => $request->comment,
-        ]);
+        $this->log($incidence, 'nota', $data['comment']);
 
-        return redirect()->back()->with('success', 'Nota registrada en el historial.');
+        return back()->with('success', 'Nota registrada en el historial.');
     }
 
     public function destroy(Incidence $incidence)
     {
-        if (Auth::user()->role === 'operario') {
-            return redirect()->back()->with('error', 'Los operarios no pueden eliminar incidencias.');
+        if ($this->esOperario()) {
+            return back()->with('error', 'Los operarios no pueden eliminar incidencias.');
         }
 
         $incidence->delete();
-        return redirect()->back()->with('success', 'Incidencia eliminada con éxito.');
+
+        return back()->with('success', 'Incidencia eliminada con éxito.');
     }
 }
