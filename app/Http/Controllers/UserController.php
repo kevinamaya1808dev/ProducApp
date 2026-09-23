@@ -93,8 +93,8 @@ class UserController extends Controller
         $user->save();
         $user->roles()->sync([$data['role_id']]);
 
-        return redirect()->route('admin.users.permissions.edit', $user)
-            ->with('success', "Operario '{$user->name}' creado exitosamente. Ahora puedes asignarle permisos.");
+        return redirect()->route('admin.users.index')
+            ->with('success', "Operario '{$user->name}' creado exitosamente.");
     }
 
     public function update(Request $request, User $user): RedirectResponse

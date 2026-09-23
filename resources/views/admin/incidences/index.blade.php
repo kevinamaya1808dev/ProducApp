@@ -382,55 +382,43 @@
 @push('scripts')
 <!-- CDN de Chart.js y AlpineJS (si no están incluidos en la plantilla principal) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
     // --- LÓGICA DE MODALES ---
     function openModal(id) {
         document.getElementById(id).classList.remove('hidden');
     }
-
     function closeModal(id) {
         document.getElementById(id).classList.add('hidden');
     }
-
     function openStatusModal(incidence) {
         document.getElementById('statusForm').action = `/admin/incidencias/${incidence.id}/status`;
         document.getElementById('modalStatusSelect').value = incidence.status;
-
         const importanceForm = document.getElementById('importanceForm');
         if(importanceForm) {
             importanceForm.action = `/admin/incidencias/${incidence.id}/importance`;
             document.getElementById('modalImportanceSelect').value = incidence.importance;
         }
-
         openModal('statusModal');
     }
-
     function openDeleteModal(incidence) {
         document.getElementById('deleteForm').action = `/admin/incidencias/${incidence.id}`;
         document.getElementById('deleteIncidenceOrder').innerText = `#OP-${incidence.production_order_id ?? incidence.order_id ?? 'N/A'}`;
         document.getElementById('deleteIncidenceTitle').innerText = incidence.title;
-
         openModal('deleteModal');
     }
-
     function openHistoryModal(incidence) {
         document.getElementById('historyModalTitle').innerText = `#OP-${incidence.production_order_id ?? incidence.order_id}: ${incidence.title}`;
         document.getElementById('addNoteForm').action = `/admin/incidencias/${incidence.id}/notes`;
-
         const container = document.getElementById('historyLogsContainer');
         container.innerHTML = '';
-
         if(incidence.logs && incidence.logs.length > 0) {
             incidence.logs.forEach(log => {
                 const date = new Date(log.created_at).toLocaleString();
                 const userName = log.user ? log.user.name : 'Sistema';
-
                 let badge = '<span class="px-2 py-0.5 text-[10px] bg-stone-100 dark:bg-stone-800 font-bold rounded text-stone-600 dark:text-stone-300">NOTA</span>';
                 if(log.type === 'creacion') badge = '<span class="px-2 py-0.5 text-[10px] bg-orange-100 dark:bg-orange-950/60 font-bold rounded text-orange-700 dark:text-orange-300">CREACIÓN</span>';
                 if(log.type === 'cambio_estado') badge = '<span class="px-2 py-0.5 text-[10px] bg-blue-100 dark:bg-blue-950/60 font-bold rounded text-blue-700 dark:text-blue-300">ESTADO</span>';
                 if(log.type === 'cambio_prioridad') badge = '<span class="px-2 py-0.5 text-[10px] bg-amber-100 dark:bg-amber-950/60 font-bold rounded text-amber-700 dark:text-amber-300">PRIORIDAD</span>';
-
                 container.innerHTML += `
                     <div class="p-3 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 rounded-xl space-y-1">
                         <div class="flex justify-between items-center text-xs text-stone-500 dark:text-stone-400">
@@ -447,23 +435,18 @@
         } else {
             container.innerHTML = '<p class="text-xs text-stone-400 dark:text-stone-500 text-center py-4">No hay historial para esta incidencia.</p>';
         }
-
         openModal('historyModal');
     }
-
     // --- INICIALIZACIÓN DE GRÁFICAS ADAPTADAS A MODO OSCURO ---
     document.addEventListener('DOMContentLoaded', function() {
         const isDark = document.documentElement.classList.contains('dark');
-
         // Data proveniente de Blade / Controller
         const pendingCount = {{ $stats['pendiente'] ?? $incidences->where('status', 'pendiente')->count() }};
         const processCount = {{ $stats['en_proceso'] ?? $incidences->where('status', 'en_proceso')->count() }};
         const resolvedCount = {{ $stats['resuelta'] ?? $incidences->where('status', 'resuelta')->count() }};
-
         const lowPriorityCount = {{ $stats['baja'] ?? $incidences->where('importance', 'baja')->count() }};
         const mediumPriorityCount = {{ $stats['media'] ?? $incidences->where('importance', 'media')->count() }};
         const highPriorityCount = {{ $stats['alta'] ?? $incidences->where('importance', 'alta')->count() }};
-
         // Chart 1: Donut de Estado
         const ctxStatus = document.getElementById('statusChart').getContext('2d');
         new Chart(ctxStatus, {
@@ -481,18 +464,17 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { 
-                        position: 'bottom', 
-                        labels: { 
-                            boxWidth: 12, 
-                            font: { size: 11 }, 
-                            color: isDark ? '#d6d3d1' : '#44403c' 
-                        } 
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 11 },
+                            color: isDark ? '#d6d3d1' : '#44403c'
+                        }
                     }
                 }
             }
         });
-
         // Chart 2: Barras de Prioridad
         const ctxImportance = document.getElementById('importanceChart').getContext('2d');
         new Chart(ctxImportance, {
@@ -513,26 +495,26 @@
                     legend: { display: false }
                 },
                 scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        ticks: { 
-                            precision: 0, 
-                            color: isDark ? '#a8a29e' : '#78716c' 
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            color: isDark ? '#a8a29e' : '#78716c'
                         },
-                        grid: { 
-                            color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' 
-                        } 
+                        grid: {
+                            color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                        }
                     },
-                    x: { 
+                    x: {
                         grid: { display: false },
-                        ticks: { 
-                            color: isDark ? '#a8a29e' : '#78716c' 
-                        } 
+                        ticks: {
+                            color: isDark ? '#a8a29e' : '#78716c'
+                        }
                     }
                 }
             }
         });
     });
-</script>
+</script> 
 @endpush
 @endsection

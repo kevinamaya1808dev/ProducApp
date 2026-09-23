@@ -156,11 +156,20 @@
     setVal('editEmail', user.email);
     setVal('editActive', user.active ? 1 : 0);
     setVal('editPuesto', user.puesto);
-    setVal('editTurno', user.turno);
     setVal('editEstacion', user.estacion);
     setVal('editMetaDiaria', user.meta_diaria);
     setVal('editNotas', user.notas);
     setVal('editPassword', '');
+
+    // Turno: mismo patrón que el dropdown de Rol (ver bloque de abajo).
+    try {
+        const turnoDropdown = document.getElementById('editTurnoDropdown');
+        if (turnoDropdown && window.Alpine) {
+            Alpine.$data(turnoDropdown).selected = user.turno || '';
+        }
+    } catch (e) {
+        console.error('No se pudo actualizar el dropdown de Turno vía Alpine:', e);
+    }
 
     // Rol: actualiza el estado de Alpine directamente. Envuelto en try/catch
     // para que un fallo aquí (ej. Alpine aún no inicializó el componente)

@@ -13,6 +13,10 @@
                     </button>
                 </div>
 
+                <!-- Los operarios se crean activos por defecto; el estado se cambia después
+                     desde el botón "Dar de baja/alta" del panel de detalle. -->
+                <input type="hidden" name="active" value="1">
+
                 <!-- Scrollbar estilizado: delgado, redondeado, con soporte para Firefox
                      (scrollbar-width/scrollbar-color) y estado hover en el thumb -->
                 <div class="p-6 pr-4 space-y-6 max-h-[70vh] overflow-y-auto modal-scroll">
@@ -120,7 +124,75 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Turno</label>
-                                <input type="text" name="turno" placeholder="Ej. Matutino" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-800 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500 outline-none focus:border-orange-600 dark:focus:border-orange-500 transition-colors">
+                                <div
+                                    class="relative"
+                                    x-data="{
+                                        open: false,
+                                        selected: @js(old('turno', '')),
+                                        options: {
+                                            '': 'Selecciona un turno',
+                                            'Matutino': 'Matutino',
+                                            'Vespertino': 'Vespertino',
+                                            'Nocturno': 'Nocturno',
+                                            'Mixto': 'Mixto',
+                                        },
+                                        select(value) {
+                                            this.selected = value;
+                                            this.open = false;
+                                        }
+                                    }"
+                                >
+                                    <input type="hidden" name="turno" x-model="selected">
+
+                                    <button
+                                        type="button"
+                                        @click="open = !open"
+                                        @click.outside="open = false"
+                                        class="w-full flex items-center justify-between px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-800 dark:text-stone-100 outline-none focus:border-orange-600 dark:focus:border-orange-500 cursor-pointer transition-colors"
+                                    >
+                                        <span x-text="options[selected] || 'Selecciona un turno'" class="truncate" :class="selected ? 'text-slate-800 dark:text-stone-100' : 'text-slate-400 dark:text-stone-400'"></span>
+                                        <svg class="w-4 h-4 text-slate-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+
+                                    <div
+                                        x-show="open"
+                                        x-cloak
+                                        x-transition:enter="transition ease-out duration-100"
+                                        x-transition:enter-start="transform opacity-0 scale-95"
+                                        x-transition:enter-end="transform opacity-100 scale-100"
+                                        x-transition:leave="transition ease-in duration-75"
+                                        x-transition:leave-start="transform opacity-100 scale-100"
+                                        x-transition:leave-end="transform opacity-0 scale-95"
+                                        class="absolute left-0 right-0 z-50 mt-1 max-h-48 overflow-auto bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg shadow-xl py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-stone-700 [&::-webkit-scrollbar-thumb]:rounded-full"
+                                        style="display: none;"
+                                    >
+                                        <button
+                                            type="button"
+                                            @click="select('')"
+                                            class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-700 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                        >
+                                            <span class="text-slate-400 dark:text-stone-400">Sin asignar</span>
+                                            <svg x-show="selected === ''" class="w-4 h-4 text-orange-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </button>
+
+                                        @foreach(['Matutino', 'Vespertino', 'Nocturno', 'Mixto'] as $turnoOption)
+                                            <button
+                                                type="button"
+                                                @click="select(@js($turnoOption))"
+                                                class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-700 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                            >
+                                                <span class="truncate">{{ $turnoOption }}</span>
+                                                <svg x-show="selected === @js($turnoOption)" class="w-4 h-4 text-orange-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Estación de Trabajo</label>
@@ -139,6 +211,21 @@
                             <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Contraseña <span class="text-red-500">*</span></label>
                             <input type="password" name="password" required placeholder="Mínimo 8 caracteres" minlength="8" autocomplete="new-password" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-800 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500 outline-none focus:border-orange-600 dark:focus:border-orange-500 transition-colors">
                         </div>
+                    </div>
+
+                    <!-- Permisos: se asignan hasta después de crear (no hay user.id todavía) -->
+                    <div class="border-t border-slate-100 dark:border-stone-800 pt-5">
+                        <h4 class="text-xs font-bold text-slate-400 dark:text-stone-400 uppercase tracking-wider mb-2">Permisos</h4>
+                        <p class="text-xs text-slate-500 dark:text-stone-400 mb-3">
+                            Para asignar permisos, primero crea al operario y luego usa el botón "Gestionar Permisos" desde su modal de edición.
+                        </p>
+                        <span
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-stone-800/50 border border-slate-200 dark:border-stone-700 text-slate-400 dark:text-stone-500 text-sm font-medium rounded-xl cursor-not-allowed select-none"
+                            title="Disponible después de crear al operario"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            Gestionar Permisos
+                        </span>
                     </div>
 
                 </div>

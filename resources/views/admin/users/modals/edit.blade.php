@@ -7,6 +7,11 @@
             <form id="editForm" action="#" method="POST">
                 @csrf
                 @method('PUT')
+
+                <!-- El JS de index.blade.php ya hace setVal('editActive', user.active) al abrir
+                     el modal; este input solo faltaba en el HTML. El estado se cambia con el
+                     botón "Dar de baja/alta" del panel, no desde este formulario. -->
+                <input type="hidden" id="editActive" name="active" value="1">
                 
                 <div class="px-6 py-4 border-b border-slate-100 dark:border-stone-800 flex justify-between items-center bg-slate-50/75 dark:bg-stone-800/50">
                     <h3 class="text-lg font-bold text-slate-900 dark:text-stone-100">Editar Operario</h3>
@@ -121,7 +126,76 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Turno</label>
-                                <input type="text" id="editTurno" name="turno" class="w-full px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-800 dark:text-stone-100 placeholder-slate-400 dark:placeholder-stone-500 outline-none focus:border-orange-600 dark:focus:border-orange-500 transition-colors">
+                                <div
+                                    class="relative"
+                                    x-data="{
+                                        open: false,
+                                        selected: '',
+                                        options: {
+                                            '': 'Selecciona un turno',
+                                            'Matutino': 'Matutino',
+                                            'Vespertino': 'Vespertino',
+                                            'Nocturno': 'Nocturno',
+                                            'Mixto': 'Mixto',
+                                        },
+                                        select(value) {
+                                            this.selected = value;
+                                            this.open = false;
+                                        }
+                                    }"
+                                    id="editTurnoDropdown"
+                                >
+                                    <input type="hidden" name="turno" x-model="selected">
+
+                                    <button
+                                        type="button"
+                                        @click="open = !open"
+                                        @click.outside="open = false"
+                                        class="w-full flex items-center justify-between px-4 py-2 bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg text-sm text-slate-800 dark:text-stone-100 outline-none focus:border-orange-600 dark:focus:border-orange-500 cursor-pointer transition-colors"
+                                    >
+                                        <span x-text="options[selected] || 'Selecciona un turno'" class="truncate" :class="selected ? 'text-slate-800 dark:text-stone-100' : 'text-slate-400 dark:text-stone-400'"></span>
+                                        <svg class="w-4 h-4 text-slate-400 dark:text-stone-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+
+                                    <div
+                                        x-show="open"
+                                        x-cloak
+                                        x-transition:enter="transition ease-out duration-100"
+                                        x-transition:enter-start="transform opacity-0 scale-95"
+                                        x-transition:enter-end="transform opacity-100 scale-100"
+                                        x-transition:leave="transition ease-in duration-75"
+                                        x-transition:leave-start="transform opacity-100 scale-100"
+                                        x-transition:leave-end="transform opacity-0 scale-95"
+                                        class="absolute left-0 right-0 z-50 mt-1 max-h-48 overflow-auto bg-white dark:bg-stone-800 border border-slate-200 dark:border-stone-700 rounded-lg shadow-xl py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-stone-700 [&::-webkit-scrollbar-thumb]:rounded-full"
+                                        style="display: none;"
+                                    >
+                                        <button
+                                            type="button"
+                                            @click="select('')"
+                                            class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-700 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                        >
+                                            <span class="text-slate-400 dark:text-stone-400">Sin asignar</span>
+                                            <svg x-show="selected === ''" class="w-4 h-4 text-orange-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </button>
+
+                                        @foreach(['Matutino', 'Vespertino', 'Nocturno', 'Mixto'] as $turnoOption)
+                                            <button
+                                                type="button"
+                                                @click="select(@js($turnoOption))"
+                                                class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-700 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                            >
+                                                <span class="truncate">{{ $turnoOption }}</span>
+                                                <svg x-show="selected === @js($turnoOption)" class="w-4 h-4 text-orange-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 dark:text-stone-300 mb-1">Estación de Trabajo</label>
