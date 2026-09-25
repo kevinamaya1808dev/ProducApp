@@ -33,96 +33,61 @@
 <script>
 (function () {
     const container = document.getElementById('toastContainer');
-    const template = document.getElementById('toastTemplate');
+    const template  = document.getElementById('toastTemplate');
 
-    const THEMES = {
-        success: { border: 'border-emerald-200 dark:border-emerald-900/50', accent: 'bg-emerald-500', iconBg: 'bg-emerald-50 dark:bg-emerald-950/50', iconColor: 'text-emerald-600 dark:text-emerald-400', title: 'Éxito', progress: 'bg-emerald-500' },
-        error:   { border: 'border-red-200 dark:border-red-900/50', accent: 'bg-red-500', iconBg: 'bg-red-50 dark:bg-red-950/50', iconColor: 'text-red-600 dark:text-red-400', title: 'Error', progress: 'bg-red-500' },
-        warning: { border: 'border-amber-200 dark:border-amber-900/50', accent: 'bg-amber-500', iconBg: 'bg-amber-50 dark:bg-amber-950/50', iconColor: 'text-amber-600 dark:text-amber-400', title: 'Atención', progress: 'bg-amber-500' },
-        info:    { border: 'border-orange-200 dark:border-orange-900/50', accent: 'bg-orange-500', iconBg: 'bg-orange-50 dark:bg-orange-950/50', iconColor: 'text-orange-600 dark:text-orange-400', title: 'Información', progress: 'bg-orange-500' },
+    const T = {
+        success: { border:'border-emerald-200 dark:border-emerald-900/50', accent:'bg-emerald-500', iconBg:'bg-emerald-50 dark:bg-emerald-950/50', iconColor:'text-emerald-600 dark:text-emerald-400', title:'Éxito',       progress:'bg-emerald-500' },
+        error:   { border:'border-red-200 dark:border-red-900/50',         accent:'bg-red-500',     iconBg:'bg-red-50 dark:bg-red-950/50',         iconColor:'text-red-600 dark:text-red-400',         title:'Error',       progress:'bg-red-500'     },
+        warning: { border:'border-amber-200 dark:border-amber-900/50',     accent:'bg-amber-500',   iconBg:'bg-amber-50 dark:bg-amber-950/50',     iconColor:'text-amber-600 dark:text-amber-400',     title:'Atención',    progress:'bg-amber-500'   },
+        info:    { border:'border-orange-200 dark:border-orange-900/50',   accent:'bg-orange-500',  iconBg:'bg-orange-50 dark:bg-orange-950/50',   iconColor:'text-orange-600 dark:text-orange-400',   title:'Información', progress:'bg-orange-500'  },
     };
 
-    function showToast(message, type = 'info', options = {}) {
-        type = THEMES[type] ? type : 'info';
-        const theme = THEMES[type];
-        const duration = options.duration ?? 5000;
-        const title = options.title ?? theme.title;
+    function add(cls, ...tokens) { cls.split(' ').forEach(c => tokens.forEach(el => el?.classList.add(c))); }
 
+    function showToast(msg, type = 'info', opts = {}) {
+        const t = T[type] ?? T.info;
+        const duration = opts.duration ?? 5000;
         const node = template.content.firstElementChild.cloneNode(true);
-node.classList.add(...theme.border.split(' '));
-node.querySelector('.toast-accent').classList.add(...theme.accent.split(' '));
-node.querySelector('.toast-icon-wrap').classList.add(...theme.iconBg.split(' '), ...theme.iconColor.split(' '));
-node.querySelector(`.toast-icon-${type}`).classList.remove('hidden');
-node.querySelector('.toast-title').textContent = title;
-node.querySelector('.toast-message').textContent = message;
 
-const progressBar = node.querySelector('.toast-progress');
-progressBar.classList.add(...theme.progress.split(' '));
+        add(t.border, node);
+        add(t.accent,    node.querySelector('.toast-accent'));
+        add(t.iconBg,    node.querySelector('.toast-icon-wrap'));
+        add(t.iconColor, node.querySelector('.toast-icon-wrap'));
+        node.querySelector(`.toast-icon-${type}`)?.classList.remove('hidden');
+        node.querySelector('.toast-title').textContent   = opts.title ?? t.title;
+        node.querySelector('.toast-message').textContent = msg;
+
+        const bar = node.querySelector('.toast-progress');
+        add(t.progress, bar);
         container.appendChild(node);
 
-        // Animación de entrada
-        requestAnimationFrame(() => {
-            node.classList.remove('opacity-0', 'translate-x-6');
-        });
+        requestAnimationFrame(() => node.classList.remove('opacity-0', 'translate-x-6'));
 
-        // Barra de progreso animada
-        progressBar.style.transition = `transform ${duration}ms linear`;
-        requestAnimationFrame(() => {
-            progressBar.style.transform = 'scaleX(1)';
-            progressBar.style.transformOrigin = 'left';
-            requestAnimationFrame(() => {
-                progressBar.style.transform = 'scaleX(0)';
-            });
-        });
+        // Barra de progreso
+        bar.style.transformOrigin = 'left';
+        bar.style.transition = `transform ${duration}ms linear`;
+        requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.transform = 'scaleX(0)'; }));
 
         function remove() {
             node.classList.add('opacity-0', 'translate-x-6');
             node.style.maxHeight = node.offsetHeight + 'px';
-            requestAnimationFrame(() => {
-                node.style.maxHeight = '0px';
-                node.style.marginBottom = '0px';
-                node.style.paddingTop = '0px';
-                node.style.paddingBottom = '0px';
-            });
+            requestAnimationFrame(() => Object.assign(node.style, { maxHeight:'0px', marginBottom:'0px', paddingTop:'0px', paddingBottom:'0px' }));
             setTimeout(() => node.remove(), 300);
         }
 
         const timer = setTimeout(remove, duration);
-
-        node.querySelector('.toast-close').addEventListener('click', () => {
-            clearTimeout(timer);
-            remove();
-        });
-
-        // Pausar al pasar el mouse
-        node.addEventListener('mouseenter', () => {
-            clearTimeout(timer);
-            progressBar.style.transition = 'none';
-        });
+        node.querySelector('.toast-close').addEventListener('click', () => { clearTimeout(timer); remove(); });
+        node.addEventListener('mouseenter', () => { clearTimeout(timer); bar.style.transition = 'none'; });
     }
 
-    // Exponer función global
     window.notify = showToast;
 
-    // Auto-mostrar mensajes flash de sesión (Laravel)
-    document.addEventListener('DOMContentLoaded', function () {
-        @if (session('success'))
-            window.notify(@json(session('success')), 'success');
-        @endif
-        @if (session('error'))
-            window.notify(@json(session('error')), 'error');
-        @endif
-        @if (session('warning'))
-            window.notify(@json(session('warning')), 'warning');
-        @endif
-        @if (session('info'))
-            window.notify(@json(session('info')), 'info');
-        @endif
-
-        {{-- Soporte para errores de validación de formularios --}}
-        @if ($errors->any())
-            window.notify(@json($errors->first()), 'error', { title: 'Error de validación' });
-        @endif
+    document.addEventListener('DOMContentLoaded', () => {
+        @if (session('success')) window.notify(@json(session('success')), 'success'); @endif
+        @if (session('error'))   window.notify(@json(session('error')),   'error');   @endif
+        @if (session('warning')) window.notify(@json(session('warning')), 'warning'); @endif
+        @if (session('info'))    window.notify(@json(session('info')),    'info');    @endif
+        @if ($errors->any())     window.notify(@json($errors->first()),   'error', { title: 'Error de validación' }); @endif
     });
 })();
 </script>

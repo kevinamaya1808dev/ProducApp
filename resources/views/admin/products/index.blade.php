@@ -4,17 +4,12 @@
 <div class="space-y-6">
 
     @include('admin.products.components.header')
-
     @include('admin.products.components.filters')
-
     @include('admin.products.components.grid-view', ['products' => $products])
-
     @include('admin.products.components.table-view', ['products' => $products])
 
     @if($products->hasPages())
-    <div class="pt-2">
-        {{ $products->links() }}
-    </div>
+    <div class="pt-2">{{ $products->links() }}</div>
     @endif
 </div>
 
@@ -23,157 +18,103 @@
     @include('admin.products.modals.edit')
     @include('admin.products.modals.delete')
 @endcan
-
 @endsection
 
 @push('scripts')
 <script>
-    // 1. Lógica para alternar las Vistas (Grid vs Tabla) y guardarlo en LocalStorage
-    document.addEventListener('DOMContentLoaded', function() {
-        const savedView = localStorage.getItem('producapp_product_view') || 'grid';
-        toggleView(savedView);
+// ── Vista Grid / Tabla ────────────────────────────────────────────────────────
+const ACTIVE   = ['bg-stone-900','dark:bg-stone-100','text-white','dark:text-stone-900'];
+const INACTIVE = ['text-stone-500','dark:text-stone-400','hover:text-stone-900','dark:hover:text-stone-200'];
+
+function toggleView(type) {
+    localStorage.setItem('producapp_product_view', type);
+    const isGrid = type === 'grid';
+    document.getElementById('view-grid').classList.toggle('hidden', !isGrid);
+    document.getElementById('view-grid').classList.toggle('grid',   isGrid);
+    document.getElementById('view-table').classList.toggle('hidden', isGrid);
+    const btnGrid  = document.getElementById('btn-grid');
+    const btnTable = document.getElementById('btn-table');
+    btnGrid.classList.toggle(...ACTIVE,   isGrid);  btnGrid.classList.toggle(...INACTIVE, !isGrid);
+    btnTable.classList.toggle(...ACTIVE, !isGrid);  btnTable.classList.toggle(...INACTIVE, isGrid);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    toggleView(localStorage.getItem('producapp_product_view') || 'grid');
+});
+
+// ── Helpers de modal ──────────────────────────────────────────────────────────
+window.openModal = id => {
+    const m = document.getElementById(id);
+    if (m) { m.classList.remove('hidden'); m.classList.add('flex'); document.body.style.overflow = 'hidden'; }
+};
+window.closeModal = id => {
+    const m = document.getElementById(id);
+    if (m) { m.classList.add('hidden'); m.classList.remove('flex'); document.body.style.overflow = 'auto'; }
+};
+
+// ── Referencias DOM de imagen (reutilizadas en 3 funciones) ──────────────────
+const imgEls = () => ({
+    preview:     document.getElementById('edit_image_preview'),
+    placeholder: document.getElementById('image_placeholder'),
+    removeBtn:   document.getElementById('remove_image_btn'),
+    input:       document.getElementById('edit_image_input'),
+});
+
+// ── Preview de imagen seleccionada ────────────────────────────────────────────
+window.previewEditImage = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const { preview, placeholder, removeBtn } = imgEls();
+    const reader = new FileReader();
+    reader.onload = ev => {
+        if (preview) { preview.src = ev.target.result; preview.classList.remove('hidden'); }
+        placeholder?.classList.add('hidden');
+        removeBtn?.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+};
+
+// ── Limpiar imagen ────────────────────────────────────────────────────────────
+window.clearEditImage = ev => {
+    ev?.stopPropagation();
+    const { preview, placeholder, removeBtn, input } = imgEls();
+    if (input)   input.value = '';
+    if (preview) { preview.src = ''; preview.classList.add('hidden'); }
+    placeholder?.classList.remove('hidden');
+    removeBtn?.classList.add('hidden');
+};
+
+// ── Modal editar producto ─────────────────────────────────────────────────────
+window.openEditModal = btn => {
+    const d = btn.dataset;
+    ['name','code','stock','unit_cost','description'].forEach(k => {
+        const el = document.getElementById('edit_' + k); if (el) el.value = d[k] ?? '';
     });
 
-    window.toggleView = function(viewType) {
-        const viewGrid = document.getElementById('view-grid');
-        const viewTable = document.getElementById('view-table');
-        const btnGrid = document.getElementById('btn-grid');
-        const btnTable = document.getElementById('btn-table');
+    const catInput = document.getElementById('edit_category_id');
+    if (catInput) { catInput.value = d.category_id || ''; catInput.dispatchEvent(new Event('change')); }
+    window.dispatchEvent(new CustomEvent('set-edit-category', { detail: d.category_id }));
 
-        localStorage.setItem('producapp_product_view', viewType);
+    const { preview, placeholder, removeBtn, input } = imgEls();
+    if (input) input.value = '';
+    if (d.image?.trim()) {
+        if (preview) { preview.src = d.image; preview.classList.remove('hidden'); }
+        placeholder?.classList.add('hidden');
+        removeBtn?.classList.remove('hidden');
+    } else {
+        window.clearEditImage();
+    }
 
-        if(viewType === 'grid') {
-            viewGrid.classList.remove('hidden');
-            viewGrid.classList.add('grid');
-            viewTable.classList.add('hidden');
+    const form = document.getElementById('edit_product_form');
+    if (form) form.action = `/admin/products/${d.id}`;
+    openModal('modal-edit');
+};
 
-            btnGrid.classList.add('bg-stone-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
-            btnGrid.classList.remove('text-stone-500', 'dark:text-stone-400', 'hover:text-stone-900', 'dark:hover:text-stone-200');
-            btnTable.classList.remove('bg-stone-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
-            btnTable.classList.add('text-stone-500', 'dark:text-stone-400', 'hover:text-stone-900', 'dark:hover:text-stone-200');
-        } else {
-            viewTable.classList.remove('hidden');
-            viewGrid.classList.add('hidden');
-            viewGrid.classList.remove('grid');
-
-            btnTable.classList.add('bg-stone-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
-            btnTable.classList.remove('text-stone-500', 'dark:text-stone-400', 'hover:text-stone-900', 'dark:hover:text-stone-200');
-            btnGrid.classList.remove('bg-stone-900', 'dark:bg-stone-100', 'text-white', 'dark:text-stone-900');
-            btnGrid.classList.add('text-stone-500', 'dark:text-stone-400', 'hover:text-stone-900', 'dark:hover:text-stone-200');
-        }
-    };
-
-    // 2. Lógica de los Modales y Control de Imágenes Integrado
-    document.addEventListener('DOMContentLoaded', function() {
-        window.openModal = function(modalId) {
-            const modal = document.getElementById(modalId);
-            if(modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                document.body.style.overflow = 'hidden';
-            }
-        };
-
-        window.closeModal = function(modalId) {
-            const modal = document.getElementById(modalId);
-            if(modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                document.body.style.overflow = 'auto';
-            }
-        };
-
-        window.openEditModal = function(button) {
-            const id = button.dataset.id;
-            const categoryId = button.dataset.category_id || '';
-
-            document.getElementById('edit_name').value = button.dataset.name;
-            document.getElementById('edit_code').value = button.dataset.code;
-            document.getElementById('edit_stock').value = button.dataset.stock;
-            document.getElementById('edit_unit_cost').value = button.dataset.unit_cost;
-            document.getElementById('edit_description').value = button.dataset.description;
-
-            // Sincronización con el Dropdown de Alpine.js
-            const categoryInput = document.getElementById('edit_category_id');
-            if (categoryInput) {
-                categoryInput.value = categoryId;
-                categoryInput.dispatchEvent(new Event('change'));
-            }
-            window.dispatchEvent(new CustomEvent('set-edit-category', { detail: categoryId }));
-
-            // Carga y previsualización de la imagen actual del producto en el modal
-            const imageUrl = button.dataset.image;
-            const previewImage = document.getElementById('edit_image_preview');
-            const placeholder = document.getElementById('image_placeholder');
-            const removeBtn = document.getElementById('remove_image_btn');
-            const fileInput = document.getElementById('edit_image_input');
-
-            if (fileInput) fileInput.value = ''; // Limpiar input file
-
-            if (imageUrl && imageUrl.trim() !== '') {
-                if (previewImage) {
-                    previewImage.src = imageUrl;
-                    previewImage.classList.remove('hidden');
-                }
-                if (placeholder) placeholder.classList.add('hidden');
-                if (removeBtn) removeBtn.classList.remove('hidden');
-            } else {
-                window.clearEditImage();
-            }
-
-            const form = document.getElementById('edit_product_form');
-            if (form) {
-                form.action = `/admin/products/${id}`;
-            }
-
-            openModal('modal-edit');
-        };
-
-        window.openDeleteModal = function(productId) {
-            const form = document.getElementById('delete_product_form');
-            if (form) {
-                form.action = `/admin/products/${productId}`;
-            }
-            openModal('modal-delete');
-        };
-    });
-
-    // 3. Funciones globales para previsualizar y limpiar la imagen seleccionada
-    window.previewEditImage = function(event) {
-        const reader = new FileReader();
-        const file = event.target.files[0];
-        
-        const previewImage = document.getElementById('edit_image_preview');
-        const placeholder = document.getElementById('image_placeholder');
-        const removeBtn = document.getElementById('remove_image_btn');
-
-        if (file) {
-            reader.onload = function(e) {
-                if (previewImage) {
-                    previewImage.src = e.target.result;
-                    previewImage.classList.remove('hidden');
-                }
-                if (placeholder) placeholder.classList.add('hidden');
-                if (removeBtn) removeBtn.classList.remove('hidden');
-            }
-            reader.readAsDataURL(file);
-        }
-    };
-
-    window.clearEditImage = function(event) {
-        if (event) event.stopPropagation();
-
-        const input = document.getElementById('edit_image_input');
-        const previewImage = document.getElementById('edit_image_preview');
-        const placeholder = document.getElementById('image_placeholder');
-        const removeBtn = document.getElementById('remove_image_btn');
-
-        if (input) input.value = '';
-        if (previewImage) previewImage.src = '';
-        
-        if (previewImage) previewImage.classList.add('hidden');
-        if (placeholder) placeholder.classList.remove('hidden');
-        if (removeBtn) removeBtn.classList.add('hidden');
-    };
+// ── Modal eliminar producto ───────────────────────────────────────────────────
+window.openDeleteModal = id => {
+    const form = document.getElementById('delete_product_form');
+    if (form) form.action = `/admin/products/${id}`;
+    openModal('modal-delete');
+};
 </script>
-@endpush
+@endpush 

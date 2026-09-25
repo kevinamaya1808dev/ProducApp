@@ -9,18 +9,10 @@
 
     <title>{{ config('app.name', 'ProducApp') }}</title>
 
-   <!-- Script inline de prevención de parpadeo (FOUC) para Modo Oscuro -->
+{{-- ─── Dark mode (debe correr ANTES del render para evitar flash) ─── --}}
 <script>
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-    } else {
-        document.documentElement.classList.remove('dark');
-    }
-
-    window.toggleDarkMode = function () {
-        const isDark = document.documentElement.classList.toggle('dark');
-        localStorage.theme = isDark ? 'dark' : 'light';
-    };
+    (d => d.classList[localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches) ? 'add' : 'remove']('dark'))(document.documentElement);
+    window.toggleDarkMode = () => { const d = document.documentElement.classList.toggle('dark'); localStorage.theme = d ? 'dark' : 'light'; };
 </script>
 
     <!-- Scripts and Styles -->
@@ -67,83 +59,49 @@
 @include('layouts.partials.toast-container')
 
     @auth
-    <script>
-        (function () {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const overlay = document.getElementById('sidebarOverlay');
-            const collapseBtn = document.getElementById('sidebarCollapseBtn');
-            const collapseIcon = document.getElementById('collapseIcon');
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
-
-            if (!sidebar || !mainContent) return;
-
-            // ---- Colapsar / expandir (escritorio) ----
-            function applyCollapsed(collapsed) {
-                sidebar.classList.toggle('lg:w-20', collapsed);
-                sidebar.classList.toggle('lg:w-64', !collapsed);
-                mainContent.classList.toggle('lg:ml-20', collapsed);
-                mainContent.classList.toggle('lg:ml-64', !collapsed);
-
-                document.querySelectorAll('.sidebar-label').forEach(function (el) {
-                    el.classList.toggle('lg:hidden', collapsed);
-                });
-                document.querySelectorAll('.sidebar-nav-item').forEach(function (el) {
-                    el.classList.toggle('lg:justify-center', collapsed);
-                });
-
-                if (collapseIcon) {
-                    if (collapsed) {
-                        collapseIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>';
-                    } else {
-                        collapseIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>';
-                    }
-                }
-            }
-
-            const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            applyCollapsed(savedCollapsed);
-
-            if (collapseBtn) {
-                collapseBtn.addEventListener('click', function () {
-                    const isCollapsed = sidebar.classList.contains('lg:w-20');
-                    const next = !isCollapsed;
-                    applyCollapsed(next);
-                    localStorage.setItem('sidebarCollapsed', next);
-                });
-            }
-
-            // ---- Abrir / cerrar (móvil) ----
-            function openMobileSidebar() {
-                sidebar.classList.remove('-translate-x-full');
-                sidebar.classList.add('translate-x-0');
-                if (overlay) overlay.classList.remove('hidden');
-            }
-
-            function closeMobileSidebar() {
-                sidebar.classList.add('-translate-x-full');
-                sidebar.classList.remove('translate-x-0');
-                if (overlay) overlay.classList.add('hidden');
-            }
-
-            if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', openMobileSidebar);
-            }
-            if (sidebarCloseBtn) {
-                sidebarCloseBtn.addEventListener('click', closeMobileSidebar);
-            }
-            if (overlay) {
-                overlay.addEventListener('click', closeMobileSidebar);
-            }
-
-            window.addEventListener('resize', function () {
-                if (window.innerWidth >= 1024) {
-                    closeMobileSidebar();
-                }
-            });
-        })();
-    </script>
+    {{-- ─── Sidebar: colapso (desktop) + apertura/cierre (móvil) ─── --}}
+<script>
+(function () {
+    const sidebar   = document.getElementById('sidebar');
+    const main      = document.getElementById('mainContent');
+    const overlay   = document.getElementById('sidebarOverlay');
+    const collapseBtn  = document.getElementById('sidebarCollapseBtn');
+    const collapseIcon = document.getElementById('collapseIcon');
+    const mobileBtn    = document.getElementById('mobileMenuBtn');
+    const closeBtn     = document.getElementById('sidebarCloseBtn');
+ 
+    if (!sidebar || !main) return;
+ 
+    const ICON_COLLAPSED = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>';
+    const ICON_EXPANDED  = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>';
+ 
+    function applyCollapsed(on) {
+        sidebar.classList.toggle('lg:w-20', on);
+        sidebar.classList.toggle('lg:w-64', !on);
+        main.classList.toggle('lg:ml-20', on);
+        main.classList.toggle('lg:ml-64', !on);
+        document.querySelectorAll('.sidebar-label').forEach(el => el.classList.toggle('lg:hidden', on));
+        document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.toggle('lg:justify-center', on));
+        if (collapseIcon) collapseIcon.innerHTML = on ? ICON_COLLAPSED : ICON_EXPANDED;
+    }
+ 
+    applyCollapsed(localStorage.getItem('sidebarCollapsed') === 'true');
+ 
+    collapseBtn?.addEventListener('click', () => {
+        const next = !sidebar.classList.contains('lg:w-20');
+        applyCollapsed(next);
+        localStorage.setItem('sidebarCollapsed', next);
+    });
+ 
+    const openMobile  = () => { sidebar.classList.replace('-translate-x-full', 'translate-x-0'); overlay?.classList.remove('hidden'); };
+    const closeMobile = () => { sidebar.classList.replace('translate-x-0', '-translate-x-full'); overlay?.classList.add('hidden'); };
+ 
+    mobileBtn?.addEventListener('click', openMobile);
+    closeBtn?.addEventListener('click', closeMobile);
+    overlay?.addEventListener('click', closeMobile);
+    window.addEventListener('resize', () => { if (innerWidth >= 1024) closeMobile(); });
+})();
+</script>
     @endauth
     @stack('scripts')
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

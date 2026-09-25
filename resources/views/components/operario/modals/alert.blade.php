@@ -13,56 +13,5 @@
     </div>
 </div>
 
-<script>
-(() => {
-    const routeEstado = @json($routeEstadoSuborden);
-    if (!routeEstado) return;
-
-    let yaAvisado = false;
-
-    const verificar = async () => {
-        if (document.hidden) return;
-        try {
-            const res = await fetch(routeEstado, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                cache: 'no-store',
-            });
-            if (!res.ok) return;
-            const data = await res.json();
-
-            if (data.alerta_cercana && !yaAvisado) {
-                yaAvisado = true;
-                document.getElementById('alertaSubordenTexto').textContent =
-                    `Quedan ${data.restantes} pieza(s) para completar esta suborden. Coordínense para terminar.`;
-
-                const colegasEl = document.getElementById('alertaSubordenColegas');
-                colegasEl.innerHTML = data.colegas.length
-                    ? data.colegas.map(c => `
-                        <div class="flex justify-between text-xs bg-slate-50 dark:bg-stone-800 rounded-lg px-3 py-2">
-                            <span class="font-medium text-slate-700 dark:text-stone-300">${c.nombre}</span>
-                            <span class="text-slate-400">${c.estacion} · ${c.aportadas} pzas</span>
-                        </div>
-                    `).join('')
-                    : '<p class="text-xs text-slate-400 italic">No hay más operarios asignados a esta suborden.</p>';
-
-                document.getElementById('alertaSubordenModal').classList.remove('hidden');
-                document.getElementById('alertaSubordenModal').classList.add('flex');
-            }
-
-            if (!data.alerta_cercana) {
-                yaAvisado = false; // se resetea si vuelve a subir el restante (ej. se ajustó la cantidad)
-            }
-        } catch (e) {
-            // Silencioso: no queremos interrumpir al operario por un fallo de red puntual
-        }
-    };
-
-    verificar();
-    setInterval(verificar, 5000);
-
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) verificar();
-    });
-})();
-</script>
+@include('components.operario.alerta-suborden-script')
 @endif
