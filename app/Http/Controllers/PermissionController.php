@@ -52,19 +52,12 @@ class PermissionController extends Controller
         $permissions = Permission::orderBy('module')->orderBy('action')->get();
 
         return view('admin.permissions.index', [
-            'modules' => $permissions->where('is_special', false)->groupBy('module'),
-            'special' => $permissions->where('is_special', true),
-            'actions' => self::ACTIONS,
-        ]);
-    }
-
-    public function create(Request $request): View
-    {
-        return view('admin.permissions.create', [
-            'actions'        => self::ACTIONS,
-            'prefillModule'  => $request->query('module'),
-            'prefillAction'  => $request->query('action'),
-            'moduleOptions'  => Permission::where('is_special', false)->pluck('module')->unique()->sort()->values(),
+            'modules'       => $permissions->where('is_special', false)->groupBy('module'),
+            'special'       => $permissions->where('is_special', true),
+            'actions'       => self::ACTIONS,
+            // Necesario aquí porque create-modal y edit-modal ahora viven dentro de index,
+            // ya no en sus propias páginas (create()/edit() ya no existen).
+            'moduleOptions' => Permission::where('is_special', false)->pluck('module')->unique()->sort()->values(),
         ]);
     }
 
@@ -142,15 +135,6 @@ class PermissionController extends Controller
         }
 
         return redirect()->route('admin.permissions.index')->with('success', $message);
-    }
-
-    public function edit(Permission $permission): View
-    {
-        return view('admin.permissions.edit', [
-            'permission'    => $permission,
-            'actions'       => self::ACTIONS,
-            'moduleOptions' => Permission::where('is_special', false)->pluck('module')->unique()->sort()->values(),
-        ]);
     }
 
     public function update(Request $request, Permission $permission): RedirectResponse
