@@ -15,26 +15,15 @@ class RoleSeeder extends Seeder
             ['name' => 'Administrador']
         );
 
-        $operarioRole = Role::updateOrCreate(
+        Role::updateOrCreate(
             ['slug' => 'operario'],
             ['name' => 'Operario']
         );
 
-        // Permisos completos del Administrador: todos los permisos "normales"
-        // (no especiales) generados por PermissionSeeder para cada módulo/acción.
-        // Los especiales del Operario quedan fuera a propósito.
-        $adminPermissions = Permission::where('is_special', false)->get();
-
-        $adminRole->permissions()->sync($adminPermissions);
-
-        // Permisos base del Operario (Sin vistas administrativas por defecto)
-        $operarioPermissions = Permission::whereIn('slug', [
-            'access-operario',
-            'view-assigned-orders',
-            'update-progress',
-            'create-incidences',
-        ])->get();
-
-        $operarioRole->permissions()->sync($operarioPermissions);
+        // El Administrador tiene todos los permisos de módulo/acción.
+        // El Operario ya no se gestiona por permisos: su acceso se resuelve
+        // por rol directamente (ver AppServiceProvider), así que no se le
+        // sincroniza ningún permiso aquí.
+        $adminRole->permissions()->sync(Permission::all());
     }
 }

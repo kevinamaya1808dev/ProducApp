@@ -17,7 +17,6 @@ return new class extends Migration
         $table->string('slug')->unique();
         $table->string('module')->nullable();   // null para los especiales de Operario
         $table->string('action')->nullable();   // null para los especiales de Operario
-        $table->boolean('is_special')->default(false);
         $table->timestamps();
     });
 }

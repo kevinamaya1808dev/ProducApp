@@ -7,7 +7,5 @@
 
     @include('admin.permissions.components.modules-table')
 
-    @include('admin.permissions.components.special-list')
-
 </div>
 @endsection

@@ -260,7 +260,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // CRUD de la entidad Permiso (catálogo de permisos)
     Route::middleware(['can:users.manage'])->group(function () {
-        Route::resource('permissions', PermissionController::class)->except(['show', 'create', 'edit']);
+        Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
     });
 
     Route::middleware(['can:users.edit'])->group(function () {

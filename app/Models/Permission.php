@@ -13,16 +13,8 @@ class Permission extends Model
         'name',
         'slug',
         'module',
-        'action',
-        'is_special',
+        'action'
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_special' => 'boolean',
-        ];
-    }
 
     public function users()
     {
