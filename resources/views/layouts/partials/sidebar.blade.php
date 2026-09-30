@@ -114,7 +114,7 @@
             @endcanany
 
             {{-- SECCIÓN EXCLUSIVA DE OPERARIO --}}
-            @can('access-operario')
+            @if(Auth::user()->hasRole('operario'))
                 <div class="sidebar-label px-3 pt-4 pb-2 text-[11px] font-bold text-amber-400/60 dark:text-stone-500 uppercase tracking-widest whitespace-nowrap overflow-hidden">
                     Mi Espacio
                 </div>
@@ -143,8 +143,5 @@
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span class="sidebar-label whitespace-nowrap overflow-hidden">Mi Perfil</span>
                 </a>
-            @endcan
-        </nav>
-    </div>
-</aside>
+            @endif
 @endauth

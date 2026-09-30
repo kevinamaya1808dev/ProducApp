@@ -282,35 +282,26 @@ Route::middleware(['auth', 'can:orders.create'])->prefix('operario/gestion')->na
 });
 
 // ==========================================
-// GRUPO: MÓDULO OPERARIO (sin cambios — permisos especiales)
+// GRUPO: MÓDULO OPERARIO
 // ==========================================
-Route::middleware(['auth', 'can:access-operario'])
+Route::middleware(['auth', 'role:operario'])
     ->prefix('operario')
     ->name('operario.')
     ->group(function () {
 
         Route::get('/inicio', [OperarioController::class, 'inicio'])->name('inicio');
-
-        Route::middleware(['can:view-assigned-orders'])->group(function () {
-            Route::get('/tareas', [OperarioController::class, 'tareas'])->name('tareas');
-        });
-
+        Route::get('/tareas', [OperarioController::class, 'tareas'])->name('tareas');
         Route::get('/registro', [OperarioController::class, 'registro'])->name('registro');
         Route::get('/incidencias', [OperarioController::class, 'incidencias'])->name('incidencias');
         Route::get('/perfil', [OperarioController::class, 'perfil'])->name('perfil');
 
         Route::post('/registro/guardar', [OperarioController::class, 'guardarRegistro'])->name('registro.guardar');
+        Route::post('/incidencias/guardar', [OperarioController::class, 'crearIncidencia'])->name('incidencias.guardar');
 
-        Route::middleware(['can:create-incidences'])->group(function () {
-            Route::post('/incidencias/guardar', [OperarioController::class, 'crearIncidencia'])->name('incidencias.guardar');
-        });
-
-        Route::middleware(['can:update-progress'])->group(function () {
-            Route::put('/orden/{productionOrder}/estacion', [OperarioController::class, 'actualizarEstacion'])->name('estacion.actualizar');
-            Route::put('/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('tareas.iniciar');
-            Route::put('/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('tareas.completar');
-            Route::post('/sub-orders/{subOrder}/progress', [SubOrderController::class, 'registerProgress'])->name('suborders.progress');
-        });
+        Route::put('/orden/{productionOrder}/estacion', [OperarioController::class, 'actualizarEstacion'])->name('estacion.actualizar');
+        Route::put('/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('tareas.iniciar');
+        Route::put('/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('tareas.completar');
+        Route::post('/sub-orders/{subOrder}/progress', [SubOrderController::class, 'registerProgress'])->name('suborders.progress');
 
         Route::get('/suborden/{subOrder}/estado', [OperarioController::class, 'estadoSuborden'])->name('suborden.estado');
     });
