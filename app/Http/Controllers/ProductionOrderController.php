@@ -6,6 +6,7 @@ use App\Models\ProductionOrder;
 use App\Models\ProductionSubOrder;
 use App\Models\Product;
 use App\Models\User;
+use App\Rules\UsuarioAsignable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class ProductionOrderController extends Controller
     {
         $orders = ProductionOrder::with(['product', 'user', 'subOrders.assignedUsers'])->latest()->paginate(9);
         $products = Product::orderBy('name')->get();
-        $operarios = User::orderBy('name')->get();
+        $operarios = User::asignables()->orderBy('name')->get();
 
         return view('admin.orders.index', compact('orders', 'products', 'operarios'));
     }
@@ -67,7 +68,7 @@ class ProductionOrderController extends Controller
 
     public function update(Request $request, ProductionOrder $order): RedirectResponse
     {
-        $validated = $this->validateOrder($request, $order->id);
+        $validated = $this->validateOrder($request, $order);
 
         DB::transaction(function () use ($order, $validated, $request) {
             $order->update($validated);
@@ -127,13 +128,20 @@ class ProductionOrderController extends Controller
         return redirect()->route('admin.orders.index')->with('success', 'Orden de producción eliminada correctamente.');
     }
 
-    private function validateOrder(Request $request, ?int $ignoreId = null): array
+    private function validateOrder(Request $request, ?ProductionOrder $order = null): array
     {
-        $uniqueRule = 'unique:production_orders,order_number' . ($ignoreId ? ',' . $ignoreId : '');
+        $uniqueRule = 'unique:production_orders,order_number' . ($order ? ',' . $order->id : '');
+
+        // Los administradores no pueden ser encargados. Al editar, si el encargado
+        // no cambió (órdenes antiguas con un admin ya asignado) se respeta tal cual.
+        $userRules = ['required', 'exists:users,id'];
+        if (!$order || (int) $request->input('user_id') !== (int) $order->user_id) {
+            $userRules[] = new UsuarioAsignable();
+        }
 
         return $request->validate([
             'product_id'                   => 'required|exists:products,id',
-            'user_id'                      => 'required|exists:users,id',
+            'user_id'                      => $userRules,
             'order_number'                 => 'required|string|max:50|' . $uniqueRule,
             'quantity'                     => 'required|integer|min:1',
             'status'                       => 'required|in:pending,in_progress,completed,cancelled',
@@ -147,7 +155,7 @@ class ProductionOrderController extends Controller
             'sub_orders.*.proceso'         => 'required_with:sub_orders|string|max:100',
             'sub_orders.*.es_ensamblaje'   => 'nullable|boolean',
             'sub_orders.*.operarios'       => 'nullable|array',
-            'sub_orders.*.operarios.*'     => 'exists:users,id',
+            'sub_orders.*.operarios.*'     => ['exists:users,id', new UsuarioAsignable()],
             'sub_orders.*.quantity'        => 'required_with:sub_orders|integer|min:1',
             'sub_orders.*.estacion'        => 'nullable|string|max:50',
         ], [

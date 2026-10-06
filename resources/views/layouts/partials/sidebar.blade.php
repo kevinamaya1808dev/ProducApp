@@ -144,4 +144,7 @@
                     <span class="sidebar-label whitespace-nowrap overflow-hidden">Mi Perfil</span>
                 </a>
             @endif
+        </nav>
+    </div>
+</aside>
 @endauth

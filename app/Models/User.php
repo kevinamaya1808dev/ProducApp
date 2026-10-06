@@ -80,6 +80,14 @@ class User extends Authenticatable
         return $this->hasMany(MaterialStockLog::class);
     }
 
+    // Usuarios que pueden asignarse a órdenes/subórdenes: todos excepto administradores.
+    public function scopeAsignables($query)
+    {
+        return $query->whereDoesntHave('roles', function ($q) {
+            $q->where('slug', 'admin');
+        });
+    }
+
     // ==========================================
     // MÉTODOS DE VALIDACIÓN (RBAC ROBUSTOS)
     // ==========================================

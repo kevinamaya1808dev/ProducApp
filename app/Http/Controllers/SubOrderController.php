@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Incidence;
 use App\Models\ProductionSubOrder;
+use App\Rules\UsuarioAsignable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ class SubOrderController extends Controller
             'quantity'            => 'required|integer|min:1',
             'es_ensamblaje'       => 'nullable|boolean',
             'operarios'           => 'nullable|array',
-            'operarios.*'         => 'exists:users,id',
+            'operarios.*'         => ['exists:users,id', new UsuarioAsignable()],
             'start_date'          => 'nullable|date',
             'end_date'            => 'nullable|date|after_or_equal:start_date',
             'notas'               => 'nullable|string|max:500',
@@ -96,7 +97,7 @@ class SubOrderController extends Controller
             'completed_pieces' => 'sometimes|required|integer|min:0',
             'es_ensamblaje'    => 'nullable|boolean',
             'operarios'        => 'nullable|array',
-            'operarios.*'      => 'exists:users,id',
+            'operarios.*'      => ['exists:users,id', new UsuarioAsignable()],
             'notas'            => 'nullable|string|max:500',
         ]);
 
