@@ -301,7 +301,6 @@ Route::middleware(['auth', 'role:operario'])
         Route::put('/orden/{productionOrder}/estacion', [OperarioController::class, 'actualizarEstacion'])->name('estacion.actualizar');
         Route::put('/tareas/{productionOrder}/iniciar', [OperarioController::class, 'iniciarTarea'])->name('tareas.iniciar');
         Route::put('/tareas/{productionOrder}/completar', [OperarioController::class, 'completarTarea'])->name('tareas.completar');
-        Route::post('/sub-orders/{subOrder}/progress', [SubOrderController::class, 'registerProgress'])->name('suborders.progress');
-
+        
         Route::get('/suborden/{subOrder}/estado', [OperarioController::class, 'estadoSuborden'])->name('suborden.estado');
     });

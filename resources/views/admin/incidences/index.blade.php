@@ -418,12 +418,12 @@ function openHistoryModal(inc) {
         ? inc.logs.map(log => `
             <div class="p-3 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 rounded-xl space-y-1">
                 <div class="flex justify-between items-center text-xs text-stone-500 dark:text-stone-400">
-                    <span class="font-semibold text-stone-700 dark:text-stone-200">${log.user?.name ?? 'Sistema'}</span>
+                    <span class="font-semibold text-stone-700 dark:text-stone-200">${escapeHtml(log.user?.name ?? 'Sistema')}</span>
                     <span>${new Date(log.created_at).toLocaleString()}</span>
                 </div>
                 <div class="flex items-center gap-2 mt-1">
                     ${LOG_BADGES[log.type] ?? DEFAULT_BADGE}
-                    <p class="text-xs text-stone-800 dark:text-stone-200">${log.comment}</p>
+                    <p class="text-xs text-stone-800 dark:text-stone-200">${escapeHtml(log.comment)}</p>z
                 </div>
             </div>`).join('')
         : '<p class="text-xs text-stone-400 dark:text-stone-500 text-center py-4">No hay historial para esta incidencia.</p>';

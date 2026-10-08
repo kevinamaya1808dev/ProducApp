@@ -312,6 +312,19 @@ class OperarioController extends Controller
                             : 'Esta fase ya está completa; no se puede registrar más avance.',
                     ]);
                 }
+            } else {
+                // Orden de un solo paso (sin subórdenes): mismo tope, contra la
+                // cantidad de la orden. Antes se podían registrar más piezas de
+                // las pedidas y se descontaba material de más.
+                $restantesOrden = max(0, $orden->quantity - $orden->completed_pieces);
+
+                if ($cantidad > $restantesOrden) {
+                    throw ValidationException::withMessages([
+                        'cantidad' => $restantesOrden > 0
+                            ? "Solo faltan {$restantesOrden} piezas para esta orden; no puedes registrar {$cantidad}."
+                            : 'Esta orden ya está completa; no se puede registrar más avance.',
+                    ]);
+                }
             }
 
             RegistroProduccion::create([
@@ -332,7 +345,7 @@ class OperarioController extends Controller
                     $subOrder->update(['status' => 'in_progress']);
                 }
 
-                $estacionActual = Auth::user()->estacion ?? Auth::user()->planta ?? 'General';
+                $estacionActual = Auth::user()->estacion ?? 'General';
                 $existsPivot = $subOrder->assignedUsers()->where('user_id', $userId)->exists();
 
                 if ($existsPivot) {
@@ -389,20 +402,53 @@ class OperarioController extends Controller
                         if ($material) {
                             $material->stock_actual = max(0, $material->stock_actual - $cantidadDescontar);
                             $material->save();
+
+                            $this->alertarStockBajo($material, $orden, $subOrder, $userId);
                         }
                     }
                 }
-            } elseif ($cantidad > 0 && $orden->status !== 'in_progress' && strtolower($orden->status) === 'pending') {
-                // Si avanzó una fase intermedia (no la de ensamblaje) pero la
-                // orden seguía "pending", igual la pasamos a "in_progress"
-                // para reflejar que ya hay trabajo en curso, sin tocar
-                // completed_pieces ni los materiales todavía.
-                $orden->status = 'in_progress';
+            } elseif ($cantidad > 0 && $orden->isDirty('status')) {
+                // Fase intermedia (no la de ensamblaje): arriba el estado de la
+                // orden pasó de "pending" a "in_progress" solo en memoria.
+                // Se guarda aquí, sin tocar completed_pieces ni los materiales.
+                // (Antes la condición comparaba contra ese mismo valor ya
+                // modificado en memoria, nunca se cumplía y el cambio se perdía.)
                 $orden->save();
             }
         });
 
         return redirect()->back()->with('success', '¡Registro guardado correctamente y materiales descontados de almacén!');
+    }
+
+    /**
+     * Si tras descontar el material queda en o bajo su mínimo, abre una incidencia
+     * "Stock bajo" (una sola mientras siga abierta). Esta lógica vivía en una ruta
+     * duplicada que ninguna vista usaba (SubOrderController::registerProgress), por
+     * lo que nunca se ejecutaba; ahora forma parte del único flujo de avance.
+     */
+    private function alertarStockBajo($material, ProductionOrder $orden, ?ProductionSubOrder $subOrder, int $userId): void
+    {
+        if ($material->stock_actual > $material->stock_minimo) {
+            return;
+        }
+
+        $titulo = "Stock bajo: {$material->name} ({$material->sku})";
+
+        if (Incidence::where('title', $titulo)->whereIn('status', ['pendiente', 'en_proceso'])->exists()) {
+            return;
+        }
+
+        $origen = $subOrder ? "\"{$subOrder->proceso}\"" : "la orden {$orden->order_number}";
+
+        Incidence::create([
+            'production_order_id' => $orden->id,
+            'user_id'             => $userId,
+            'title'               => $titulo,
+            'description'         => "El material \"{$material->name}\" quedó en {$material->stock_actual} {$material->unit} "
+                . "(mínimo: {$material->stock_minimo} {$material->unit}) tras avanzar en {$origen}.",
+            'status'              => 'pendiente',
+            'importance'          => $material->stock_actual <= 0 ? 'alta' : 'media',
+        ]);
     }
 
     public function estadoSuborden(ProductionSubOrder $subOrder)
@@ -453,7 +499,7 @@ class OperarioController extends Controller
             // "$ultimaOrden->estacion" disparaba un warning de PHP
             // ("Attempt to read property on null") cada vez que esto pasaba;
             // con "?->" simplemente resuelve a null y cae en 'Sin asignar'.
-            'estacion' => $user->planta ?? $ultimaOrden?->estacion ?? 'Sin asignar',
+            'estacion' => $user->estacion ?? $ultimaOrden?->estacion ?? 'Sin asignar',
             'turno' => $user->turno ?? 'Sin definir',
             'alta_desde' => optional($user->created_at)->translatedFormat('M Y') ?? '—',
         ];

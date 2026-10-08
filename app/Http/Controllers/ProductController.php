@@ -55,9 +55,16 @@ class ProductController extends Controller
     }
 
     public function destroy(Product $product): RedirectResponse
-    {
-        $product->delete();
+{
+    $ordenes = $product->productionOrders()->count();
 
-        return redirect()->route('admin.products.index')->with('success', 'Producto eliminado correctamente.');
+    if ($ordenes > 0) {
+        return redirect()->route('admin.products.index')->with('error',
+            "No se puede eliminar '{$product->name}': tiene {$ordenes} orden(es) de producción y se perdería su historial.");
     }
+
+    $product->delete();
+
+    return redirect()->route('admin.products.index')->with('success', 'Producto eliminado correctamente.');
+}
 }

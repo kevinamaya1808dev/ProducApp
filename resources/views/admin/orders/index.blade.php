@@ -47,6 +47,8 @@
 
 @push('scripts')
 <script>
+// Lista de operarios asignables (sin administradores), entregada como JSON seguro.
+const OPERARIOS = @json(($operarios ?? collect())->map(fn ($o) => ['id' => $o->id, 'name' => $o->name])->values());
 let currentOrder   = null;
 let currentSubOrders = [];
 
@@ -102,7 +104,7 @@ function viewOrder(row) {
             const ops = (sub.operarios || []).length
                 ? sub.operarios.map(op => `
                     <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-stone-400 pl-2 border-l-2 border-orange-200 dark:border-orange-500/30 mt-1">
-                        <span>${op.nombre} <span class="text-slate-400">· ${op.estacion || 'S/N'}</span></span>
+                        <span>${escapeHtml(op.nombre)} <span class="text-slate-400">· ${escapeHtml(op.estacion || 'S/N')}</span></span>
                         <span class="font-semibold text-slate-600 dark:text-stone-300">${op.aportadas || 0} pzas</span>
                     </div>`).join('')
                 : `<p class="text-[11px] text-slate-400 italic pl-2 mt-1">Sin operarios asignados</p>`;
@@ -117,13 +119,13 @@ function viewOrder(row) {
             return `
                 <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-stone-800/60 border border-slate-100 dark:border-stone-800 text-xs">
                     <div class="flex justify-between items-center font-bold text-slate-800 dark:text-stone-200 mb-1">
-                        <span>${sub.proceso} ${badges}</span>
+                        <span>${escapeHtml(sub.proceso)} ${badges}</span>
                         <div class="flex items-center gap-2">
                             <span class="text-orange-600 dark:text-orange-400">${piezas}/${sub.quantity} pzas</span>
                             <button type="button" onclick="openEditSubOrderModalById(${sub.id})" class="text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 p-0.5" title="Editar proceso">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 210.3H3v-3.572L16.732 3.732z"/></svg>
                             </button>
-                            <button type="button" onclick="openDeleteSubOrderModal(${sub.id}, '${sub.proceso}')" class="text-slate-400 hover:text-red-600 p-0.5" title="Eliminar proceso">
+                            <button type="button" data-id="${Number(sub.id)}" data-proceso="${escapeHtml(sub.proceso)}" onclick="openDeleteSubOrderModal(this.dataset.id, this.dataset.proceso)" class="text-slate-400 hover:text-red-600 p-0.5" title="Eliminar proceso">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
                         </div>
@@ -142,13 +144,13 @@ function closePanel() { hide('orderPanel'); currentOrder = null; currentSubOrder
 function addSubOrderRow(containerId, data = null) {
     const container = $(containerId);
     const index     = container.children.length;
-    const ops = `@foreach($operarios ?? [] as $op)<option value="{{ $op->id }}">{{ $op->name }}</option>@endforeach`;
+    const ops = OPERARIOS.map(o => `<option value="${Number(o.id)}">${escapeHtml(o.name)}</option>`).join('');
 
     const row = Object.assign(document.createElement('div'), {
         className: 'grid grid-cols-12 gap-2 bg-slate-50 dark:bg-stone-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-stone-800 items-start suborder-row mb-2',
         innerHTML: `
             <div class="col-span-4">
-                <input type="text" name="sub_orders[${index}][proceso]" value="${data?.proceso || ''}" placeholder="Ej. Ensamblaje" required class="w-full text-xs bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-orange-600/50">
+                <input type="text" name="sub_orders[${index}][proceso]" value="${escapeHtml(data?.proceso || '')}" placeholder="Ej. Ensamblaje" required class="w-full text-xs bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-orange-600/50">
                 <label class="flex items-center gap-1.5 mt-1.5 text-[11px] text-slate-500 dark:text-stone-400 cursor-pointer select-none">
                     <input type="checkbox" name="sub_orders[${index}][es_ensamblaje]" value="1" ${data?.es_ensamblaje ? 'checked' : ''} class="rounded border-slate-300 text-orange-600 focus:ring-orange-500">
                     Fase final (ensamblaje)

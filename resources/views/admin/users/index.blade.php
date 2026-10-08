@@ -35,6 +35,8 @@
 <script>
 let currentUser = null;
 const AUTH_ID   = {{ auth()->id() }};
+// La cuenta del administrador principal (ID 1) es intocable: nadie puede modificarla.
+const esPrincipal = user => user && user.id === 1;
 const $         = id => document.getElementById(id);
 
 // ── Filtro de búsqueda ────────────────────────────────────────────────────────
@@ -98,6 +100,10 @@ function selectUser(card) {
     }
 
     const delForm = $('deleteUserForm');
+    ['editUserBtn', 'statusFormPanel', 'deleteUserBtn'].forEach(id => {
+    const el = $(id);
+    if (el) el.style.display = esPrincipal(currentUser) ? 'none' : '';
+});
     if (delForm) {
         const protegido = currentUser.id === 1 || currentUser.id === AUTH_ID;
         delForm.style.display = protegido ? 'none' : 'block';
@@ -111,7 +117,7 @@ function closePanel() { $('userPanel').style.display = 'none'; currentUser = nul
 
 // ── Modal editar ──────────────────────────────────────────────────────────────
 function triggerEditModal() { if (currentUser) openEditModal({ ...currentUser, roles: currentUser.roleId ? [{ id: currentUser.roleId }] : [] }); }
-
+function triggerEditModal() { if (currentUser && !esPrincipal(currentUser)) openEditModal({ ...currentUser, roles: currentUser.roleId ? [{ id: currentUser.roleId }] : [] }); }
 function openEditModal(user) {
     if (!user) return;
     const form = $('editForm');
@@ -153,14 +159,14 @@ function closeCreateModal() { $('createModal').style.display = 'none'; }
 const STATUS_CFG = {
     baja: {
         title: 'Dar de baja',
-        msg:   name => `¿Dar de baja a "<span class="text-slate-800 dark:text-stone-200 font-medium">${name}</span>"? No podrá iniciar sesión ni recibir órdenes.`,
+        msg:   name => `¿Dar de baja a "<span class="text-slate-800 dark:text-stone-200 font-medium">${escapeHtml(name)}</span>"? No podrá iniciar sesión ni recibir órdenes.`,
         icon:  'bg-red-100 dark:bg-red-950/50', iconColor: 'text-red-500 dark:text-red-400',
         path:  'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16',
         btn:   'bg-red-600 hover:bg-red-700 shadow-red-600/20', btnLabel: 'Dar de baja',
     },
     alta: {
         title: 'Dar de alta',
-        msg:   name => `¿Dar de alta a "<span class="text-slate-800 dark:text-stone-200 font-medium">${name}</span>"? Podrá volver a ingresar al sistema.`,
+        msg:   name => `¿Dar de alta a "<span class="text-slate-800 dark:text-stone-200 font-medium">${escapeHtml(name)}</span>"? Podrá volver a ingresar al sistema.`,
         icon:  'bg-emerald-100 dark:bg-emerald-950/50', iconColor: 'text-emerald-500 dark:text-emerald-400',
         path:  'M5 13l4 4L19 7',
         btn:   'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20', btnLabel: 'Dar de alta',
@@ -168,7 +174,7 @@ const STATUS_CFG = {
 };
 
 function toggleStatusFromPanel() {
-    if (!currentUser) return;
+    if (!currentUser || esPrincipal(currentUser)) return;
     const cfg = STATUS_CFG[currentUser.active ? 'baja' : 'alta'];
 
     $('deactivateModalTitle').textContent   = cfg.title;
@@ -185,7 +191,7 @@ function toggleStatusFromPanel() {
 function closeDeactivateModal() { $('deactivateModal').style.display = 'none'; }
 
 function confirmDeactivate() {
-    if (!currentUser) return;
+    if (!currentUser || esPrincipal(currentUser)) return;
     const form = $('statusFormPanel');
     if (!form) return;
     form.action = '/admin/users/' + currentUser.id;

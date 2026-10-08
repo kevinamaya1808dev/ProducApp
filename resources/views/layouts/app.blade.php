@@ -13,6 +13,7 @@
 <script>
     (d => d.classList[localStorage.theme === 'dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches) ? 'add' : 'remove']('dark'))(document.documentElement);
     window.toggleDarkMode = () => { const d = document.documentElement.classList.toggle('dark'); localStorage.theme = d ? 'dark' : 'light'; };
+    window.escapeHtml = s => String(s ?? '').replace(/[&<>"'`]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c]));
 </script>
 
     <!-- Scripts and Styles -->

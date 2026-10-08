@@ -122,8 +122,18 @@ class ProductionOrderController extends Controller
     }
 
     public function destroy(ProductionOrder $order): RedirectResponse
-    {
-        $order->delete();
+{
+    $tieneHistorial = $order->completed_pieces > 0
+        || $order->registros()->exists()
+        || $order->incidences()->exists()
+        || $order->subOrders()->where('completed_pieces', '>', 0)->exists();
+
+    if ($tieneHistorial) {
+        return redirect()->route('admin.orders.index')->with('error',
+            "No se puede eliminar la orden {$order->order_number}: ya tiene avance, registros o incidencias. Cámbiale el estado a 'Cancelada' para conservar el historial.");
+    }
+
+    $order->delete();
 
         return redirect()->route('admin.orders.index')->with('success', 'Orden de producción eliminada correctamente.');
     }
@@ -157,6 +167,7 @@ class ProductionOrderController extends Controller
             'sub_orders.*.operarios'       => 'nullable|array',
             'sub_orders.*.operarios.*'     => ['exists:users,id', new UsuarioAsignable()],
             'sub_orders.*.quantity'        => 'required_with:sub_orders|integer|min:1',
+            'sub_orders.*.status'          => 'nullable|in:pending,in_progress,completed',
             'sub_orders.*.estacion'        => 'nullable|string|max:50',
         ], [
             'product_id.required'             => 'Selecciona un producto.',

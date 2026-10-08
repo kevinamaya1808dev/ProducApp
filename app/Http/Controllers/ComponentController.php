@@ -24,6 +24,8 @@ class ComponentController extends Controller
             'components' => Component::with(['category', 'componentType'])->orderBy('name')->get(),
             'categories' => Category::orderBy('name')->get(),
         ]);
+        
+        return redirect()->route('admin.recipes.index');
     }
 
     public function store(Request $request)

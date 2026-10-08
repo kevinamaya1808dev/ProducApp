@@ -13,5 +13,5 @@
     </div>
 </div>
 
-@include('components.operario.alerta-suborden-script')
+@include('operario.alerta-suborden-script')
 @endif

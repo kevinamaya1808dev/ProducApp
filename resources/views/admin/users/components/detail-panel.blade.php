@@ -57,6 +57,7 @@
         @canany(['users.edit', 'users.delete'])
             @can('users.edit')
                 <button type="button"
+                    id="editUserBtn"
                         onclick="triggerEditModal()"
                         class="w-full bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 font-semibold text-sm py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
                     Editar Registro

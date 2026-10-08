@@ -89,7 +89,9 @@ class ProductionOrder extends Model
             : $this->subOrders()->get();
 
         $ensamblaje = $subOrdersList->firstWhere('es_ensamblaje', true);
-
+        if ($subOrdersList->isEmpty()) {
+            return min(($this->completed_pieces / $this->quantity) * 100, 100);
+}
         // Sin fase de ensamblaje todavía: no hay avance real de la orden.
         if (! $ensamblaje) {
             return 0;

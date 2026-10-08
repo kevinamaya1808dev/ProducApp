@@ -28,8 +28,8 @@
                 document.getElementById('alertaSubordenColegas').innerHTML = d.colegas.length
                     ? d.colegas.map(c => `
                         <div class="flex justify-between text-xs bg-slate-50 dark:bg-stone-800 rounded-lg px-3 py-2">
-                            <span class="font-medium text-slate-700 dark:text-stone-300">${c.nombre}</span>
-                            <span class="text-slate-400">${c.estacion} · ${c.aportadas} pzas</span>
+                           <span class="font-medium text-slate-700 dark:text-stone-300">${escapeHtml(c.nombre)}</span>
+<span class="text-slate-400">${escapeHtml(c.estacion)} · ${Number(c.aportadas) || 0} pzas</span>
                         </div>`).join('')
                     : '<p class="text-xs text-slate-400 italic">No hay más operarios asignados a esta suborden.</p>';
 
