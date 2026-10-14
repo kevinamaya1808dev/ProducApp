@@ -37,7 +37,7 @@ class IncidenceController extends Controller
 
         return view('admin.incidences.index', [
             'incidences'       => $incidences,
-            'productionOrders' => ProductionOrder::all(),
+            'productionOrders' => ProductionOrder::with('product:id,name')->orderByDesc('id')->get(['id', 'product_id']),
         ]);
     }
 

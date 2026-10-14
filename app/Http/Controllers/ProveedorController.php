@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Material;
-use App\Models\Product;
 use App\Models\Proveedor;
 use Illuminate\Http\Request;
 
@@ -22,13 +20,10 @@ class ProveedorController extends Controller
 
     private function viewData(): array
     {
-        $materials = Material::with('stockLogs.proveedor')->latest()->get();
-
+        // La vista de proveedores solo usa $proveedores. Antes también cargaba todos
+        // los materiales con TODO su historial de stock y todos los productos con recetas.
         return [
-            'materials'         => $materials,
-            'products'          => Product::with('recipes.material')->get(),
-            'proveedores'       => Proveedor::orderBy('nombre')->get(),
-            'lowStockMaterials' => $materials->filter(fn ($m) => $m->stock_actual <= $m->stock_minimo),
+            'proveedores' => Proveedor::orderBy('nombre')->get(),
         ];
     }
 

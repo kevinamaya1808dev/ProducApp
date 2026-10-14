@@ -3,19 +3,23 @@
 @endphp
 
 <div class="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col relative group cursor-pointer">
-    @can('manage-products')
+    @canany(['products.edit', 'products.delete'])
     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10">
+        @can('products.edit')
         <button type="button"
             data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-code="{{ $product->code }}" data-category_id="{{ $product->category_id }}" data-stock="{{ $product->stock }}" data-unit_cost="{{ $product->unit_cost }}" data-description="{{ $product->description }}"
             onclick="openEditModal(this)"
             class="p-1.5 bg-stone-50/90 dark:bg-stone-900/90 backdrop-blur text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/40 shadow-sm transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
         </button>
+        @endcan
+        @can('products.delete')
         <button type="button" onclick="openDeleteModal({{ $product->id }})" class="p-1.5 bg-stone-50/90 dark:bg-stone-900/90 backdrop-blur text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 shadow-sm transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
         </button>
+        @endcan
     </div>
-    @endcan
+    @endcanany
 
     <div class="p-5 flex-1 flex flex-col pt-6">
         <div class="flex justify-between items-start gap-3">

@@ -67,6 +67,13 @@ class ProductionOrder extends Model
         };
     }
 
+    // El modal de incidencias usa $order->product_name, que no existía (siempre
+    // mostraba "Orden de producción"). Requiere cargar la relación 'product'.
+    public function getProductNameAttribute(): ?string
+    {
+        return $this->product?->name;
+    }
+
     public function getPiezasRegistradasAttribute(): int
     {
         return $this->relationLoaded('registros')

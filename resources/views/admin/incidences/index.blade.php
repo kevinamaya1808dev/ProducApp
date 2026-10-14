@@ -423,7 +423,7 @@ function openHistoryModal(inc) {
                 </div>
                 <div class="flex items-center gap-2 mt-1">
                     ${LOG_BADGES[log.type] ?? DEFAULT_BADGE}
-                    <p class="text-xs text-stone-800 dark:text-stone-200">${escapeHtml(log.comment)}</p>z
+                    <p class="text-xs text-stone-800 dark:text-stone-200">${escapeHtml(log.comment)}</p>
                 </div>
             </div>`).join('')
         : '<p class="text-xs text-stone-400 dark:text-stone-500 text-center py-4">No hay historial para esta incidencia.</p>';

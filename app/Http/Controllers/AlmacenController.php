@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Cache;
 
 class AlmacenController extends Controller
 {
+    // La tabla incrusta el historial de cada material en el HTML: solo se carga
+    // el de los últimos N días (el historial completo está en /admin/almacen/historial).
+    private const DIAS_HISTORIAL_EN_TABLA = 90;
+
     // Reglas base compartidas entre storeMaterial() y updateMaterial().
     // stock_actual se incluye solo en store; updateMaterial lo excluye
     // intencionalmente (solo se modifica vía addStock).
@@ -28,7 +32,7 @@ class AlmacenController extends Controller
 
     private function viewData(): array
     {
-        $materials = Material::with('stockLogs.proveedor')->latest()->get();
+        $materials = Material::with(['stockLogs' => fn ($q) => $q->where('created_at', '>=', now()->subDays(self::DIAS_HISTORIAL_EN_TABLA)), 'stockLogs.proveedor'])->latest()->get();
 
         return [
             'materials'         => $materials,

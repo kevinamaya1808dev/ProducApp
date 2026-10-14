@@ -53,16 +53,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['can:categories.view'])->group(function () {
         Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
-        Route::get('categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
     });
 
     Route::middleware(['can:categories.create'])->group(function () {
-        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
         Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
     });
 
     Route::middleware(['can:categories.edit'])->group(function () {
-        Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
         Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     });
 
@@ -77,16 +74,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['can:recipes.view'])->group(function () {
         Route::get('recipes', [RecipeController::class, 'index'])->name('recipes.index');
-        Route::get('recipes/{recipe}', [RecipeController::class, 'show'])->name('recipes.show');
     });
 
     Route::middleware(['can:recipes.create'])->group(function () {
-        Route::get('recipes/create', [RecipeController::class, 'create'])->name('recipes.create');
         Route::post('recipes', [RecipeController::class, 'store'])->name('recipes.store');
     });
 
     Route::middleware(['can:recipes.edit'])->group(function () {
-        Route::get('recipes/{recipe}/edit', [RecipeController::class, 'edit'])->name('recipes.edit');
         Route::put('recipes/{recipe}', [RecipeController::class, 'update'])->name('recipes.update');
     });
 
@@ -111,16 +105,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['can:orders.view'])->group(function () {
         Route::get('orders', [ProductionOrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}', [ProductionOrderController::class, 'show'])->name('orders.show');
     });
 
     Route::middleware(['can:orders.create'])->group(function () {
-        Route::get('orders/create', [ProductionOrderController::class, 'create'])->name('orders.create');
         Route::post('orders', [ProductionOrderController::class, 'store'])->name('orders.store');
     });
 
     Route::middleware(['can:orders.edit'])->group(function () {
-        Route::get('orders/{order}/edit', [ProductionOrderController::class, 'edit'])->name('orders.edit');
         Route::put('orders/{order}', [ProductionOrderController::class, 'update'])->name('orders.update');
     });
 
@@ -141,16 +132,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['can:products.view'])->group(function () {
         Route::get('products', [ProductController::class, 'index'])->name('products.index');
-        Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
     });
 
     Route::middleware(['can:products.create'])->group(function () {
-        Route::get('products/create', [ProductController::class, 'create'])->name('products.create');
         Route::post('products', [ProductController::class, 'store'])->name('products.store');
     });
 
     Route::middleware(['can:products.edit'])->group(function () {
-        Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
     });
 
@@ -277,7 +265,6 @@ Route::middleware(['auth', 'can:orders.view'])->prefix('operario/gestion')->name
 });
 
 Route::middleware(['auth', 'can:orders.create'])->prefix('operario/gestion')->name('operario.gestion.')->group(function () {
-    Route::get('/ordenes/crear', [ProductionOrderController::class, 'create'])->name('orders.create');
     Route::post('/ordenes', [ProductionOrderController::class, 'store'])->name('orders.store');
 });
 

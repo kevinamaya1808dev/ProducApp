@@ -6,7 +6,7 @@
         </p>
     </div>
 
-    @can('manage-products')
+    @can('products.create')
     <button type="button" onclick="openModal('modal-create')" class="px-5 py-2.5 bg-orange-600 dark:bg-orange-700 text-white rounded-xl text-sm font-semibold hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors shadow-sm shadow-orange-600/20">
         + Nuevo Producto
     </button>

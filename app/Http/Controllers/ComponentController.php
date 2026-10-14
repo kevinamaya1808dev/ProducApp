@@ -3,53 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use App\Models\Component;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
-class ComponentController extends Controller
+class CategoryController extends Controller
 {
-    private function rules(?int $ignoreId = null): array
+    public function index(Request $request): View
     {
-        return [
-            'category_id' => 'nullable|exists:categories,id',
-            'name'        => 'required|string|max:255',
-            'sku'         => 'nullable|string|unique:components,sku' . ($ignoreId ? ",$ignoreId" : ''),
-            'base_unit'   => 'required|string|max:20',
-        ];
+        $categories = Category::query()
+            ->when($request->search, fn ($q, $v) => $q->where('name', 'like', "%{$v}%"))
+            ->latest()->paginate(10);
+
+        $activeCategory = ($request->filled('category') ? Category::find($request->category) : null)
+            ?? $categories->first();
+
+        return view('admin.categories.index', compact('categories', 'activeCategory'));
     }
 
-    public function index()
+    public function store(Request $request): RedirectResponse
     {
-        return view('components.index', [
-            'components' => Component::with(['category', 'componentType'])->orderBy('name')->get(),
-            'categories' => Category::orderBy('name')->get(),
-        ]);
-        
-        return redirect()->route('admin.recipes.index');
+        $category = Category::create(
+            $request->validate(['name' => 'required|string|max:255|unique:categories,name'])
+        );
+
+        return redirect()->route('admin.categories.index', ['category' => $category->id])
+            ->with('success', 'Categoría creada correctamente.');
     }
 
-    public function store(Request $request)
+    public function update(Request $request, Category $category): RedirectResponse
     {
-        Component::create($request->validate($this->rules()));
+        $category->update(
+            $request->validate(['name' => "required|string|max:255|unique:categories,name,{$category->id}"])
+        );
 
-        return back()->with('success', 'Componente registrado correctamente.');
+        return redirect()->route('admin.categories.index', ['category' => $category->id])
+            ->with('success', 'Categoría actualizada correctamente.');
     }
 
-    public function update(Request $request, Component $component)
+    public function destroy(Category $category): RedirectResponse
     {
-        $component->update($request->validate($this->rules($component->id)));
+        // Borrar una categoría con productos eliminaba en cascada sus productos,
+        // órdenes, subórdenes, registros e incidencias (y con componentes
+        // asociados la BD lanzaba un error 500). Ahora se bloquea.
+        $productos   = $category->products()->count();
+        $componentes = DB::table('components')->where('category_id', $category->id)->count();
 
-        return back()->with('success', 'Componente actualizado correctamente.');
-    }
+        if ($productos > 0 || $componentes > 0) {
+            $detalle = collect([
+                $productos   ? "{$productos} producto(s)"   : null,
+                $componentes ? "{$componentes} componente(s)" : null,
+            ])->filter()->implode(' y ');
 
-    public function destroy(Component $component)
-    {
-        if ($component->recipes()->exists()) {
-            return back()->with('error', 'No puedes eliminar un componente que está usado en recetas. Quítalo de esas recetas primero.');
+            return redirect()->route('admin.categories.index')->with('error',
+                "No se puede eliminar la categoría '{$category->name}': tiene {$detalle} asociado(s). Reasígnalos o elimínalos primero.");
         }
 
-        $component->delete();
+        $category->delete();
 
-        return back()->with('success', 'Componente eliminado correctamente.');
+        return redirect()->route('admin.categories.index')->with('success', 'Categoría eliminada correctamente.');
     }
 }

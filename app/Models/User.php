@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -70,11 +71,6 @@ class User extends Authenticatable
         return $this->hasMany(UserCertification::class);
     }
 
-    public function subOrders(): HasMany
-    {
-        return $this->hasMany(ProductionSubOrder::class, 'user_id');
-    }
-
     public function stockLogs(): HasMany
     {
         return $this->hasMany(MaterialStockLog::class);
@@ -91,29 +87,65 @@ class User extends Authenticatable
     // ==========================================
     // MÉTODOS DE VALIDACIÓN (RBAC ROBUSTOS)
     // ==========================================
+
+    /**
+     * Roles y permisos efectivos del usuario (directos + los de sus roles),
+     * cargados UNA vez por instancia con 3 consultas. Antes cada hasRole() /
+     * hasPermission() ejecutaba 1-2 consultas, y cada @can del sidebar y de
+     * las vistas las repetía: entre 12 y 40 consultas extra por página.
+     *
+     * Equivale a la lógica anterior: coincide por slug o por nombre, sin
+     * distinguir mayúsculas (igual que el = / LIKE de la BD).
+     */
+    private ?array $autorizacion = null;
+
+    private function autorizacion(): array
+    {
+        if ($this->autorizacion === null) {
+            $roles    = $this->roles()->get(['roles.id', 'roles.slug', 'roles.name']);
+            $directos = $this->permissions()->get(['permissions.slug', 'permissions.name']);
+            $porRol   = $roles->isEmpty()
+                ? collect()
+                : DB::table('permission_role')
+                    ->join('permissions', 'permissions.id', '=', 'permission_role.permission_id')
+                    ->whereIn('permission_role.role_id', $roles->pluck('id'))
+                    ->get(['permissions.slug', 'permissions.name']);
+
+            $conjunto = fn ($filas) => $filas
+                ->flatMap(fn ($f) => [mb_strtolower((string) $f->slug), mb_strtolower((string) $f->name)])
+                ->filter()
+                ->flip()
+                ->all();
+
+            $this->autorizacion = [
+                'roles'    => $conjunto($roles),
+                'permisos' => $conjunto($directos->concat($porRol)),
+            ];
+        }
+
+        return $this->autorizacion;
+    }
+
+    /** Descarta la caché (úsalo tras cambiar los roles/permisos de esta misma instancia). */
+    public function flushAuthorizationCache(): void
+    {
+        $this->autorizacion = null;
+    }
+
+    public function refresh()
+    {
+        $this->autorizacion = null;
+
+        return parent::refresh();
+    }
+
     public function hasRole(string $role): bool
     {
-        return $this->roles()->where(function ($query) use ($role) {
-            $query->where('slug', $role)
-                  ->orWhere('name', $role)
-                  ->orWhere('name', 'LIKE', $role);
-        })->exists();
+        return isset($this->autorizacion()['roles'][mb_strtolower($role)]);
     }
 
     public function hasPermission(string $permission): bool
     {
-        $hasDirect = $this->permissions()->where(function ($query) use ($permission) {
-            $query->where('slug', $permission)
-                  ->orWhere('name', $permission);
-        })->exists();
-
-        if ($hasDirect) {
-            return true;
-        }
-
-        return $this->roles()->whereHas('permissions', function ($query) use ($permission) {
-            $query->where('slug', $permission)
-                  ->orWhere('name', $permission);
-        })->exists();
+        return isset($this->autorizacion()['permisos'][mb_strtolower($permission)]);
     }
 }

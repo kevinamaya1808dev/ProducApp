@@ -16,7 +16,7 @@ class ProductionOrderController extends Controller
 {
     public function index(): View
     {
-        $orders = ProductionOrder::with(['product', 'user', 'subOrders.assignedUsers'])->latest()->paginate(9);
+        $orders = ProductionOrder::with(['product.category', 'user', 'subOrders.assignedUsers'])->latest()->paginate(9);
         $products = Product::orderBy('name')->get();
         $operarios = User::asignables()->orderBy('name')->get();
 

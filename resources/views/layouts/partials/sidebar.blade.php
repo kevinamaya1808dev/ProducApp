@@ -65,7 +65,7 @@
                 {{-- Almacén e Insumos --}}
                 @can('almacen.view')
                     @php
-                        $lowStockCount = \App\Models\Material::whereColumn('stock_actual', '<=', 'stock_minimo')->count();
+                        $lowStockCount = \App\Models\Material::lowStockCount();
                     @endphp
                     <a href="{{ route('admin.almacen.index') }}" class="sidebar-nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.almacen.*') ? 'bg-orange-600 text-white shadow-md shadow-orange-950/30' : 'text-amber-200/70 dark:text-stone-400 hover:text-amber-50 dark:hover:text-stone-200 hover:bg-amber-900/40 dark:hover:bg-stone-800/60' }}" title="Almacén e Insumos">
                         <span class="relative shrink-0">

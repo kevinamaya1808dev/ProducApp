@@ -22,7 +22,8 @@ class AdminController extends Controller
             ))
             ->latest()->paginate(10)->withQueryString();
 
-        $activeOrders = ProductionOrder::with('registros')->where('status', 'in_progress')->get();
+        // porcentaje_avance lee las subórdenes (antes cargaba 'registros', que no usa: N+1 por orden).
+        $activeOrders = ProductionOrder::with('subOrders')->where('status', 'in_progress')->get();
 
         $recentActivities = ProductionOrder::latest()->take(5)->get()->map(fn ($o) => (object)[
             'description' => match ($o->status) {
@@ -45,15 +46,5 @@ class AdminController extends Controller
                 : '0%',
             'recentActivities'     => $recentActivities,
         ]);
-    }
-
-    public function export(Request $request)
-    {
-        $request->validate([
-            'format'   => 'required|in:excel,pdf,csv',
-            'sections' => 'required|array',
-        ]);
-
-        return back()->with('success', 'La exportación en formato ' . strtoupper($request->format) . ' ha comenzado.');
     }
 }

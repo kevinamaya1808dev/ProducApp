@@ -15,7 +15,7 @@ class OperarioController extends Controller
 {
     // Estados que consideramos "orden con trabajo pendiente/activo" —
     // antes inicio() y registro() usaban criterios distintos y eso rompía el flujo.
-    private const ESTADOS_ACTIVOS = ['in_progress', 'pending', 'Pending'];
+    private const ESTADOS_ACTIVOS = ['in_progress', 'pending'];
 
     private function buscarOrdenActiva(int $userId): ?ProductionOrder
     {
@@ -78,7 +78,7 @@ class OperarioController extends Controller
             return true;
         }
 
-        return $user->hasPermission('manage-orders');
+        return $user->hasPermission('orders.manage');
     }
 
     // NUEVO: calcula las "piezas actuales" de una orden usando la MISMA regla

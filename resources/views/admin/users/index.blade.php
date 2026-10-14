@@ -99,11 +99,12 @@ function selectUser(card) {
         if (btnTxt) btnTxt.textContent = 'Dar de alta';
     }
 
-    const delForm = $('deleteUserForm');
     ['editUserBtn', 'statusFormPanel', 'deleteUserBtn'].forEach(id => {
-    const el = $(id);
-    if (el) el.style.display = esPrincipal(currentUser) ? 'none' : '';
-});
+        const el = $(id);
+        if (el) el.style.display = esPrincipal(currentUser) ? 'none' : '';
+    });
+
+    const delForm = $('deleteUserForm');
     if (delForm) {
         const protegido = currentUser.id === 1 || currentUser.id === AUTH_ID;
         delForm.style.display = protegido ? 'none' : 'block';
@@ -116,8 +117,8 @@ function selectUser(card) {
 function closePanel() { $('userPanel').style.display = 'none'; currentUser = null; }
 
 // ── Modal editar ──────────────────────────────────────────────────────────────
-function triggerEditModal() { if (currentUser) openEditModal({ ...currentUser, roles: currentUser.roleId ? [{ id: currentUser.roleId }] : [] }); }
 function triggerEditModal() { if (currentUser && !esPrincipal(currentUser)) openEditModal({ ...currentUser, roles: currentUser.roleId ? [{ id: currentUser.roleId }] : [] }); }
+
 function openEditModal(user) {
     if (!user) return;
     const form = $('editForm');

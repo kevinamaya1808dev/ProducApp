@@ -8,9 +8,9 @@
                     <th class="py-3.5 px-4">SKU / Código</th>
                     <th class="py-3.5 px-4">Stock</th>
                     <th class="py-3.5 px-4">Estado</th>
-                    @can('manage-products')
+                    @canany(['products.edit', 'products.delete'])
                     <th class="py-3.5 px-6 text-right">Acciones</th>
-                    @endcan
+                    @endcanany
                 </tr>
             </thead>
             <tbody class="divide-y divide-stone-200 dark:divide-stone-800 text-xs text-stone-700 dark:text-stone-300">
@@ -40,21 +40,25 @@
                                 </span>
                             @endif
                         </td>
-                        @can('manage-products')
+                        @canany(['products.edit', 'products.delete'])
                         <td class="py-4 px-6 text-right">
                             <div class="flex items-center justify-end gap-1">
+                                @can('products.edit')
                                 <button type="button"
                                     data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-code="{{ $product->code }}" data-category_id="{{ $product->category_id }}" data-stock="{{ $product->stock }}" data-unit_cost="{{ $product->unit_cost }}" data-description="{{ $product->description }}"
                                     onclick="openEditModal(this)"
                                     class="p-1.5 text-stone-400 dark:text-stone-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/40 rounded-lg transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
+                                @endcan
+                                @can('products.delete')
                                 <button type="button" onclick="openDeleteModal({{ $product->id }})" class="p-1.5 text-stone-400 dark:text-stone-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
+                                @endcan
                             </div>
                         </td>
-                        @endcan
+                        @endcanany
                     </tr>
                 @empty
                     <tr>

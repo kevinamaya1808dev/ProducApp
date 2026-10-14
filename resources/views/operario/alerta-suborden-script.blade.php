@@ -1,10 +1,9 @@
 {{--
     Script de alerta de suborden.
-    NOTA: Este bloque estaba duplicado exactamente en dos archivos:
-      - resources/views/operario/registro.blade.php
-      - resources/views/components/operario/modals/alert.blade.php
-    Se unifica aquí; ambas vistas deben hacer @include de este partial
-    y eliminar sus bloques <script> propios.
+    Se incluye desde resources/views/operario/registro.blade.php
+    (@include('operario.alerta-suborden-script')). Antes estaba duplicado en
+    components/operario/modals/alert.blade.php, un archivo que ninguna vista usaba
+    y que ya se eliminó.
 --}}
 <script>
 (() => {

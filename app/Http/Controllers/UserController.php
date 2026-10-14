@@ -131,7 +131,8 @@ class UserController extends Controller
         return $user->productionOrders()->exists()
             || $user->registrosProduccion()->exists()
             || $user->incidences()->exists()
-            || DB::table('incidence_logs')->where('user_id', $user->id)->exists();
+            || DB::table('incidence_logs')->where('user_id', $user->id)->exists()
+            || DB::table('production_sub_order_user')->where('user_id', $user->id)->exists();
     }
 
     private function anonimizarUsuario(User $user): void
@@ -160,7 +161,7 @@ class UserController extends Controller
     {
         return view('admin.users.index', [
             'totalUsers' => User::count(),
-            'users'      => User::with(['roles', 'permissions', 'productionOrders'])->get(),
+            'users'      => User::with(['roles', 'permissions', 'productionOrders:id,user_id,order_number,status'])->get(),
             'roles'      => Role::all(),
         ]);
     }
@@ -176,6 +177,7 @@ class UserController extends Controller
         $user = $this->fillUser(new User, $data);
         $user->save();
         $user->roles()->sync([$data['role_id']]);
+        $user->flushAuthorizationCache();
 
         return redirect()->route('admin.users.index')
             ->with('success', "Operario '{$user->name}' creado exitosamente.");
@@ -206,6 +208,7 @@ class UserController extends Controller
 
         $this->fillUser($user, $data)->save();
         $user->roles()->sync([$roleId]);
+        $user->flushAuthorizationCache();
 
         return back()->with('success', "Usuario '{$user->name}' actualizado correctamente.");
     }
@@ -263,6 +266,8 @@ class UserController extends Controller
             );
         }
 
+        $user->flushAuthorizationCache();
+
         return redirect()->route('admin.users.index')
             ->with('success', "Permisos de '{$user->name}' actualizados correctamente.");
     }
@@ -314,6 +319,7 @@ class UserController extends Controller
         }
 
         $user->roles()->sync([$roleId]);
+        $user->flushAuthorizationCache();
 
         return back()->with('success', "Rol de '{$user->name}' actualizado.");
     }

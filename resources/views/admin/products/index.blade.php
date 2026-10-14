@@ -13,9 +13,13 @@
     @endif
 </div>
 
-@can('manage-products')
+@can('products.create')
     @include('admin.products.modals.create')
+@endcan
+@can('products.edit')
     @include('admin.products.modals.edit')
+@endcan
+@can('products.delete')
     @include('admin.products.modals.delete')
 @endcan
 @endsection
