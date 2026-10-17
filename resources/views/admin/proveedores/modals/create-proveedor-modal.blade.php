@@ -10,7 +10,15 @@
             <form action="{{ route('admin.proveedores.store') }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-stone-400">Nombre / Empresa <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-stone-400 mb-1.5">Tipo de proveedor</label>
+                    <div class="flex items-center gap-1 p-1 rounded-lg bg-slate-100 dark:bg-stone-950 border border-slate-200 dark:border-stone-800 w-fit">
+                        <button type="button" @click="nuevoTipo = 'empresa'" :class="nuevoTipo === 'empresa' ? 'bg-white dark:bg-stone-800 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-stone-400'" class="px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer">Empresa</button>
+                        <button type="button" @click="nuevoTipo = 'particular'" :class="nuevoTipo === 'particular' ? 'bg-white dark:bg-stone-800 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-stone-400'" class="px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer">Particular</button>
+                    </div>
+                    <input type="hidden" name="tipo" :value="nuevoTipo">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-stone-400"><span x-text="nuevoTipo === 'empresa' ? 'Nombre de la empresa' : 'Nombre completo'"></span> <span class="text-red-500">*</span></label>
                     <input type="text" name="nombre" required class="w-full mt-1 px-3 py-2 text-sm bg-slate-50 dark:bg-stone-950 border rounded-lg border-slate-300 dark:border-stone-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500">
                 </div>
                 <div>

@@ -1,3 +1,4 @@
+@php $puedeCrearProveedor = auth()->user()->can('proveedores.create'); @endphp
 <div x-show="openMaterialModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div x-show="openMaterialModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-black/70 backdrop-blur-sm" @click="openMaterialModal = false"></div>
@@ -13,7 +14,7 @@
                 </button>
             </div>
 
-            <form action="{{ route('admin.almacen.material.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('admin.almacen.material.store') }}" method="POST" class="space-y-4" x-data="proveedorPicker(@js(['required' => false, 'allowNew' => $puedeCrearProveedor, 'url' => route('admin.proveedores.store'), 'csrf' => csrf_token()]))" x-init="$watch('openMaterialModal', v => { if (v) reset() })" @proveedor-creado.window="alta($event.detail)">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 dark:text-stone-400">Nombre del Material</label>
@@ -39,10 +40,7 @@
                         <input type="number" step="0.01" name="stock_minimo" required class="w-full mt-1 px-3 py-2 text-sm bg-slate-50 dark:bg-stone-950 border rounded-lg border-slate-300 dark:border-stone-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-stone-400">Proveedor</label>
-                    <input type="text" name="proveedor" class="w-full mt-1 px-3 py-2 text-sm bg-slate-50 dark:bg-stone-950 border rounded-lg border-slate-300 dark:border-stone-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500">
-                </div>
+                @include('admin.almacen.partials.proveedor-picker', ['label' => 'Proveedor', 'required' => false, 'allowNew' => $puedeCrearProveedor])
 
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" @click="openMaterialModal = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 text-slate-700 dark:text-stone-200 font-medium rounded-lg text-sm transition-colors cursor-pointer">Cancelar</button>

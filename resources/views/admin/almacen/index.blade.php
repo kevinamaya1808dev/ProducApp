@@ -78,5 +78,7 @@
 @endcan
 
 @include('admin.almacen.modals.stock-history-modal')
+
+@include('admin.almacen.partials.proveedor-picker-script')
 </div>
 @endsection

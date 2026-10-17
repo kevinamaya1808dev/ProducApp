@@ -7,11 +7,16 @@
     openDeleteModal: false, 
     activeProveedor: {},
     proveedores: @js($proveedores),
+    tab: @js($tipoInicial),
+    nuevoTipo: @js($tipoInicial),
     search: '',
+    conteo(tipo) { return this.proveedores.filter(p => p.tipo === tipo).length; },
+    get porTab() { return this.proveedores.filter(p => p.tipo === this.tab); },
+    abrirCrear() { this.nuevoTipo = this.tab; this.openCreateModal = true; },
     get filteredProveedores() {
         const term = this.search.trim().toLowerCase();
-        if (term === '') return this.proveedores;
-        return this.proveedores.filter(p => {
+        if (term === '') return this.porTab;
+        return this.porTab.filter(p => {
             const haystack = `${p.nombre} ${p.contacto_nombre ?? ''} ${p.telefono ?? ''} ${p.email ?? ''}`.toLowerCase();
             return haystack.includes(term);
         });
@@ -29,7 +34,7 @@
             </div>
 
             @can('proveedores.create')
-                <button @click="openCreateModal = true" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-orange-950/20 flex items-center gap-2 cursor-pointer">
+                <button @click="abrirCrear()" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-orange-950/20 flex items-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Registrar Proveedor
                 </button>
@@ -53,7 +58,7 @@
             <input 
                 type="text" 
                 x-model.debounce.150ms="search" 
-                placeholder="Buscar por empresa, contacto, teléfono o correo..." 
+                x-bind:placeholder="tab === 'empresa' ? 'Buscar por empresa, contacto, teléfono o correo...' : 'Buscar por nombre, teléfono o correo...'" 
                 class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-sm text-slate-700 dark:text-white placeholder:text-slate-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-colors"
             >
         </div>

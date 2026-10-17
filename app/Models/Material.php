@@ -33,8 +33,20 @@ class Material extends Model
         'unit',
         'stock_actual',
         'stock_minimo',
-        'proveedor',
+        'proveedor',      // proveedor TEMPORAL: texto escrito a mano (no está en el directorio)
+        'proveedor_id',   // proveedor REGISTRADO (directorio)
     ];
+
+    public function proveedorRegistrado()
+    {
+        return $this->belongsTo(Proveedor::class, 'proveedor_id');
+    }
+
+    /** Nombre a mostrar: el del proveedor registrado, o el texto temporal. */
+    public function getProveedorNombreAttribute(): ?string
+    {
+        return $this->proveedorRegistrado?->nombre ?? ($this->proveedor ?: null);
+    }
 
     public function recipes()
     {
