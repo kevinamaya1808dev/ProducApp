@@ -19,6 +19,7 @@ class AlmacenController extends Controller
     // Reglas base compartidas entre storeMaterial() y updateMaterial().
     // stock_actual se incluye solo en store; updateMaterial lo excluye
     // intencionalmente (solo se modifica vía addStock).
+    // El proveedor se valida aparte en proveedorData().
     private function materialRules(?int $ignoreId = null): array
     {
         return [
@@ -26,7 +27,37 @@ class AlmacenController extends Controller
             'sku'          => 'required|string|max:50|unique:materials,sku' . ($ignoreId ? ",$ignoreId" : ''),
             'unit'         => 'required|string|max:20',
             'stock_minimo' => 'required|numeric|min:0',
-            'proveedor'    => 'nullable|string|max:255',
+        ];
+    }
+
+    // Lee los campos que manda el selector de proveedor del formulario
+    // (provider_source, proveedor_id, proveedor_manual) y los convierte en las
+    // columnas de la tabla materials:
+    //   - registrado => proveedor_id = id elegido, proveedor = null
+    //   - manual     => proveedor = texto escrito, proveedor_id = null
+    //   - vacío      => ambos null
+    private function proveedorData(Request $request): array
+    {
+        $data = $request->validate([
+            'provider_source'  => 'nullable|in:registrado,manual',
+            'proveedor_id'     => 'nullable|exists:proveedores,id',
+            'proveedor_manual' => 'nullable|string|max:255',
+        ]);
+
+        $source = $data['provider_source'] ?? 'registrado';
+
+        if ($source === 'manual') {
+            $texto = trim($data['proveedor_manual'] ?? '');
+
+            return [
+                'proveedor_id' => null,
+                'proveedor'    => $texto !== '' ? $texto : null,
+            ];
+        }
+
+        return [
+            'proveedor_id' => !empty($data['proveedor_id']) ? $data['proveedor_id'] : null,
+            'proveedor'    => null,
         ];
     }
 
@@ -49,9 +80,11 @@ class AlmacenController extends Controller
 
     public function storeMaterial(Request $request)
     {
-        Material::create($request->validate(
+        $data = $request->validate(
             $this->materialRules() + ['stock_actual' => 'required|numeric|min:0']
-        ));
+        );
+
+        Material::create($data + $this->proveedorData($request));
 
         return redirect()->route('admin.almacen.index')->with('success', 'Material registrado correctamente en el almacén.');
     }
@@ -76,7 +109,9 @@ class AlmacenController extends Controller
     // para que quede como entrada registrada y no como valor sobreescrito.
     public function updateMaterial(Request $request, Material $material)
     {
-        $material->update($request->validate($this->materialRules($material->id)));
+        $data = $request->validate($this->materialRules($material->id));
+
+        $material->update($data + $this->proveedorData($request));
 
         return redirect()->route('admin.almacen.index')->with('success', '¡Material actualizado correctamente!');
     }
