@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+<div class="py-6 sm:py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
         <!-- Encabezado -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -11,7 +11,7 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     Volver a Almacén
                 </a>
-                <h2 class="font-bold text-2xl text-slate-800 dark:text-white leading-tight">
+                <h2 class="font-bold text-xl sm:text-2xl text-slate-800 dark:text-white leading-tight">
                     Historial General de Stock
                 </h2>
                 <p class="text-sm text-slate-500 dark:text-stone-400 mt-0.5">Todas las entradas de material registradas, de más reciente a más antigua.</p>
@@ -40,7 +40,7 @@
             }" 
             method="GET" 
             action="{{ route('admin.almacen.historial') }}" 
-            class="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white dark:bg-stone-900 p-4 rounded-xl border border-slate-200 dark:border-stone-800"
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 bg-white dark:bg-stone-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-stone-800"
         >
             <label class="text-xs font-semibold text-slate-600 dark:text-stone-400 whitespace-nowrap">Filtrar por material</label>
             
@@ -51,7 +51,7 @@
                     type="button" 
                     @click="selectOpen = !selectOpen" 
                     @click.outside="selectOpen = false" 
-                    class="w-full flex items-center justify-between px-3 py-2 text-sm bg-slate-50 dark:bg-stone-950 border rounded-lg border-slate-300 dark:border-stone-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 cursor-pointer"
+                    class="w-full flex items-center justify-between gap-2 px-3 py-2.5 sm:py-2 text-sm bg-slate-50 dark:bg-stone-950 border rounded-lg border-slate-300 dark:border-stone-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 cursor-pointer"
                     :class="selectedId ? 'text-slate-800 dark:text-white' : 'text-slate-500 dark:text-stone-400'"
                 >
                     <span x-text="selectedName" class="truncate"></span>
@@ -75,7 +75,7 @@
                     <button 
                         type="button" 
                         @click="selectOption('', 'Todos los materiales')"
-                        class="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                        class="w-full text-left px-3 py-2.5 sm:py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between gap-2 cursor-pointer"
                     >
                         <span>Todos los materiales</span>
                         <svg x-show="selectedId === ''" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@
                         <button 
                             type="button" 
                             @click="selectOption(@js((string)$mat->id), @js($mat->name))"
-                            class="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                            class="w-full text-left px-3 py-2.5 sm:py-2 text-sm text-slate-700 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-800 hover:text-orange-600 dark:hover:text-white transition-colors flex items-center justify-between gap-2 cursor-pointer"
                         >
                             <span class="truncate">{{ $mat->name }}</span>
                             <svg x-show="selectedId == @js((string)$mat->id)" class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,8 +103,56 @@
             @endif
         </form>
 
-        <!-- Tabla de historial -->
-        <div class="bg-white dark:bg-stone-900 rounded-2xl border border-slate-200 dark:border-stone-800 shadow-sm overflow-hidden">
+        @php
+            $mensajeVacio = request()->filled('material_id')
+                ? 'No hay entradas de stock registradas para este material.'
+                : 'Aún no se ha registrado ninguna entrada de stock.';
+        @endphp
+
+        <!-- Vista tarjetas (celular) -->
+        <div class="md:hidden space-y-3">
+            @forelse($logs as $log)
+                <div class="bg-white dark:bg-stone-900 rounded-xl border border-slate-200 dark:border-stone-800 shadow-sm p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-medium text-slate-800 dark:text-white break-words">{{ $log->material->name ?? 'Material eliminado' }}</p>
+                            @if($log->material)
+                                <p class="text-xs font-mono text-slate-400 dark:text-stone-500">{{ $log->material->sku }}</p>
+                            @endif
+                        </div>
+                        <p class="shrink-0 text-sm font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                            +{{ $log->quantity_added }} {{ $log->material->unit ?? '' }}
+                        </p>
+                    </div>
+
+                    <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                        <div>
+                            <dt class="text-slate-400 dark:text-stone-500 uppercase tracking-wide text-[10px]">Fecha</dt>
+                            <dd class="text-slate-600 dark:text-stone-300">{{ $log->created_at->format('d/m/Y H:i') }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-slate-400 dark:text-stone-500 uppercase tracking-wide text-[10px]">Stock resultante</dt>
+                            <dd class="font-bold text-slate-700 dark:text-white">{{ $log->stock_resultante }} {{ $log->material->unit ?? '' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-slate-400 dark:text-stone-500 uppercase tracking-wide text-[10px]">Proveedor</dt>
+                            <dd class="text-slate-600 dark:text-stone-300 break-words">{{ $log->proveedor_nombre }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-slate-400 dark:text-stone-500 uppercase tracking-wide text-[10px]">Registrado por</dt>
+                            <dd class="text-slate-600 dark:text-stone-300 break-words">{{ $log->user->name ?? 'Usuario eliminado' }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            @empty
+                <div class="bg-white dark:bg-stone-900 rounded-xl border border-slate-200 dark:border-stone-800 p-6 text-center text-sm text-slate-400 dark:text-stone-500">
+                    {{ $mensajeVacio }}
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Tabla de historial (tablet y escritorio) -->
+        <div class="hidden md:block bg-white dark:bg-stone-900 rounded-2xl border border-slate-200 dark:border-stone-800 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -145,11 +193,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="p-8 text-center text-slate-400 dark:text-stone-500">
-                                    @if(request()->filled('material_id'))
-                                        No hay entradas de stock registradas para este material.
-                                    @else
-                                        Aún no se ha registrado ninguna entrada de stock.
-                                    @endif
+                                    {{ $mensajeVacio }}
                                 </td>
                             </tr>
                         @endforelse

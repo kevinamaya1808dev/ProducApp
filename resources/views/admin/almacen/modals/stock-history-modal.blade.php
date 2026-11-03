@@ -1,31 +1,29 @@
 <div x-show="openHistoryModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <div class="flex min-h-full items-center justify-center p-3 sm:p-4">
         <div x-show="openHistoryModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-black/70 backdrop-blur-sm" @click="openHistoryModal = false"></div>
 
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <div x-show="openHistoryModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative transform w-full max-w-md p-4 sm:p-6 my-4 sm:my-8 text-left transition-all bg-white dark:bg-stone-900 shadow-xl rounded-2xl border border-slate-200 dark:border-stone-800">
 
-        <div x-show="openHistoryModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-md p-6 my-8 text-left align-middle transition-all transform bg-white dark:bg-stone-900 shadow-xl rounded-2xl border border-slate-200 dark:border-stone-800">
-
-            <div class="flex justify-between items-center mb-1">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Historial de Stock</h3>
-                <button @click="openHistoryModal = false" class="text-slate-400 hover:text-slate-600 dark:text-stone-500 dark:hover:text-white cursor-pointer">
+            <div class="flex justify-between items-center gap-3 mb-1">
+                <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Historial de Stock</h3>
+                <button @click="openHistoryModal = false" class="shrink-0 text-slate-400 hover:text-slate-600 dark:text-stone-500 dark:hover:text-white cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <p class="text-sm text-slate-500 dark:text-stone-400 mb-4" x-text="activeMaterial.name"></p>
+            <p class="text-sm text-slate-500 dark:text-stone-400 mb-4 break-words" x-text="activeMaterial.name"></p>
 
-            <div class="max-h-80 overflow-y-auto space-y-2 -mr-2 pr-2">
+            <div class="max-h-[60vh] sm:max-h-80 overflow-y-auto space-y-2 -mr-2 pr-2">
                 <template x-if="materialHistory.length === 0">
                     <p class="text-sm text-slate-400 dark:text-stone-500 italic text-center py-6">Aún no se ha registrado ninguna entrada de stock para este material.</p>
                 </template>
 
                 <template x-for="log in materialHistory" :key="log.id">
-                    <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-stone-950 border border-slate-200 dark:border-stone-800">
-                        <div>
+                    <div class="flex items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-slate-50 dark:bg-stone-950 border border-slate-200 dark:border-stone-800">
+                        <div class="min-w-0">
                             <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
                                 +<span x-text="log.quantity_added"></span> <span x-text="activeMaterial.unit"></span>
                             </p>
-                            <p class="text-[11px] text-slate-400 dark:text-stone-500">
+                            <p class="text-[11px] text-slate-400 dark:text-stone-500 break-words">
                                 <span x-text="log.user ? log.user.name : 'Usuario eliminado'"></span>
                                 ·
                                 <span x-text="new Date(log.created_at).toLocaleString()"></span>
@@ -33,7 +31,7 @@
                                 <span x-text="log.proveedor_nombre"></span>
                             </p>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right shrink-0">
                             <p class="text-[10px] text-slate-400 dark:text-stone-500 uppercase tracking-wide">Quedó en</p>
                             <p class="text-sm font-bold text-slate-700 dark:text-white" x-text="log.stock_resultante"></p>
                         </div>
@@ -41,8 +39,8 @@
                 </template>
             </div>
 
-            <div class="flex justify-end mt-6">
-                <button type="button" @click="openHistoryModal = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 text-slate-700 dark:text-stone-200 font-medium rounded-lg text-sm transition-colors cursor-pointer">Cerrar</button>
+            <div class="flex sm:justify-end mt-6">
+                <button type="button" @click="openHistoryModal = false" class="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 text-slate-700 dark:text-stone-200 font-medium rounded-lg text-sm transition-colors cursor-pointer">Cerrar</button>
             </div>
         </div>
     </div>

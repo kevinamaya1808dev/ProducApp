@@ -1,19 +1,74 @@
-<div class="bg-white dark:bg-stone-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-stone-800">
-    <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <h3 class="text-md font-bold text-slate-800 dark:text-white">Directorio de Proveedores</h3>
+<div class="bg-white dark:bg-stone-900 p-3 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-stone-800">
+    <div class="flex items-center justify-between mb-3 sm:mb-4 gap-3 flex-wrap">
+        <h3 class="text-base font-bold text-slate-800 dark:text-white">Directorio de Proveedores</h3>
         <span class="text-xs text-slate-400 dark:text-stone-500" x-text="`${filteredProveedores.length} de ${porTab.length}`"></span>
     </div>
 
     {{-- Pestañas: Empresas / Particulares --}}
-    <div class="flex items-center gap-1 p-1 mb-4 rounded-lg bg-slate-100 dark:bg-stone-950 border border-slate-200 dark:border-stone-800 w-fit" role="tablist">
-        <button type="button" role="tab" @click="tab = 'empresa'" :aria-selected="tab === 'empresa'" :class="tab === 'empresa' ? 'bg-white dark:bg-stone-800 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-stone-400'" class="px-4 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-2">
+    <div class="flex items-center gap-1 p-1 mb-4 rounded-lg bg-slate-100 dark:bg-stone-950 border border-slate-200 dark:border-stone-800 w-full sm:w-fit" role="tablist">
+        <button type="button" role="tab" @click="tab = 'empresa'" :aria-selected="tab === 'empresa'" :class="tab === 'empresa' ? 'bg-white dark:bg-stone-800 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-stone-400'" class="flex-1 sm:flex-none justify-center px-4 py-2 sm:py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-2">
             Empresas <span class="px-1.5 rounded-full text-[10px] bg-orange-500/10 text-orange-600 dark:text-orange-400" x-text="conteo('empresa')"></span>
         </button>
-        <button type="button" role="tab" @click="tab = 'particular'" :aria-selected="tab === 'particular'" :class="tab === 'particular' ? 'bg-white dark:bg-stone-800 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-stone-400'" class="px-4 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-2">
+        <button type="button" role="tab" @click="tab = 'particular'" :aria-selected="tab === 'particular'" :class="tab === 'particular' ? 'bg-white dark:bg-stone-800 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-stone-400'" class="flex-1 sm:flex-none justify-center px-4 py-2 sm:py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-2">
             Particulares <span class="px-1.5 rounded-full text-[10px] bg-sky-500/10 text-sky-600 dark:text-sky-400" x-text="conteo('particular')"></span>
         </button>
     </div>
-    <div class="w-full overflow-x-auto">
+
+    {{-- ============ Vista tarjetas (celular y tablet, menos de lg) ============ --}}
+    <div class="lg:hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <template x-for="prov in filteredProveedores" :key="'card-' + prov.id">
+                <div class="rounded-xl border border-slate-200 dark:border-stone-800 bg-slate-50/50 dark:bg-stone-950/40 p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-9 h-9 shrink-0 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xs font-bold uppercase" x-text="prov.nombre.charAt(0)"></div>
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-800 dark:text-white break-words" x-text="prov.nombre"></p>
+                                <p class="text-xs text-slate-500 dark:text-stone-400 break-words" x-show="prov.contacto_nombre" x-text="prov.contacto_nombre"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button @click="activeProveedor = { ...prov }; openEditModal = true" title="Editar Proveedor" class="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 dark:text-stone-300 dark:hover:text-white transition-colors cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button @click="activeProveedor = prov; openDeleteModal = true" title="Eliminar Proveedor" class="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 dark:bg-stone-800 dark:hover:bg-rose-500/10 dark:border dark:border-stone-700 dark:hover:border-rose-500/30 dark:text-stone-300 dark:hover:text-rose-400 transition-colors cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <dl class="mt-3 space-y-2 text-xs">
+                        <div class="flex gap-3">
+                            <dt class="w-16 shrink-0 text-[10px] uppercase tracking-wide text-slate-400 dark:text-stone-500 pt-0.5">Teléfono</dt>
+                            <dd class="min-w-0 font-mono">
+                                <a x-show="prov.telefono" :href="'tel:' + prov.telefono" class="text-slate-600 dark:text-stone-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors" x-text="prov.telefono"></a>
+                                <span x-show="!prov.telefono" class="text-slate-400 dark:text-stone-500">—</span>
+                            </dd>
+                        </div>
+                        <div class="flex gap-3">
+                            <dt class="w-16 shrink-0 text-[10px] uppercase tracking-wide text-slate-400 dark:text-stone-500 pt-0.5">Correo</dt>
+                            <dd class="min-w-0">
+                                <a x-show="prov.email" :href="'mailto:' + prov.email" class="text-slate-600 dark:text-stone-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors break-all" x-text="prov.email"></a>
+                                <span x-show="!prov.email" class="text-slate-400 dark:text-stone-500">—</span>
+                            </dd>
+                        </div>
+                        <div class="flex gap-3">
+                            <dt class="w-16 shrink-0 text-[10px] uppercase tracking-wide text-slate-400 dark:text-stone-500 pt-0.5">Dirección</dt>
+                            <dd class="min-w-0 text-slate-500 dark:text-stone-400 break-words" x-text="prov.direccion || '—'"></dd>
+                        </div>
+                    </dl>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="filteredProveedores.length === 0" x-cloak class="px-4 py-6 text-center text-slate-400 dark:text-stone-500 text-sm">
+            <span x-show="porTab.length === 0" x-text="tab === 'empresa' ? 'No hay empresas registradas.' : 'No hay proveedores particulares registrados.'"></span>
+            <span x-show="porTab.length > 0">No se encontraron proveedores con esa búsqueda.</span>
+        </div>
+    </div>
+
+    {{-- ============ Vista tabla (escritorio, lg en adelante) ============ --}}
+    <div class="hidden lg:block w-full overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-600 dark:text-stone-300 align-middle">
             <thead class="bg-slate-50 dark:bg-stone-950/60 text-xs uppercase font-bold text-slate-500 dark:text-stone-500 border-b border-slate-200 dark:border-stone-800">
                 <tr>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-12" x-data="{ 
+<div class="py-6 sm:py-12" x-data="{ 
     openCreateModal: false, 
     openEditModal: false, 
     openDeleteModal: false, 
@@ -22,28 +22,28 @@
         });
     }
 }">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
         <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <h2 class="font-bold text-2xl text-slate-800 dark:text-white leading-tight">
+                <h2 class="font-bold text-xl sm:text-2xl text-slate-800 dark:text-white leading-tight">
                     {{ __('Gestión de Proveedores') }}
                 </h2>
                 <p class="text-sm text-slate-500 dark:text-stone-400 mt-1">Directorio independiente de proveedores e insumos.</p>
             </div>
 
             @can('proveedores.create')
-                <button @click="abrirCrear()" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-orange-950/20 flex items-center gap-2 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <button @click="abrirCrear()" class="w-full sm:w-auto justify-center px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-orange-950/20 flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Registrar Proveedor
                 </button>
             @endcan
         </div>
 
         <!-- Tarjeta de resumen -->
-        <div class="bg-white dark:bg-stone-900 rounded-xl border border-slate-200 dark:border-stone-800 p-4 inline-flex items-center gap-3 w-fit">
-            <div class="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center">
+        <div class="bg-white dark:bg-stone-900 rounded-xl border border-slate-200 dark:border-stone-800 p-3 sm:p-4 flex sm:inline-flex items-center gap-3 w-full sm:w-fit">
+            <div class="w-9 h-9 shrink-0 rounded-lg bg-orange-500/10 flex items-center justify-center">
                 <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0v-6a2 2 0 00-2-2H7a2 2 0 00-2 2v6"></path></svg>
             </div>
             <div>
@@ -53,7 +53,7 @@
         </div>
 
         <!-- Buscador -->
-        <div class="relative max-w-md">
+        <div class="relative w-full sm:max-w-md">
             <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-stone-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path></svg>
             <input 
                 type="text" 

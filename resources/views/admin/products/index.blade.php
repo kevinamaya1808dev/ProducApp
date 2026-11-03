@@ -27,8 +27,16 @@
 @push('scripts')
 <script>
 // ── Vista Grid / Tabla ────────────────────────────────────────────────────────
-const ACTIVE   = ['bg-stone-900','dark:bg-stone-100','text-white','dark:text-stone-900'];
-const INACTIVE = ['text-stone-500','dark:text-stone-400','hover:text-stone-900','dark:hover:text-stone-200'];
+// Activo: tema claro = blanco con texto negro | tema oscuro = negro con texto blanco.
+const ACTIVE   = ['bg-white','text-black','border-stone-300','shadow-sm','dark:bg-black','dark:text-white','dark:border-stone-700'];
+const INACTIVE = ['border-transparent','text-stone-500','dark:text-stone-400','hover:text-stone-900','dark:hover:text-stone-200'];
+
+function setBtnState(btn, active) {
+    // classList.add/remove sí aceptan varias clases a la vez (toggle no).
+    btn.classList.remove(...(active ? INACTIVE : ACTIVE));
+    btn.classList.add(...(active ? ACTIVE : INACTIVE));
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+}
 
 function toggleView(type) {
     localStorage.setItem('producapp_product_view', type);
@@ -36,10 +44,8 @@ function toggleView(type) {
     document.getElementById('view-grid').classList.toggle('hidden', !isGrid);
     document.getElementById('view-grid').classList.toggle('grid',   isGrid);
     document.getElementById('view-table').classList.toggle('hidden', isGrid);
-    const btnGrid  = document.getElementById('btn-grid');
-    const btnTable = document.getElementById('btn-table');
-    btnGrid.classList.toggle(...ACTIVE,   isGrid);  btnGrid.classList.toggle(...INACTIVE, !isGrid);
-    btnTable.classList.toggle(...ACTIVE, !isGrid);  btnTable.classList.toggle(...INACTIVE, isGrid);
+    setBtnState(document.getElementById('btn-grid'),  isGrid);
+    setBtnState(document.getElementById('btn-table'), !isGrid);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -121,4 +127,4 @@ window.openDeleteModal = id => {
     openModal('modal-delete');
 };
 </script>
-@endpush 
+@endpush

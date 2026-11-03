@@ -1,22 +1,20 @@
 <div x-show="openAddStockModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <div class="flex min-h-full items-center justify-center p-3 sm:p-4">
         <div x-show="openAddStockModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-black/70 backdrop-blur-sm" @click="openAddStockModal = false"></div>
 
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <div x-show="openAddStockModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative transform w-full max-w-sm p-4 sm:p-6 my-4 sm:my-8 text-left transition-all bg-white dark:bg-stone-900 shadow-xl rounded-2xl border border-slate-200 dark:border-stone-800">
 
-        <div x-show="openAddStockModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-sm p-6 my-8 text-left align-middle transition-all transform bg-white dark:bg-stone-900 shadow-xl rounded-2xl border border-slate-200 dark:border-stone-800">
-
-            <div class="flex justify-between items-center mb-1">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Agregar Stock</h3>
-                <button @click="openAddStockModal = false" class="text-slate-400 hover:text-slate-600 dark:text-stone-500 dark:hover:text-white cursor-pointer">
+            <div class="flex justify-between items-center gap-3 mb-1">
+                <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Agregar Stock</h3>
+                <button @click="openAddStockModal = false" class="shrink-0 text-slate-400 hover:text-slate-600 dark:text-stone-500 dark:hover:text-white cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <p class="text-sm text-slate-500 dark:text-stone-400 mb-4" x-text="activeMaterial.name"></p>
+            <p class="text-sm text-slate-500 dark:text-stone-400 mb-4 break-words" x-text="activeMaterial.name"></p>
 
-            <div class="flex items-center justify-between p-3 mb-4 rounded-lg bg-slate-50 dark:bg-stone-950 border border-slate-200 dark:border-stone-800">
+            <div class="flex items-center justify-between gap-3 p-3 mb-4 rounded-lg bg-slate-50 dark:bg-stone-950 border border-slate-200 dark:border-stone-800">
                 <span class="text-xs font-semibold text-slate-500 dark:text-stone-400">Stock actual</span>
-                <span class="text-sm font-bold text-slate-800 dark:text-white" x-text="activeMaterial.stock_actual + ' ' + activeMaterial.unit"></span>
+                <span class="text-sm font-bold text-slate-800 dark:text-white text-right" x-text="activeMaterial.stock_actual + ' ' + activeMaterial.unit"></span>
             </div>
 
             <form :action="'/admin/almacen/material/' + activeMaterial.id + '/add-stock'" method="POST" class="space-y-4" x-data="proveedorPicker(@js(['required' => true, 'allowNew' => false, 'url' => route('admin.proveedores.store'), 'csrf' => csrf_token()]))" x-init="$watch('openAddStockModal', v => { if (v) reset() })" @proveedor-creado.window="alta($event.detail)">
@@ -31,9 +29,9 @@
                 {{-- ¿Quién entregó el material? Mismo selector que Registrar/Editar, sin la opción de crear proveedor. --}}
                 @include('admin.almacen.partials.proveedor-picker', ['label' => '¿Quién entregó el material?', 'required' => true, 'allowNew' => false])
 
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" @click="openAddStockModal = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 text-slate-700 dark:text-stone-200 font-medium rounded-lg text-sm transition-colors cursor-pointer">Cancelar</button>
-                    <button type="submit" :disabled="!valido" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Agregar al Stock</button>
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 mt-6">
+                    <button type="button" @click="openAddStockModal = false" class="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 text-slate-700 dark:text-stone-200 font-medium rounded-lg text-sm transition-colors cursor-pointer">Cancelar</button>
+                    <button type="submit" :disabled="!valido" class="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Agregar al Stock</button>
                 </div>
             </form>
         </div>

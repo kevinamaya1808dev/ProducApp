@@ -1,16 +1,16 @@
-<div class="bg-white dark:bg-stone-900 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-stone-800 overflow-hidden">
-    <h3 class="text-md font-bold text-slate-800 dark:text-white mb-4">Stock Actual en Almacén</h3>
+<div class="bg-white dark:bg-stone-900 p-3 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-stone-800 overflow-hidden">
+    <h3 class="text-base font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">Stock Actual en Almacén</h3>
     <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-600 dark:text-stone-300">
             <thead class="bg-slate-50 dark:bg-stone-950/60 text-xs uppercase font-bold text-slate-500 dark:text-stone-500">
                 <tr>
-                    <th class="px-4 py-3">SKU</th>
-                    <th class="px-4 py-3">Material</th>
-                    <th class="px-4 py-3">Stock Actual</th>
-                    <th class="px-4 py-3">Mínimo</th>
-                    <th class="px-4 py-3">Proveedor</th>
-                    <th class="px-4 py-3">Unidad</th>
-                    <th class="px-4 py-3 text-right">Acciones</th>
+                    <th class="px-3 sm:px-4 py-3 hidden md:table-cell">SKU</th>
+                    <th class="px-3 sm:px-4 py-3">Material</th>
+                    <th class="px-3 sm:px-4 py-3 whitespace-nowrap">Stock Actual</th>
+                    <th class="px-3 sm:px-4 py-3 hidden sm:table-cell">Mínimo</th>
+                    <th class="px-3 sm:px-4 py-3 hidden lg:table-cell">Proveedor</th>
+                    <th class="px-3 sm:px-4 py-3 hidden lg:table-cell">Unidad</th>
+                    <th class="px-3 sm:px-4 py-3 text-right">Acciones</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 dark:divide-stone-800">
@@ -21,13 +21,33 @@
                         $matJs = $mat->only(['id', 'name', 'sku', 'unit', 'stock_actual', 'stock_minimo', 'proveedor', 'proveedor_id']) + ['proveedor_tipo' => $reg?->tipo];
                     @endphp
                     <tr class="{{ $mat->stock_actual <= $mat->stock_minimo ? 'bg-amber-50/50 dark:bg-amber-500/5' : '' }}">
-                        <td class="px-4 py-3 font-mono text-xs text-slate-500 dark:text-stone-400">{{ $mat->sku }}</td>
-                        <td class="px-4 py-3 font-medium text-slate-800 dark:text-white">{{ $mat->name }}</td>
-                        <td class="px-4 py-3 font-bold {{ $mat->stock_actual <= $mat->stock_minimo ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
-                            {{ $mat->stock_actual }}
+                        {{-- SKU: columna propia desde md; en pantallas chicas se muestra debajo del nombre --}}
+                        <td class="px-3 sm:px-4 py-3 font-mono text-xs text-slate-500 dark:text-stone-400 hidden md:table-cell">{{ $mat->sku }}</td>
+
+                        <td class="px-3 sm:px-4 py-3 font-medium text-slate-800 dark:text-white">
+                            <span class="block">{{ $mat->name }}</span>
+                            <span class="block md:hidden font-mono text-[11px] font-normal text-slate-400 dark:text-stone-500">{{ $mat->sku }}</span>
+                            {{-- Proveedor: columna propia desde lg; en pantallas chicas se muestra debajo del nombre --}}
+                            <span class="block lg:hidden mt-0.5 text-xs font-normal text-slate-500 dark:text-stone-400">
+                                @if($reg)
+                                    <span>{{ $reg->nombre }}</span>
+                                    <span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase {{ $reg->tipo === 'particular' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400' }}">{{ $reg->tipo === 'particular' ? 'Particular' : 'Empresa' }}</span>
+                                @elseif($mat->proveedor)
+                                    <span>{{ $mat->proveedor }}</span>
+                                    <span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-500/10 text-slate-500 dark:text-stone-400">Temporal</span>
+                                @endif
+                            </span>
                         </td>
-                        <td class="px-4 py-3 text-slate-500 dark:text-stone-400">{{ $mat->stock_minimo }}</td>
-                        <td class="px-4 py-3 text-slate-500 dark:text-stone-400">
+
+                        <td class="px-3 sm:px-4 py-3 font-bold whitespace-nowrap {{ $mat->stock_actual <= $mat->stock_minimo ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                            {{ $mat->stock_actual }}
+                            <span class="lg:hidden text-xs font-normal text-slate-400 dark:text-stone-500">{{ $mat->unit }}</span>
+                            <span class="sm:hidden block text-[10px] font-normal text-slate-400 dark:text-stone-500">mín. {{ $mat->stock_minimo }}</span>
+                        </td>
+
+                        <td class="px-3 sm:px-4 py-3 text-slate-500 dark:text-stone-400 hidden sm:table-cell">{{ $mat->stock_minimo }}</td>
+
+                        <td class="px-3 sm:px-4 py-3 text-slate-500 dark:text-stone-400 hidden lg:table-cell">
                             @if($reg)
                                 <span>{{ $reg->nombre }}</span>
                                 <span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase {{ $reg->tipo === 'particular' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400' }}">{{ $reg->tipo === 'particular' ? 'Particular' : 'Empresa' }}</span>
@@ -38,32 +58,35 @@
                                 —
                             @endif
                         </td>
-                        <td class="px-4 py-3 text-slate-500 dark:text-stone-400">{{ $mat->unit }}</td>
-                        <td class="px-4 py-3 text-right">
-    <div class="flex items-center justify-end gap-2">
-        @can('almacen.manage')
-            <button @click="activeMaterial = {{ json_encode($matJs) }}; openAddStockModal = true" title="Agregar Stock" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-600 dark:bg-stone-800 dark:hover:bg-emerald-500/10 dark:border dark:border-stone-700 dark:hover:border-emerald-500/30 dark:text-stone-300 dark:hover:text-emerald-400 transition-colors cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            </button>
-        @endcan
 
-        <button @click="activeMaterial = {{ json_encode($matJs) }}; materialHistory = {{ json_encode($mat->stockLogs) }}; openHistoryModal = true" title="Ver Historial" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 dark:text-stone-300 dark:hover:text-white transition-colors cursor-pointer">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        </button>
+                        <td class="px-3 sm:px-4 py-3 text-slate-500 dark:text-stone-400 hidden lg:table-cell">{{ $mat->unit }}</td>
 
-        @can('almacen.edit')
-            <button @click="activeMaterial = {{ json_encode($matJs) }}; openEditModal = true" title="Editar" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 dark:text-stone-300 dark:hover:text-white transition-colors cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-            </button>
-        @endcan
+                        <td class="px-3 sm:px-4 py-3 text-right">
+                            {{-- En celular los botones se acomodan en 2x2; desde sm van en una sola fila --}}
+                            <div class="grid grid-cols-2 gap-1.5 w-[5rem] ml-auto sm:flex sm:w-auto sm:items-center sm:justify-end sm:gap-2">
+                                @can('almacen.manage')
+                                    <button @click="activeMaterial = {{ json_encode($matJs) }}; openAddStockModal = true" title="Agregar Stock" class="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-600 dark:bg-stone-800 dark:hover:bg-emerald-500/10 dark:border dark:border-stone-700 dark:hover:border-emerald-500/30 dark:text-stone-300 dark:hover:text-emerald-400 transition-colors cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    </button>
+                                @endcan
 
-        @can('almacen.delete')
-            <button @click="activeMaterial = {{ json_encode($matJs) }}; openDeleteModal = true" title="Eliminar" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 dark:bg-stone-800 dark:hover:bg-rose-500/10 dark:border dark:border-stone-700 dark:hover:border-rose-500/30 dark:text-stone-300 dark:hover:text-rose-400 transition-colors cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </button>
-        @endcan
-    </div>
-</td>
+                                <button @click="activeMaterial = {{ json_encode($matJs) }}; materialHistory = {{ json_encode($mat->stockLogs) }}; openHistoryModal = true" title="Ver Historial" class="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 dark:text-stone-300 dark:hover:text-white transition-colors cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+
+                                @can('almacen.edit')
+                                    <button @click="activeMaterial = {{ json_encode($matJs) }}; openEditModal = true" title="Editar" class="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-stone-800 dark:hover:bg-stone-700 dark:border dark:border-stone-700 dark:text-stone-300 dark:hover:text-white transition-colors cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
+                                @endcan
+
+                                @can('almacen.delete')
+                                    <button @click="activeMaterial = {{ json_encode($matJs) }}; openDeleteModal = true" title="Eliminar" class="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 dark:bg-stone-800 dark:hover:bg-rose-500/10 dark:border dark:border-stone-700 dark:hover:border-rose-500/30 dark:text-stone-300 dark:hover:text-rose-400 transition-colors cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                @endcan
+                            </div>
+                        </td>
                     </tr>
                 @empty
                     <tr>

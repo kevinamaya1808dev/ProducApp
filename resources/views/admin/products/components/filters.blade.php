@@ -25,11 +25,11 @@
 
     <!-- Selector de Vista (Grid / Tabla) -->
     <div class="hidden sm:flex bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-1 shrink-0 shadow-sm">
-        <button type="button" id="btn-grid" onclick="toggleView('grid')" class="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900">
+        <button type="button" id="btn-grid" onclick="toggleView('grid')" class="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors border bg-white text-black border-stone-300 shadow-sm dark:bg-black dark:text-white dark:border-stone-700">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
             Grid
         </button>
-        <button type="button" id="btn-table" onclick="toggleView('table')" class="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200">
+        <button type="button" id="btn-table" onclick="toggleView('table')" class="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors border border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
             Tabla
         </button>
