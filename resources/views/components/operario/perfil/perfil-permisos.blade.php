@@ -81,12 +81,12 @@
 
                     {{-- Móvil/tablet: se abre debajo del módulo. Escritorio (lg): flota a la derecha. --}}
                     <div class="hidden group-hover/mod:block group-focus-visible/mod:block mt-2 ml-9 lg:ml-0 lg:mt-0 lg:block lg:absolute lg:left-full lg:top-0 lg:w-max lg:pl-9 lg:z-50 lg:invisible lg:opacity-0 lg:group-hover/mod:visible lg:group-hover/mod:opacity-100 lg:group-focus-visible/mod:visible lg:group-focus-visible/mod:opacity-100 lg:transition-opacity lg:duration-150 lg:motion-reduce:transition-none">
-                        <div class="bg-white dark:bg-stone-900 border border-amber-100 dark:border-stone-700 rounded-xl shadow-sm lg:shadow-lg p-3 min-w-[11rem] max-w-[16rem]">
-                            <p class="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-2">Permisos específicos</p>
-                            <ul class="space-y-1.5">
+                        <div class="bg-white dark:bg-stone-900 border border-amber-100 dark:border-stone-700 rounded-xl shadow-sm lg:shadow-lg p-5 min-w-[16rem] max-w-[22rem]">
+                            <p class="text-xs font-bold text-stone-400 dark:text-stone-500 uppercase tracking-wide mb-3">Permisos específicos</p>
+                            <ul class="space-y-2.5">
                                 @foreach($item['acciones'] as $accionTexto)
-                                    <li class="flex items-center gap-2 text-xs font-semibold text-stone-700 dark:text-stone-300">
-                                        <svg class="w-3 h-3 flex-shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    <li class="flex items-center gap-3 text-sm font-semibold text-stone-700 dark:text-stone-300">
+                                        <svg class="w-4 h-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                         {{ $accionTexto }}
                                     </li>
                                 @endforeach
