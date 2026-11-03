@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6 max-w-[1400px] mx-auto">
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-stone-100">Permisos de {{ $user->name }}</h1>
-            <p class="text-sm text-slate-500 dark:text-stone-400 mt-1">{{ $user->email }}</p>
+<div class="p-4 sm:p-6 max-w-[1400px] mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+        <div class="min-w-0">
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-stone-100 break-words">Permisos de {{ $user->name }}</h1>
+            <p class="text-sm text-slate-500 dark:text-stone-400 mt-1 break-all">{{ $user->email }}</p>
         </div>
 
-        <div class="flex items-center gap-6">
+        <div class="flex items-center justify-between sm:justify-start gap-4 sm:gap-6">
             <!-- Botón Global (Seleccionar todo) -->
             <label class="relative inline-flex items-center gap-3 cursor-pointer group/global p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-stone-800/50 transition-colors">
                 <span class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-stone-400 group-hover/global:text-orange-600 transition-colors">Seleccionar Todo</span>
@@ -43,9 +43,9 @@
             'selectedIds' => $selectedIds,
         ])
 
-        <div class="flex justify-end gap-3 pt-8 mt-4">
-            <a href="{{ route('admin.users.index') }}" class="px-5 py-2.5 bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 text-slate-700 dark:text-stone-300 text-sm font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-stone-800 transition-colors">Cancelar</a>
-            <button type="submit" class="px-6 py-2.5 bg-orange-600 text-white text-sm font-medium rounded-xl hover:bg-orange-700 shadow-lg shadow-orange-600/20 transition-all focus:ring-4 focus:ring-orange-500/20">Guardar Cambios</button>
+        <div class="flex justify-end gap-3 pt-6 sm:pt-8 mt-4">
+            <a href="{{ route('admin.users.index') }}" class="flex-1 sm:flex-none text-center px-5 py-2.5 bg-white dark:bg-stone-900 border border-slate-200 dark:border-stone-700 text-slate-700 dark:text-stone-300 text-sm font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-stone-800 transition-colors">Cancelar</a>
+            <button type="submit" class="flex-1 sm:flex-none px-6 py-2.5 bg-orange-600 text-white text-sm font-medium rounded-xl hover:bg-orange-700 shadow-lg shadow-orange-600/20 transition-all focus:ring-4 focus:ring-orange-500/20">Guardar Cambios</button>
         </div>
     </form>
 </div>

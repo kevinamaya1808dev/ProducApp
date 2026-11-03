@@ -22,8 +22,8 @@
 @endphp
 
 <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm">
-    <table class="w-full text-left border-collapse">
-        <thead class="border-b-2 border-slate-100 dark:border-stone-800/80 bg-slate-50/50 dark:bg-stone-900/50">
+    <table class="block lg:table w-full text-left border-collapse">
+        <thead class="hidden lg:table-header-group border-b-2 border-slate-100 dark:border-stone-800/80 bg-slate-50/50 dark:bg-stone-900/50">
             <tr>
                 <th class="px-6 py-5 text-xs font-bold text-slate-400 dark:text-stone-500 uppercase tracking-widest w-1/5">Módulo</th>
                 @foreach($actionColumns as $label)
@@ -32,11 +32,11 @@
                 <th class="px-6 py-5 text-xs font-bold text-orange-500 dark:text-orange-600 uppercase tracking-widest text-center border-l border-slate-100 dark:border-stone-800/60">Todo</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-stone-800/60">
+        <tbody class="block lg:table-row-group divide-y divide-slate-100 dark:divide-stone-800/60">
             @forelse($modules as $moduleSlug => $modulePermissions)
-                <tr class="hover:bg-slate-50/50 dark:hover:bg-stone-800/30 transition-colors group">
+                <tr class="grid grid-cols-3 sm:grid-cols-5 lg:table-row hover:bg-slate-50/50 dark:hover:bg-stone-800/30 transition-colors group">
                     <!-- Nombre del Módulo -->
-                    <td class="px-6 py-4 align-middle">
+                    <td class="col-span-full px-4 pt-4 pb-1 lg:px-6 lg:py-4 align-middle">
                         <span class="font-bold text-slate-800 dark:text-stone-100 text-sm tracking-wide">
                             {{ $moduleLabels[$moduleSlug] ?? ucfirst($moduleSlug) }}
                         </span>
@@ -44,9 +44,10 @@
 
                     @foreach($actionColumns as $actionKey => $actionLabel)
                         @php $perm = $modulePermissions->firstWhere('action', $actionKey); @endphp
-                        <td class="px-4 py-4 text-center align-middle">
+                        <td class="flex flex-col items-center gap-2 px-2 py-3 lg:table-cell lg:px-4 lg:py-4 text-center align-middle">
+                            <span class="lg:hidden text-[10px] font-bold text-slate-400 dark:text-stone-500 uppercase tracking-wider">{{ $actionLabel }}</span>
                             @if($perm)
-                                <label class="relative inline-flex items-center justify-center cursor-pointer group/cb">
+                                <label class="relative inline-flex items-center justify-center cursor-pointer group/cb p-2 -m-2 lg:p-0 lg:m-0">
                                     <input type="checkbox" name="permissions[]" value="{{ $perm->id }}" @checked(in_array($perm->id, $selectedIds)) class="sr-only peer permission-checkbox module-{{ $moduleSlug }}">
                                     <div class="w-6 h-6 rounded border-2 border-slate-200 dark:border-stone-700 group-hover/cb:border-orange-400 peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-all flex items-center justify-center bg-transparent">
                                         <svg class="w-4 h-4 text-white scale-50 opacity-0 peer-checked:scale-100 peer-checked:opacity-100 transition-all duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -61,8 +62,9 @@
                     @endforeach
 
                     <!-- SELECCIONAR TODO EL MÓDULO -->
-                    <td class="px-6 py-4 text-center align-middle border-l border-slate-100 dark:border-stone-800/60 bg-slate-50/30 dark:bg-stone-800/10">
-                        <label class="relative inline-flex items-center justify-center cursor-pointer group/cb">
+                    <td class="col-span-full flex items-center justify-between lg:table-cell px-4 py-3 lg:px-6 lg:py-4 text-center align-middle border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-stone-800/60 bg-slate-50/30 dark:bg-stone-800/10">
+                        <span class="lg:hidden text-xs font-bold text-orange-500 dark:text-orange-600 uppercase tracking-widest">Todo el módulo</span>
+                        <label class="relative inline-flex items-center justify-center cursor-pointer group/cb p-2 -m-2 lg:p-0 lg:m-0">
                             <input type="checkbox" class="sr-only peer select-module" data-module="module-{{ $moduleSlug }}">
                             <div class="w-6 h-6 rounded-lg border-2 border-slate-300 dark:border-stone-600 group-hover/cb:border-orange-500 peer-checked:bg-orange-600 peer-checked:border-orange-600 shadow-sm transition-all flex items-center justify-center bg-slate-50 dark:bg-stone-800">
                                 <svg class="w-4 h-4 text-white scale-50 opacity-0 peer-checked:scale-100 peer-checked:opacity-100 transition-all duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,7 +76,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-stone-400">
+                    <td colspan="7" class="block lg:table-cell px-6 py-12 text-center text-slate-500 dark:text-stone-400">
                         No hay permisos registrados todavía.
                     </td>
                 </tr>
@@ -82,14 +84,14 @@
 
             <!-- Permisos Especiales -->
             @if($special->count())
-                <tr class="bg-slate-50/50 dark:bg-stone-800/20 border-t border-slate-200 dark:border-stone-800">
-                    <td class="px-6 py-5 align-middle">
+                <tr class="block lg:table-row bg-slate-50/50 dark:bg-stone-800/20 border-t border-slate-200 dark:border-stone-800">
+                    <td class="block lg:table-cell px-4 pt-4 pb-1 lg:px-6 lg:py-5 align-middle">
                         <span class="font-bold text-slate-500 dark:text-stone-400 uppercase tracking-widest text-xs">
                             Especiales
                         </span>
                     </td>
-                    <td colspan="5" class="px-4 py-5">
-                        <div class="flex flex-wrap gap-x-8 gap-y-4">
+                    <td colspan="5" class="block lg:table-cell px-4 pt-2 pb-4 lg:py-5">
+                        <div class="flex flex-wrap gap-x-6 lg:gap-x-8 gap-y-4">
                             @foreach($special as $permission)
                                 <label class="relative inline-flex items-center gap-2.5 cursor-pointer group/item">
                                     <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" @checked(in_array($permission->id, $selectedIds)) class="sr-only peer permission-checkbox module-special">
@@ -103,8 +105,9 @@
                             @endforeach
                         </div>
                     </td>
-                    <td class="px-6 py-5 text-center align-middle border-l border-slate-100 dark:border-stone-800/60 bg-slate-50/30 dark:bg-stone-800/10">
-                        <label class="relative inline-flex items-center justify-center cursor-pointer group/cb">
+                    <td class="col-span-full flex items-center justify-between lg:table-cell px-4 py-3 lg:px-6 lg:py-5 text-center align-middle border-t lg:border-t-0 lg:border-l border-slate-100 dark:border-stone-800/60 bg-slate-50/30 dark:bg-stone-800/10">
+                        <span class="lg:hidden text-xs font-bold text-orange-500 dark:text-orange-600 uppercase tracking-widest">Todo el módulo</span>
+                        <label class="relative inline-flex items-center justify-center cursor-pointer group/cb p-2 -m-2 lg:p-0 lg:m-0">
                             <input type="checkbox" class="sr-only peer select-module" data-module="module-special">
                             <div class="w-6 h-6 rounded-lg border-2 border-slate-300 dark:border-stone-600 group-hover/cb:border-orange-500 peer-checked:bg-orange-600 peer-checked:border-orange-600 shadow-sm transition-all flex items-center justify-center bg-slate-50 dark:bg-stone-800">
                                 <svg class="w-4 h-4 text-white scale-50 opacity-0 peer-checked:scale-100 peer-checked:opacity-100 transition-all duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
